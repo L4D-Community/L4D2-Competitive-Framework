@@ -18,7 +18,7 @@ public Plugin myinfo =
 	author = "Jahze(patch data), Visor(SM), A1m`",
 	description = "Removes the Tank claw's undocumented auto-aiming ability",
 	version = "0.5",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

@@ -50,7 +50,7 @@ public Plugin myinfo =
 	author = "Visor, A1m`",
 	version = "1.5.2",
 	description = "Survivors receive damage reports after they get capped",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

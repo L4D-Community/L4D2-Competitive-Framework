@@ -11,7 +11,7 @@ public Plugin myinfo =
 	author = "Forgetest",
 	description = "Memory patch for rock hitbox being stricter to land survivors in saferoom.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/Target5150/MoYu_Server_Stupid_Plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 #define GAMEDATA_FILE "l4d_checkpoint_rock_patch"

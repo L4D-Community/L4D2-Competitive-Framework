@@ -10,7 +10,7 @@ public Plugin myinfo =
 	author = "CanadaRox, Sir",
 	description = "Ensures that survivors that have been incapacitated with a hittable or ledged get their temp health set correctly",
 	version = "2.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -23,7 +23,7 @@ public Plugin myinfo =
 	author = "Spoon, Luckylock, A1m`",
 	description = "Prevents deadstops but allows m2s on standing hunters",
 	version = "1.0.3",
-	url = "https://github.com/luckyserv"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

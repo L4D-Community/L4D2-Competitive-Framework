@@ -26,7 +26,7 @@ public Plugin:myinfo =
 	description = "Prevents calling votes while others are loading",
 	author = "ProdigySim, CanadaRox, darkid",
 	version = "2.0.1.0",
-	url = "https://github.com/jacob404/Pro-Mod-4.0/releases/latest"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 new bool:g_bBlockCallvote;
 new loadedPlayers = 0;

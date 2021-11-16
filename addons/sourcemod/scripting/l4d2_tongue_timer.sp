@@ -29,7 +29,7 @@ public Plugin myinfo =
 	author = "Sir",
 	description = "Modify the Smoker's tongue ability timer in certain scenarios.",
 	version = "1.1",
-	url = "Nope"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

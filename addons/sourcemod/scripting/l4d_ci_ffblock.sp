@@ -21,11 +21,11 @@ new Handle:g_hCvarDamage              = INVALID_HANDLE;
 
 public Plugin:myinfo = 
 {
-    name = "SI - CI FF Block",
-    author = "Sir",
-    description = "Modifies FF from SI (Except Tank) to CI",
-    version = "1.1",
-    url = "https://github.com/SirPlease/SirCoding"
+	name = "SI - CI FF Block",
+	author = "Sir",
+	description = "Modifies FF from SI (Except Tank) to CI",
+	version = "1.1",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

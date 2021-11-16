@@ -35,7 +35,7 @@ public Plugin myinfo =
     author = "arti",
     description = "Distributes the role of the tank evenly throughout the team",
     version = "0.0.18",
-    url = "https://github.com/alexberriman/l4d2-plugins/tree/master/l4d_tank_control"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 enum L4D2Team

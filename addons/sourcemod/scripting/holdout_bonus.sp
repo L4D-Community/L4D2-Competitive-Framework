@@ -95,7 +95,7 @@ public Plugin: myinfo =
     author = "Tabun",
     description = "Gives bonus for (partially) surviving holdout/camping events. (Requires penalty_bonus.)",
     version = "0.0.9",
-    url = "https://github.com/Tabbernaut/L4D2-Plugins"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)

@@ -25,7 +25,7 @@ public Plugin:myinfo =
 	author = "raziEiL [disawar1]",
 	description = "Blocking ladder speed glitch, no fall damage bug, health boost glitch.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 static		Handle:g_hFixGlitchTimer[MAXPLAYERS+1], g_iHealthToRestore[MAXPLAYERS+1], g_iLastKnownHealth[MAXPLAYERS+1], Handle:g_hRestoreTimer[MAXPLAYERS+1],

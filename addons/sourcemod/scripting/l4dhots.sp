@@ -8,7 +8,7 @@ public Plugin:myinfo =
     author = "ProdigySim, CircleSquared",
     description = "Pills and Adrenaline heal over time",
     version = "0.4",
-    url = "https://bitbucket.org/ProdigySim/misc-sourcemod-plugins"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 new bool:IsL4D2;

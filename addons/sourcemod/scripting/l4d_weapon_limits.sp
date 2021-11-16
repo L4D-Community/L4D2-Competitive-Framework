@@ -48,7 +48,7 @@ public Plugin myinfo =
 	author = "CanadaRox, Stabby, Forgetest, A1m`",
 	description = "Restrict weapons individually or together",
 	version = "1.3.7",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

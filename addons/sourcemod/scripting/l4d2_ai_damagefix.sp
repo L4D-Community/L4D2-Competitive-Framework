@@ -78,14 +78,14 @@ new                     iHunterSkeetDamage[MAXPLAYERS+1]                        
     -----------------------------------------------------------------------------------------------------------------------------------------------------
  */
 
-public Plugin:myinfo =
+public Plugin myinfo =
 {
-    name = "Bot SI skeet/level damage fix",
-    author = "Tabun, dcx2",
-    description = "Makes AI SI take (and do) damage like human SI.",
-    version = "1.0.9",
-    url = "https://github.com/Tabbernaut/L4D2-Plugins/tree/master/ai_damagefix"
-}
+	name = "Bot SI skeet/level damage fix",
+	author = "Tabun, dcx2",
+	description = "Makes AI SI take (and do) damage like human SI.",
+	version = "1.0.9",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
 
 public APLRes:AskPluginLoad2( Handle:plugin, bool:late, String:error[], errMax)
 {

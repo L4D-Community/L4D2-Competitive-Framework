@@ -30,7 +30,7 @@ public Plugin myinfo =
 	author = "Visor, A1m`",
 	description = "Remove sniper weapons' stomach hitgroup damage multiplier against hunters",
 	version = "2.2",
-	url = "https://github.com/Attano/L4D2-Competitive-Framework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -15,7 +15,7 @@ public Plugin myinfo =
     author = "Tabun, Forgetest",
     description = "Report what SI classes are up when the round starts.",
     version = PLUGIN_VERSION,
-    url = "none"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 #define ZC_SMOKER               1

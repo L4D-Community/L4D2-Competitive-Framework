@@ -14,7 +14,7 @@ public Plugin myinfo =
 	author		= "ProdigySim",
 	description	= "Prevent damage from blocking a hunter's ability to pounce",
 	version		= "1.1",
-	url			= "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url			= "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

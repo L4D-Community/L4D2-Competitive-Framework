@@ -25,7 +25,7 @@ public Plugin myinfo =
 	author = "Stabby & CanadaRox",
 	description = "Removes pills from bots if they try to use them and restores them when a human takes over.",
 	version = "1.4",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

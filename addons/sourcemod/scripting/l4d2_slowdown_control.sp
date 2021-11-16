@@ -78,7 +78,7 @@ public Plugin myinfo =
 	author = "Visor, Sir, darkid, Forgetest, A1m`, Derpduck",
 	version = "2.7.1",
 	description = "Manages the water/gunfire slowdown for both teams",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

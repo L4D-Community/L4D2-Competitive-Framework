@@ -50,7 +50,7 @@ public Plugin:myinfo =
     author      = "Visor",
     version     = "1.1",
     description = "Tank's screen fades into red when taking damage",
-    url         = "https://github.com/Attano/Equilibrium"
+    url         = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public OnPluginStart()

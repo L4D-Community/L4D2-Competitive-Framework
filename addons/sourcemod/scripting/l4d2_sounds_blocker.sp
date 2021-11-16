@@ -68,7 +68,7 @@ public Plugin myinfo =
 	description = "Blocks out more annoying sounds and allows the option for blocking custom sounds. Designed for NextMod Config.",
 	author = "Spoon, A1m`",
 	version = "1.3.2",
-	url = "https://github.com/spoon-l4d2/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

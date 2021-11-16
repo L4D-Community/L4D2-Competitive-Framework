@@ -52,7 +52,7 @@ public Plugin:myinfo =
     author = "Tabun, devilesk",
     description = "Allows checks whether a coordinate/entity/player is in start or end saferoom (uses saferoominfo.txt).",
     version = "0.0.8",
-    url = "https://github.com/devilesk/rl4d2l-plugins"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 new     bool:           g_bLGOIsAvailable                                   = false;                // whether confogl is loaded

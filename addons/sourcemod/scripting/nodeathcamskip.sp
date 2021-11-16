@@ -13,7 +13,7 @@ public Plugin:myinfo =
     author = "Jacob, Sir",
     description = "Blocks players skipping their death time by going spec",
     version = "1.4",
-    url = "..."
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

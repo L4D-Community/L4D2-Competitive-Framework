@@ -16,7 +16,7 @@ public Plugin myinfo =
 	author = "CanadaRox, A1m`",
 	description = "Lets players pass pills and adrenaline with +reload when they are holding one of those items",
 	version = "1.4",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fVel[3], float fAngles[3], \

@@ -58,7 +58,7 @@ public Plugin myinfo =
 	author = "Visor, Sir, A1m`",
 	description = "Make the spit deal a set amount of DPS under all circumstances",
 	version = "1.5",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

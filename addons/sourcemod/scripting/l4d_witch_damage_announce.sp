@@ -84,7 +84,7 @@ public Plugin:myinfo =
 	author = "Sir",
 	description = "Print Witch Damage to chat",
 	version = "1.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

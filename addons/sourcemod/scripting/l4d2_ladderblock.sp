@@ -53,7 +53,7 @@ public Plugin myinfo =
 	author = "raziEiL [disawar1]",
 	description = "Prevents people from blocking players who climb on the ladder.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

@@ -15,7 +15,7 @@ public Plugin myinfo =
 	author = "sheo",
 	description = "Fixes the bug with too fast melee attacks",
 	version = PL_VERSION,
-	url = "http://steamcommunity.com/groups/b1com"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)

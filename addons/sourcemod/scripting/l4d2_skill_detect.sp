@@ -424,14 +424,14 @@ new     Handle:         g_hCvarMaxPounceDamage                              = IN
         - 300+ speed hops are considered hops even if no increase
 */
 
-public Plugin:myinfo = 
+public Plugin myinfo = 
 {
-    name = "Skill Detection (skeets, crowns, levels)",
-    author = "Tabun",
-    description = "Detects and reports skeets, crowns, levels, highpounces, etc.",
-    version = PLUGIN_VERSION,
-    url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
-}
+	name = "Skill Detection (skeets, crowns, levels)",
+	author = "Tabun",
+	description = "Detects and reports skeets, crowns, levels, highpounces, etc.",
+	version = PLUGIN_VERSION,
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {

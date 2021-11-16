@@ -9,7 +9,7 @@ public Plugin myinfo =
 	author = "Sir",
 	description = "Make sure Boomers are unable to bile Survivors during a stumble (basically reinforce shoves)",
 	version = "1.0",
-	url = "None."
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action L4D_OnShovedBySurvivor(int client, int victim, const float vecDirection[3])

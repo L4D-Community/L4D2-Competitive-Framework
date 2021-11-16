@@ -26,7 +26,7 @@ public Plugin:myinfo =
 	author = "purpletreefactory, epilimic",
 	description = "purpletreefactory's version of coinflip",
 	version = "1.0.2",
-	url = "http://www.sourcemod.net/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
  
 public OnPluginStart()

@@ -61,7 +61,7 @@ public Plugin myinfo =
 	description = "Fix melees weapons not applying correct damage values on infected. Allows manipulate melee damage on some infected.",
 	author = "Visor, Sir, A1m`",
 	version = "2.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)

@@ -9,7 +9,7 @@ public Plugin:myinfo =
 	author = "CanadaRox",
 	description = "Prevents AI tanks from throwing underhand rocks since he can't aim them correctly",
 	version = "1",
-	url = "https://github.com/CanadaRox/sourcemod-plugins/tree/master/smart_ai_rock"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action:L4D2_OnSelectTankAttack(client, &sequence)

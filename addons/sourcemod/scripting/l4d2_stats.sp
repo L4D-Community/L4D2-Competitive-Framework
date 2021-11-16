@@ -47,7 +47,7 @@ public Plugin myinfo =
 	author = "Griffin, Philogl, Sir, A1m`",
 	description = "Display Skeets/Etc to Chat to clients",
 	version = "1.2.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

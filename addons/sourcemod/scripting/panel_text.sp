@@ -11,7 +11,7 @@ public Plugin:myinfo =
 	author = "epilimic",
 	description = "Displays custom text in the readyup panel. Spanks for the help CanadaRox!",
 	version = PLUGIN_VERSION,
-	url = "http://buttsecs.org"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new String:panelText[10][MAX_TEXT_LENGTH];

@@ -37,7 +37,7 @@ public Plugin:myinfo =
     author = "Jacob",
     description = "Blocks players getting incapped from full hp on the ladder.",
     version = "1.0",
-    url = "github.com/jacob404/myplugins"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnMapStart()

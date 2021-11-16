@@ -9,7 +9,7 @@ public Plugin:myinfo =
 	author = "Sir",
 	description = "L4D2 has a nasty bug which Survivors would exploit and this fixes that. (Holding out a melee and spamming shove, even if the jockey was behind you, would self-clear yourself after the Jockey actually landed.",
 	version = "1.0",
-	url = "nah"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action L4D_OnShovedBySurvivor(int client, int victim, const float vecDir[3])

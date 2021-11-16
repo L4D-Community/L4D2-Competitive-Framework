@@ -39,7 +39,7 @@ public Plugin myinfo =
 	author = "CircleSquared, Jacob, A1m`",
 	description = "Gives health items and throwables to survivors at the start of each round",
 	version = "2.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -10,11 +10,11 @@ new bool:readyUpIsAvailable;
 
 public Plugin:myinfo =
 {
-    name = "Caster Assister",
-    author = "CanadaRox, Sir",
-    description = "Allows spectators to control their own specspeed and move vertically",
-    version = "2.2",
-    url = ""
+	name = "Caster Assister",
+	author = "CanadaRox, Sir",
+	description = "Allows spectators to control their own specspeed and move vertically",
+	version = "2.2",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new Float:currentMulti[MAXPLAYERS+1] = { 1.0, ... };

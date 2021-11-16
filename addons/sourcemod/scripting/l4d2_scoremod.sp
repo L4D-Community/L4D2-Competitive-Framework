@@ -16,7 +16,7 @@ public Plugin myinfo =
 	author = "CanadaRox, ProdigySim",
 	description = "L4D2 Custom Scoring System (Health Bonus)",
 	version = "1.1.1",
-	url = "https://bitbucket.org/CanadaRox/random-sourcemod-stuff"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new bool:l4d2lib_available = false;

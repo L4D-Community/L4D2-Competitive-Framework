@@ -34,7 +34,7 @@ public Plugin myinfo =
 	author = "vintik, Forgetest, A1m`",
 	description = "Changes team scores.",
 	version = PLUGIN_VERSION,
-	url = "https://bitbucket.org/vintik/various-plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 ConVar 

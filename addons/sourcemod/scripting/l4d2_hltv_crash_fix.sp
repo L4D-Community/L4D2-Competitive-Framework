@@ -57,7 +57,7 @@ public Plugin myinfo =
 	author = "backwards, ProdigySim, A1m`",
 	description = "Prevents Exploit That Crashes Servers",
 	version = "2.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

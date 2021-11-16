@@ -13,7 +13,7 @@ public Plugin myinfo =
 	author = "Forgetest",
 	description = "Fix hunter being unable to pounce off non-static props",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/Target5150/MoYu_Server_Stupid_Plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 #define GAMEDATA_FILE "l4d2_si_ability"

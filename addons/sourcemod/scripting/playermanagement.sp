@@ -14,7 +14,7 @@ public Plugin myinfo =
 	author = "CanadaRox",
 	description = "Player management!  Swap players/teams and spectate!",
 	version = "7",
-	url = ""
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 enum L4D2Team

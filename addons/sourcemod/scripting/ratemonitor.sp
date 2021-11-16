@@ -60,7 +60,7 @@ public Plugin myinfo =
 	author = "Visor, Sir, A1m`",
 	description = "Keep track of players' netsettings",
 	version = "2.6",
-	url = "https://github.com/A1mDev/L4D2-Competitive-Plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

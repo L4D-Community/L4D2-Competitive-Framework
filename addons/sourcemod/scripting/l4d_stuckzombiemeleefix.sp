@@ -10,7 +10,7 @@ public Plugin:myinfo =
 	author = "AtomicStryker",
 	description = "Smash nonstaggering Zombies",
 	version = PLUGIN_VERSION,
-	url = "http://forums.alliedmods.net/showthread.php?p=932416"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

@@ -11,7 +11,7 @@ public Plugin:myinfo =
 	description = "Stops Shoves slowing the Tank and Charger Down",
 	author = "Sir, Visor",
 	version = "1.0",
-	url = "https://github.com/Attano/Equilibrium"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action:L4D_OnShovedBySurvivor(shover, shovee, const Float:vector[3])

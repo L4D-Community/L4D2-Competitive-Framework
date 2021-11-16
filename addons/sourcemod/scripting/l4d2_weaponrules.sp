@@ -42,7 +42,7 @@ public Plugin myinfo =
 	author = "ProdigySim",
 	version = "1.0.2",
 	description = "^",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -17,7 +17,7 @@ public Plugin myinfo =
 	author = "step, Sir, A1m`",
 	description = "Fixes multiple sv_consistency issues.",
 	version = "1.4.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -41,7 +41,7 @@ public Plugin:myinfo =
 	author = "Don, epilimic, Griffin",
 	description = "Prevents the director from giving the infected team a spitter while the tank is alive",
 	version = "2.0",
-	url = "https://bitbucket.org/DonSanchez/random-sourcemod-stuff"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)

@@ -27,7 +27,7 @@ public Plugin:myinfo =
 	author = "vintik, Sir",
 	description = "!match !rmatch - Change Hostname and Slots while you're at it!",
 	version = "1.1.3",
-	url = "https://bitbucket.org/vintik/various-plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

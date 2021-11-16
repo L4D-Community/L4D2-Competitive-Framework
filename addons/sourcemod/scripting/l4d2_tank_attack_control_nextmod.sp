@@ -28,7 +28,7 @@ public Plugin myinfo =
 	author = "Spoon",
 	description = "Remake of https://github.com/Stabbath/ProMod/blob/master/addons/sourcemod/scripting/l4d_tank_control.sp.",
 	version = "0.8.2",
-	url = "https://github.com/spoon-l4d2"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

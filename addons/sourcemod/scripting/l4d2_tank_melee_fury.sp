@@ -8,7 +8,7 @@ public Plugin:myinfo =
 	author = "Visor",
 	description = "Aggressive melee Survivors are almost certain to get punished for excessively pushing the Tank",
 	version = "1.0",
-	url = "https://github.com/Attano/L4D2-Competitive-Framework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public OnPluginStart()

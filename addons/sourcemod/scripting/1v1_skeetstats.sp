@@ -95,7 +95,7 @@ public Plugin myinfo =
 	author = "Tabun",
 	description = "Shows 1v1-relevant info at end of round.",
 	version = "0.1f",
-	url = "nope"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 //new Handle: hPluginEnabled;

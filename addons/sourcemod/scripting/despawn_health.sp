@@ -14,7 +14,7 @@ public Plugin myinfo =
 	author = "Jacob",
 	description = "Gives Special Infected health back when they despawn.",
 	version = "1.3.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

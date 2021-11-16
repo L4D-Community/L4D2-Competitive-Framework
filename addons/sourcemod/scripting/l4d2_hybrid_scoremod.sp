@@ -55,7 +55,7 @@ public Plugin:myinfo =
 	author = "Visor",
 	description = "The next generation scoring mod",
 	version = "2.2.4",
-	url = "https://github.com/Attano/L4D2-Competitive-Framework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes:AskPluginLoad2(Handle:plugin, bool:late, String:error[], errMax)

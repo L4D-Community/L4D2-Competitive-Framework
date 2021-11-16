@@ -35,7 +35,7 @@ public Plugin:myinfo =
     author = "Tabun",
     description = "Gives bonus for witches getting killed without doing damage to survivors (uses pbonus).",
     version = "0.9.3",
-    url = "none"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)

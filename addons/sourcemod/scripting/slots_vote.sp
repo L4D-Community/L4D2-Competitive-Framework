@@ -14,8 +14,8 @@ public Plugin:myinfo =
 	name = "Slots?! Voter",
 	description = "Slots Voter",
 	author = "Sir",
-	version = "",
-	url = ""
+	version = "1.0",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public OnPluginStart()
