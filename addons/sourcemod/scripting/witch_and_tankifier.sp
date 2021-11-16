@@ -19,7 +19,7 @@ public Plugin myinfo = {
 	author = "CanadaRox, Sir, devilesk, Derpduck, Forgetest",
 	version = "2.4.1",
 	description = "Sets a tank spawn and has the option to remove the witch spawn point on every map",
-	url = "https://github.com/devilesk/rl4d2l-plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 // ======================================

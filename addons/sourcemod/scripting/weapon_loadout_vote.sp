@@ -72,7 +72,7 @@ public Plugin myinfo =
 	author = "Sir, A1m`",
 	description = "Allows the Players to choose which weapons to play the mode in.",
 	version = "2.3",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

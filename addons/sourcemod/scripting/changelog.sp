@@ -9,7 +9,7 @@ public Plugin:myinfo =
 	description = "Does things :)",
 	author = "Spoon",
 	version = "3.0.5",
-	url = "https://github.com/spoon-l4d2/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new Handle:linkCVar;

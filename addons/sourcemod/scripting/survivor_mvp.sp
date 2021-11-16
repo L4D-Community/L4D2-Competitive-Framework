@@ -82,11 +82,11 @@ Brevity flags:
 
 public Plugin:myinfo =
 {
-    name = "Survivor MVP notification",
-    author = "Tabun, Artifacial",
-    description = "Shows MVP for survivor team at end of round",
-    version = "0.3",
-    url = "https://github.com/alexberriman/l4d2_survivor_mvp"
+	name = "Survivor MVP notification",
+	author = "Tabun, Artifacial",
+	description = "Shows MVP for survivor team at end of round",
+	version = "0.3",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 

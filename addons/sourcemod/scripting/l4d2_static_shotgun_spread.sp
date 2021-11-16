@@ -56,7 +56,7 @@ public Plugin myinfo =
 	author = "Jahze, Visor, A1m`, Rena",
 	version = "1.6.1",
 	description = "Changes the values in the sgspread patch",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

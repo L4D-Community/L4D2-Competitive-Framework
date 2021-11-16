@@ -65,7 +65,7 @@ public Plugin myinfo =
 	author = "SilverShot",
 	description = "Prevent filling the clip and skipping the reload animation when taking the same weapon.",
 	version = PLUGIN_VERSION,
-	url = "https://forums.alliedmods.net/showthread.php?t=333100"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

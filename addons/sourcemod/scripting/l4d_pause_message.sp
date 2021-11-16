@@ -11,7 +11,7 @@ public Plugin myinfo =
 	author = "Sir (Simplified version of Silver's)",
 	description = "Simply block pause commands when the server doesn't even support pausing.",
 	version = "1.0",
-	url = "Nah."
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

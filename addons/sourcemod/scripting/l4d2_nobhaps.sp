@@ -17,7 +17,7 @@ public Plugin:myinfo =
 	author = "CanadaRox, ProdigySim, blodia, CircleSquared, robex",
 	description = "Stops bunnyhops by restricting speed when a player lands on the ground to their MaxSpeed",
 	version = "0.3",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new Handle:hCvarEnable;

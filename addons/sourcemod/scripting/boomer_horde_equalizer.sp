@@ -21,7 +21,7 @@ public Plugin myinfo =
 	author = "Visor, Jacob, A1m`",
 	version = "1.5",
 	description = "Fixes boomer hordes being different sizes based on wandering commons.",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

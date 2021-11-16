@@ -10,12 +10,12 @@ int iDropMethod;
 
 public Plugin myinfo =
 {
-    name = "Shove Shenanigans - REVAMPED",
-    author = "Sir",
-    description = "Stops Shoves slowing the Tank and Charger, gives control over what happens when a Survivor is punched while having a melee out.",
-    version = "1.3",
-    url = ""
-}
+	name = "Shove Shenanigans - REVAMPED",
+	author = "Sir",
+	description = "Stops Shoves slowing the Tank and Charger, gives control over what happens when a Survivor is punched while having a melee out.",
+	version = "1.3",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
 
 public void OnPluginStart()
 {

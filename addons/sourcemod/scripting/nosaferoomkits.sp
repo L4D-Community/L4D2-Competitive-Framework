@@ -14,7 +14,7 @@ public Plugin myinfo =
 	author = "Blade",
 	description = "Removes Safe Room Medkits",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/Attano/L4D2-Competitive-Framework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

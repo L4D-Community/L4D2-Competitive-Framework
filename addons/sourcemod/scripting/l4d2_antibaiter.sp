@@ -71,7 +71,7 @@ public Plugin myinfo =
 	author = "Visor, Sir (assisted by Devilesk), A1m`",
 	description = "Makes you think twice before attempting to bait that shit",
 	version = "1.3.4",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

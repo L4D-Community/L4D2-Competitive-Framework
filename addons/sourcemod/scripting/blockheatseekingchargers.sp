@@ -25,7 +25,7 @@ public Plugin myinfo =
 	description = "Blocks heatseeking chargers",
 	author = "sheo",
 	version = PL_VERSION,
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

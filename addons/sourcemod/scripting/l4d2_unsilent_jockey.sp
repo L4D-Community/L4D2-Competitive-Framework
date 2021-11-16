@@ -69,11 +69,11 @@ Changelog
 
 public Plugin myinfo = 
 {
-    name = "Unsilent Jockey",
-    author = "Tabun, robex, Sir",
-    description = "Makes jockeys emit sound constantly.",
-    version = "0.4",
-    url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	name = "Unsilent Jockey",
+	author = "Tabun, robex, Sir",
+	description = "Makes jockeys emit sound constantly.",
+	version = "0.4",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 /* -------------------------------

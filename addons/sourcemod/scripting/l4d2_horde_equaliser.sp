@@ -42,7 +42,7 @@ public Plugin myinfo =
 	author = "Visor (original idea by Sir), A1m`",
 	description = "Make certain event hordes finite",
 	version = "3.0.9",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

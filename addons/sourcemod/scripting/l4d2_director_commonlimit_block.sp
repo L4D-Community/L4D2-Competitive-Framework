@@ -14,8 +14,8 @@ public Plugin myinfo =
 	author = "Tabun",
 	description = "Prevents director scripted overrides of z_common_limit. Only affects scripted common limits higher than the cvar.",
 	version = "0.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
-}
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
 
 public void OnPluginStart()
 {

@@ -14,7 +14,7 @@ public Plugin myinfo =
 	author = "CanadaRox, Forgetest",
 	description = "Standalone caster handler.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/Target5150/MoYu_Server_Stupid_Plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 #define L4D2Team_Spectator 1

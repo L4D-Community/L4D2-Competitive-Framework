@@ -49,7 +49,7 @@ public Plugin:myinfo =
 	author = "Confogl Team",
 	description = "A competitive mod for L4D2",
 	version = PLUGIN_VERSION,
-	url = "http://confogl.googlecode.com/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

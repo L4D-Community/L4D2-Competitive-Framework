@@ -19,7 +19,7 @@ public Plugin:myinfo =
 	author = "DarkNoghri, madcap",
 	description = "Notify people when player is black and white.",
 	version = PLUGIN_VERSION,
-	url = "http://www.sourcemod.net"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new Handle:h_cvarNoticeType=INVALID_HANDLE;

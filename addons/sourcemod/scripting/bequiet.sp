@@ -14,7 +14,7 @@ public Plugin myinfo =
     author = "Sir",
     description = "Please be Quiet!",
     version = "1.33.7",
-    url = "https://github.com/SirPlease/SirCoding"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart()

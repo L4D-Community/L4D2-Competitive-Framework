@@ -36,7 +36,7 @@ public Plugin myinfo =
 	author = "PP(R)TH: Dr. Gregory House",
 	description = "This should at some point fix the case in which the tank misses the door he's supposed to destroy by using his punch",
 	version = VERSION,
-	url = "http://forums.alliedmods.net/showthread.php?t=225087"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)

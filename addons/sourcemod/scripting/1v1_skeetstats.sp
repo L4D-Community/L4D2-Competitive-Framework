@@ -89,16 +89,14 @@
                 - built in some better safeguards against client index out of bounds probs
  */
 
-
-public Plugin:myinfo =
+public Plugin myinfo =
 {
-    name = "1v1 SkeetStats",
-    author = "Tabun",
-    description = "Shows 1v1-relevant info at end of round.",
-    version = "0.1f",
-    url = "nope"
+	name = "1v1 SkeetStats",
+	author = "Tabun",
+	description = "Shows 1v1-relevant info at end of round.",
+	version = "0.1f",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
-
 
 //new Handle: hPluginEnabled;
 //new bool: bPluginEnabled;

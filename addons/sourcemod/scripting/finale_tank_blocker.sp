@@ -19,7 +19,7 @@ public Plugin myinfo =
 	author = "Stabby, Visor",
 	description = "Blocks even-numbered non-flow finale tanks.",
 	version = "2.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

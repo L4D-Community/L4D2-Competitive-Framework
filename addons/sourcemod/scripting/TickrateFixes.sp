@@ -95,7 +95,7 @@ public Plugin myinfo =
 	author = "Sir, Griffin, A1m`",
 	description = "Fixes a handful of silly Tickrate bugs",
 	version = "1.3",
-	url = "https://github.com/A1mDev/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)

@@ -58,7 +58,7 @@ public Plugin myinfo =
 	author = "Visor, Electr0",
 	description = "Either two event tanks or one flow and one (second) event tank",
 	version = "2.5.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

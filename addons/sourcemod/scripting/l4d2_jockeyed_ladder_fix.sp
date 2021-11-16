@@ -14,7 +14,7 @@ public Plugin myinfo =
 	author = "Visor, A1m`",
 	description = "Fixes jockeyed Survivors slowly sliding down the ladders",
 	version = "1.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action CH_PassFilter(int entity1, int entity2, bool &result)

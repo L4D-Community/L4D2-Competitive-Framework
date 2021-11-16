@@ -25,7 +25,7 @@ public Plugin myinfo =
 	author = "Visor, Forgetest, xoxo",
 	description = "Announce in chat and via a sound when a Tank has spawned",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -90,7 +90,7 @@ public Plugin myinfo =
 	author			=	"$atanic $pirit, Lux, Forgetest",
 	description		=	"Allows players to shoot from Ladders",
 	version			=	PLUGIN_VERSION,
-	url				=	""
+	url				=	"https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 // ====================================================================================================

@@ -73,8 +73,8 @@ public Plugin myinfo =
 	author = "Sir, A1m`",
 	description = "Alters a few things regarding picking up/giving items and incapped Players.",
 	version = "1.2.2",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework/"
-}
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {

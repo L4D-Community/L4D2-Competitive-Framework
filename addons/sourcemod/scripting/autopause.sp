@@ -31,7 +31,7 @@ public Plugin:myinfo =
     author = "Darkid, Griffin",
     description = "When a player disconnects due to crash, automatically pause the game. When they rejoin, give them a correct spawn timer.",
     version = "1.9",
-    url = "https://github.com/jbzdarkid/AutoPause"
+    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 new Handle:enabled;

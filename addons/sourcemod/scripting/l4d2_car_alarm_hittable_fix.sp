@@ -11,7 +11,7 @@ public Plugin myinfo =
 	author = "Sir",
 	description = "Disables the Car Alarm when a Tank hittable hits the alarmed car.",
 	version = "1.1",
-	url = "nah"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnEntityCreated(int entity, const char[] classname) 

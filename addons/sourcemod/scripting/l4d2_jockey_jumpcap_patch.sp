@@ -20,7 +20,7 @@ public Plugin myinfo =
 	author = "Visor, A1m`",
 	description = "Prevent Jockeys from being able to land caps with non-ability jumps in unfair situations",
 	version = "1.4",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

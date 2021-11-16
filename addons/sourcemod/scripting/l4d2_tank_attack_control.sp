@@ -24,7 +24,7 @@ public Plugin:myinfo =
 	author = "vintik, CanadaRox, Jacob, Visor",
 	description = "",
 	version = "0.7.1",
-	url = "https://github.com/Attano/L4D2-Competitive-Framework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public OnPluginStart()

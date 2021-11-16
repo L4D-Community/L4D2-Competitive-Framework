@@ -53,7 +53,7 @@ public Plugin myinfo =
 	author = "Tabun, Visor, A1m`",
 	description = "Fixes the problem where tank-punches get a survivor stuck in the roof.",
 	version = "1.3",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

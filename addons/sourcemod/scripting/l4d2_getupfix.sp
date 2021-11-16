@@ -73,13 +73,13 @@ static const int
 		{523, 524} //Francis
 	};
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Get-Up Fix",
-	author = "Blade, ProdigySim, DieTeetasse, Stabby, Jahze, A1m`", //Add support sm1.11 - A1m`
+	author = "Blade, ProdigySim, DieTeetasse, Stabby, Jahze, A1m`",
 	description = "Double/no/self-clear get-up fix.",
 	version = "1.7.4",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework/"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

@@ -15,7 +15,7 @@ public Plugin myinfo =
 	author = "Spoon, Forgetest",
 	description = "Allows control over long charger get ups, and fixes no get up on rare cases.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/spoon-l4d2"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 // Charges that land against a wall and are cleared instantly

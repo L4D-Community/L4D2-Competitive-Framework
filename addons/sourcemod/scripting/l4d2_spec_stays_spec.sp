@@ -24,11 +24,11 @@ ConVar g_hMaxInfected;
 */
 public Plugin myinfo =
 {
-    name = "Spectator stays spectator",
-    author = "Die Teetasse",
-    description = "Spectator will stay as spectators on mapchange.",
-    version = PLUGIN_VERSION,
-    url = ""
+	name = "Spectator stays spectator",
+	author = "Die Teetasse",
+	description = "Spectator will stay as spectators on mapchange.",
+	version = PLUGIN_VERSION,
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 /*

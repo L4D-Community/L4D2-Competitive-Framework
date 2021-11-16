@@ -36,7 +36,7 @@ public Plugin myinfo =
 	author = "Tabun, Sir, A1m`",
 	description = "Removes any saferoom item (start or end).",
 	version = "1.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

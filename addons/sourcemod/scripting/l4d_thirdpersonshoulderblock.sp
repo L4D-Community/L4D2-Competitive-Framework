@@ -11,7 +11,7 @@ public Plugin:myinfo =
 	author = "Don",
 	description = "Kicks clients who enable the thirdpersonshoulder mode on L4D1/2 to prevent them from looking around corners, through walls etc.",
 	version = PLUGIN_VERSION,
-	url = "http://forums.alliedmods.net/showthread.php?t=159582"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)

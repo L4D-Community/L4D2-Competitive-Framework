@@ -62,7 +62,7 @@ public Plugin myinfo =
 	author = "CanadaRox, ProdigySim, A1m`",
 	description = "Hides specified weapons from the infected team until they are (possibly) visible to one of the survivors to prevent SI scouting the map",
 	version = "1.2.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

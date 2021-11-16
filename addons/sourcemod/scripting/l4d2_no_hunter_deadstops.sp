@@ -16,7 +16,7 @@ public Plugin myinfo =
 	author = "Visor, A1m",
 	description = "Self-descriptive",
 	version = "3.4",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public Action L4D_OnShovedBySurvivor(int shover, int shovee, const float vector[3])

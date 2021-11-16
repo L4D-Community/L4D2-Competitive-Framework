@@ -9,7 +9,7 @@ public Plugin myinfo =
 	author = "Sir, Visor",
 	description = "Kicks out clients who are potentially attempting to enable mathack",
 	version = "1.1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

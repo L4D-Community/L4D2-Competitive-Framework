@@ -19,7 +19,7 @@ public Plugin myinfo =
 	author = "Spoon, Forgetest",
 	version = PLUGIN_VERSION,
 	description = "Votin for boss change.",
-	url = "https://github.com/spoon-l4d2"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 Handle
