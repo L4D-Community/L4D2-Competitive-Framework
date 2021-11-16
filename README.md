@@ -1,8 +1,7 @@
-# **L4D2 Competitive Rework**
+# **L4D2 Competitive Framework**
 
-<== IMPORTANT NOTICE DON'T IGNORE THIS OKAY?! ===>  
-<------------------ **LINUX SUPPORT ONLY** ------------------>  
-< The repo has some support for Windows, but I will not personally guarantee it's functionality >
+<------------------ **LINUX AND WINDOWS SUPPORT** ------------------>  
+The repository supports Windows, but the collisionhook extension is not working yet. The extension is causing the server to crash on this platform.
 
 ## **About:**
 
@@ -34,8 +33,6 @@ It will contain both much needed fixes that are simply unable to be implemented 
 ## **Fixes/Changes Integrated into Confogl & Sourcemod:**
 
 > **Plugins/Extensions**
-* [Bullet Displacement Fix](https://forums.alliedmods.net/showthread.php?t=315405)
-  * Fixes a Source Engine bug that causes bullets to miss targets that they were supposed to hit.
 * [Tank Rock Lag Compensation](https://forums.alliedmods.net/showthread.php?p=2646073)
   * Like the title says, you now simply just aim at the rock. You no longer have to "lead" your shots.
 * [Buffer Overflow Fix](https://forums.alliedmods.net/showthread.php?p=2607757)
