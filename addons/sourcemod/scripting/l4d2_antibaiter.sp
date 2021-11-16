@@ -34,10 +34,10 @@
 
 #define CDIRECTOR_GAMEDATA "l4d2_cdirector" //m_PostMobDelayTimer offset
 
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2" //left4dhooks gamedata
+#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
 #define CDIRECTORSCRIPTEDEVENTMANAGER "ScriptedEventManagerPtr" //left4dhooks gamedata
 
-//#define LEFT4FRAMEWORK_GAMEDATA "l4d2_direct" //l4d2_direct gamedata
+//#define LEFT4FRAMEWORK_GAMEDATA "l4d2_direct"
 //#define CDIRECTORSCRIPTEDEVENTMANAGER "CDirectorScriptedEventManager" //l4d2_direct gamedata
 
 Address
@@ -65,7 +65,7 @@ int
 	hordeDelayChecks,
 	zombieclass[MAXPLAYERS + 1];
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Antibaiter",
 	author = "Visor, Sir (assisted by Devilesk), A1m`",
@@ -77,7 +77,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	InitGameData();
-	
+
 	hCvarTimerStartDelay = CreateConVar("l4d2_antibaiter_delay", "20", "Delay in seconds before the antibait algorithm kicks in");
 	hCvarHordeCountdown = CreateConVar("l4d2_antibaiter_horde_timer", "60", "Countdown in seconds to the panic horde");
 	hCvarMinProgressThreshold = CreateConVar("l4d2_antibaiter_progress", "0.03", "Minimum progress the survivors must make to reset the antibaiter timer");
@@ -85,7 +85,7 @@ public void OnPluginStart()
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("round_end", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("player_left_start_area", Event_RoundGoesLive, EventHookMode_PostNoCopy);
-	
+
 	CreateTimer(1.0, AntibaiterThink, _, TIMER_REPEAT);
 
 #if DEBUG
@@ -99,32 +99,32 @@ void InitGameData()
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s' missing or corrupt", LEFT4FRAMEWORK_GAMEDATA);
 	}
-	
+
 	Address TheDirector = GameConfGetAddress(hGamedata, "CDirector");
 	if (!TheDirector) {
 		SetFailState("Couldn't find the 'CDirector' address.");
 	}
-	
+
 	int iScriptedEventManagerOffset = GameConfGetOffset(hGamedata, CDIRECTORSCRIPTEDEVENTMANAGER);
 	if (iScriptedEventManagerOffset == -1) {
 		SetFailState("Invalid offset '%s'.", CDIRECTORSCRIPTEDEVENTMANAGER);
 	}
-	
+
 	pScriptedEventManager = view_as<Address>(LoadFromAddress(TheDirector + view_as<Address>(iScriptedEventManagerOffset), NumberType_Int32));
 	if (!pScriptedEventManager) {
 		SetFailState("Couldn't find the 'CDirectorScriptedEventManager' address.");
 	}
-	
+
 	Handle hGamedata2 = LoadGameConfigFile(CDIRECTOR_GAMEDATA);
 	if (!hGamedata2) {
 		SetFailState("Gamedata '%s' missing or corrupt", CDIRECTOR_GAMEDATA);
 	}
-	
+
 	m_PostMobDelayTimerOffset = GameConfGetOffset(hGamedata2, "CDirectorScriptedEventManager->m_PostMobDelayTimer");
 	if (m_PostMobDelayTimerOffset == -1) {
 		SetFailState("Invalid offset '%s'.", "CDirectorScriptedEventManager->m_PostMobDelayTimer");
 	}
-	
+
 	delete hGamedata;
 	delete hGamedata2;
 }
@@ -181,7 +181,7 @@ public void OnLibraryRemoved(const char[] szName)
 {
 	if (strcmp(szName, "pause", true) == 0) {
 		IsPauseAvailable = false;
-	} 
+	}
 }
 
 public void OnLibraryAdded(const char[] szName)
@@ -220,7 +220,7 @@ public Action AntibaiterThink(Handle hTimer)
 		if (!IsInfected(i) || IsFakeClient(i)) {
 			continue;
 		}
-		
+
 		if (IsPlayerAlive(i)) {
 			zombieclass[i] = GetInfectedClass(i);
 			if (zombieclass[i] > L4D2Infected_Common && zombieclass[i] < L4D2Infected_Witch
@@ -229,7 +229,7 @@ public Action AntibaiterThink(Handle hTimer)
 				#if DEBUG
 				PrintToChatAll("\x03[Antibaiter DEBUG] Eligible player \x04%N\x01 is a zombieclass \x05%d\x01 alive for \x05%fs\x01", i, zombieclass[i], GetGameTime() - aliveSince[i]);
 				#endif
-				
+
 				eligibleZombies++;
 			}
 		} else {
@@ -258,17 +258,17 @@ public Action AntibaiterThink(Handle hTimer)
 			#if DEBUG
 			PrintToChatAll("\x03[Antibaiter DEBUG] Minimum progress unsatisfied during \x05%d\x01 checks: \x04initial\x01=\x05%f\x01, \x04current\x01=\x05%f\x01, \x04progress\x01=\x05%f\x01", hordeDelayChecks, startingSurvivorCompletion, survivorCompletion, progress);
 			#endif
-			
+
 			if (IsCountdownRunning()) {
 				#if DEBUG
 				PrintToChatAll("\x03[Antibaiter DEBUG] Countdown is \x05running\x01");
 				#endif
-				
+
 				if (HasCountdownElapsed()) {
 					#if DEBUG
 					PrintToChatAll("\x03[Antibaiter DEBUG] Countdown has \x04elapsed\x01! Launching horde and resetting checks counter");
 					#endif
-					
+
 					HideCountdown();
 					LaunchHorde();
 					hordeDelayChecks = 0;
@@ -278,14 +278,14 @@ public Action AntibaiterThink(Handle hTimer)
 				#if DEBUG
 				PrintToChatAll("\x03[Antibaiter DEBUG] Countdown is \x05not running\x01. Initiating it...");
 				#endif
-				
+
 				InitiateCountdown();
 			}
 		} else {
 			if (hordeDelayChecks == 0) {
 				startingSurvivorCompletion = survivorCompletion;
 			}
-			
+
 			if (progress > minProgress) {
 				#if DEBUG
 				PrintToChatAll("\x03[Antibaiter DEBUG] Survivor progress has \x05increased\x01 beyond the minimum threshold. Resetting the algorithm...");
@@ -393,19 +393,19 @@ float GetMaxSurvivorCompletion()
 bool IsPanicEventInProgress()
 {
 	CountdownTimer pPanicCountdown = view_as<CountdownTimer>(pScriptedEventManager + view_as<Address>(m_PostMobDelayTimerOffset));
-	
+
 	#if DEBUG
 	PrintToChatAll("m_PostMobDelay - duration: %f, timestamp: %f", CTimer_GetDuration(pPanicCountdown), CTimer_GetTimestamp(pPanicCountdown));
 	#endif
-	
+
 	if (!CTimer_IsElapsed(pPanicCountdown)) {
 		return true;
 	}
-	
+
 	if (CTimer_HasStarted(L4D2Direct_GetMobSpawnTimer())) {
 		return (RoundFloat(CTimer_GetRemainingTime(L4D2Direct_GetMobSpawnTimer())) <= 10.0);
 	}
-	
+
 	return false;
 }
 
@@ -414,6 +414,6 @@ bool IsRoundActive()
 	if (!IsRoundIsActive || IsPauseAvailable && IsInPause()) {
 		return false;
 	}
-	
+
 	return true;
 }

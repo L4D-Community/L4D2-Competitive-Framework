@@ -71,11 +71,11 @@
 
 	- Added new target filters:
 		"@deads" - Dead Survivors (all, bots)
-		"@deadsi" - Dead Special Infected (all, bots) 
-		"@deadsp" - Dead Survivors players (no bots) 
-		"@deadsip" - Dead Special Infected players (no bots)- 
-		"@deadsb" - Dead Survivors bots (no players) 
-		"@deadsib" - Dead Special Infected bots (no players)- 
+		"@deadsi" - Dead Special Infected (all, bots)
+		"@deadsp" - Dead Survivors players (no bots)
+		"@deadsip" - Dead Special Infected players (no bots)
+		"@deadsb" - Dead Survivors bots (no players)
+		"@deadsib" - Dead Special Infected bots (no players)
 		"@sp" - Survivors players (no bots)
 		"@isp" - Special Infected players (no bots)
 		"@isb" - Incapped Survivor Only Bots
@@ -509,8 +509,8 @@ Action OnAnimPost(int client, int &anim)
 			case 'b': { anim = 631; }	// gambler
 			case 'h': { anim = 636; }	// mechanic
 			case 'd': { anim = 639; }	// producer
-			case 'v': { anim = 539; }	// NamVet	
-			case 'e': { anim = 542; }	// Biker	
+			case 'v': { anim = 539; }	// NamVet
+			case 'e': { anim = 542; }	// Biker
 			case 'a': { anim = 539; }	// Manager
 			case 'n': { anim = 529; }	// TeenGirl
 		}
@@ -576,7 +576,57 @@ public Action sm_l4dd(int client, int args)
 
 	// =========================
 	// NATIVES - Mine
-	// =========================	
+	// =========================
+	// Version 1.72 tests
+	/*
+	PrintToServer("POINTER_DIRECTOR = %d",			L4D_GetPointer(POINTER_DIRECTOR));
+	PrintToServer("POINTER_SERVER = %d",			L4D_GetPointer(POINTER_SERVER));
+	PrintToServer("POINTER_GAMERULES = %d",			L4D_GetPointer(POINTER_GAMERULES));
+	PrintToServer("POINTER_NAVMESH = %d",			L4D_GetPointer(POINTER_NAVMESH));
+	PrintToServer("POINTER_ZOMBIEMANAGER = %d",		L4D_GetPointer(POINTER_ZOMBIEMANAGER));
+	PrintToServer("POINTER_WEAPONINFO = %d",		L4D_GetPointer(POINTER_WEAPONINFO));
+	PrintToServer("POINTER_MELEEINFO = %d",			L4D_GetPointer(POINTER_MELEEINFO));
+	PrintToServer("POINTER_EVENTMANAGER = %d",		L4D_GetPointer(POINTER_EVENTMANAGER));
+	PrintToServer("POINTER_SCAVENGEMODE = %d",		L4D_GetPointer(POINTER_SCAVENGEMODE));
+	PrintToServer("POINTER_VERSUSMODE = %d",		L4D_GetPointer(POINTER_VERSUSMODE));
+
+	int target = GetAnyRandomClient();
+	if( target )
+	{
+		PrintToServer("L4D_GetClientFromAddress %d (%d) == %d", target, GetEntityAddress(target), L4D_GetClientFromAddress(GetEntityAddress(target)));
+	}
+
+	int entity = FindEntityByClassname(-1, "prop_dynamic");
+	if( entity != INVALID_ENT_REFERENCE )
+	{
+		PrintToServer("L4D_GetEntityFromAddress %d (%d) == %d", entity, GetEntityAddress(entity), L4D_GetEntityFromAddress(GetEntityAddress(entity)));
+	}
+
+	if( target )
+	{
+		// OFFSET: (Hardcoded for demonstration)
+		// Search: "#Cstrike_Name_Change"
+		// Look for "CBasePlayer::SetPlayerName" near bottom of function. Offset inside.
+
+		char temp[32];
+		Address addy;
+		int os = L4D_GetServerOS();
+
+		if( g_bLeft4Dead2 && os == SERVER_OS_LINUX )			addy = view_as<Address>(8361);
+		else if( g_bLeft4Dead2 && os == SERVER_OS_WINDOWS )		addy = view_as<Address>(8365);
+		else if( !g_bLeft4Dead2 && os == SERVER_OS_LINUX )		addy = view_as<Address>(3845);
+		else if( !g_bLeft4Dead2 && os == SERVER_OS_WINDOWS )	addy = view_as<Address>(3825);
+
+		// Returns the players name, read from a memory address
+		addy += GetEntityAddress(target);
+		L4D_ReadMemoryString(addy, temp, sizeof(temp));
+
+		PrintToServer("L4D_ReadMemoryString %N == [%s]", target, temp);
+	}
+	// */
+
+
+
 	/*
 	// WORKS
 	if( g_bLeft4Dead2 )
@@ -1497,6 +1547,8 @@ public Action TimerDetonate(Handle timer, any entity)
 	{
 		L4D_DetonateProjectile(entity);
 	}
+
+	return Plugin_Continue;
 }
 
 

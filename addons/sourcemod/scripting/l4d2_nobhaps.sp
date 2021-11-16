@@ -2,16 +2,13 @@
 #include <sdktools>
 
 #define DEBUG 0
-
 #define L4DBUILD 1
 
+//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
 #define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2" // left4dhooks
 #define SECTION_NAME "CTerrorPlayer::GetRunTopSpeed" // left4dhooks
 
-//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2" // left4downtown
-//#define SECTION_NAME "CTerrorPlayer_GetRunTopSpeed" // left4downtown
-
-public Plugin:myinfo =
+public Plugin myinfo =
 {
 	name = "Simple Anti-Bunnyhop",
 	author = "CanadaRox, ProdigySim, blodia, CircleSquared, robex",
@@ -48,25 +45,26 @@ void LoadSDK()
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, SECTION_NAME)) {
 		SetFailState("Function '%s' not found", SECTION_NAME);
 	}
-	
+
 	PrepSDKCall_SetReturnInfo(SDKType_Float, SDKPass_Plain);
-	
+
 	g_hGetRunTopSpeed = EndPrepSDKCall();
 	if (g_hGetRunTopSpeed == null) {
 		SetFailState("Function '%s' found, but something went wrong", SECTION_NAME);
 	}
-	
+
 	delete hGameData;
 }
 
 public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
 {
-	if (!IsValidClient(client) || IsFakeClient(client))
+	if (!IsClientInGame(client) || IsFakeClient(client)) {
 		return Plugin_Continue;
+	}
 
 	static Float:LeftGroundMaxSpeed[MAXPLAYERS + 1];
 
-	if(!GetConVarBool(hCvarEnable))
+	if (!GetConVarBool(hCvarEnable))
 		return Plugin_Continue;
 
 	if (IsPlayerAlive(client)) {
@@ -114,12 +112,4 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 	}
 
 	return Plugin_Continue;
-} 
-
-stock bool:IsValidClient(client)
-{ 
-	if (client <= 0 || client > MaxClients || !IsClientConnected(client)) {
-		return false; 
-	}
-	return IsClientInGame(client); 
 }

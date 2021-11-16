@@ -14,24 +14,26 @@
 #define TEAM_INFECTED 3
 
 #define ZOMBIEMANAGER_GAMEDATA "l4d2_zombiemanager"
+
+//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
 #define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
 
-float 
+float
 	fSavedTime;
 
-ConVar 
+ConVar
 	hCvarCommonLimit,
 	hCvarSurvivorLimit;
 
-int 
+int
 	iCommonLimit,
 	iSurvivorLimit,
 	m_nPendingMobCount;
 
-Address 
+Address
 	pZombieManager = Address_Null;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Horde",
 	author = "Visor, Sir, A1m`",
@@ -68,7 +70,7 @@ void InitGameData()
 	if (!hDamedata2) {
 		SetFailState("%s gamedata missing or corrupt", ZOMBIEMANAGER_GAMEDATA);
 	}
-	
+
 	m_nPendingMobCount = GameConfGetOffset(hDamedata2, "ZombieManager->m_nPendingMobCount");
 	if (m_nPendingMobCount == -1) {
 		SetFailState("Failed to get offset 'ZombieManager->m_nPendingMobCount'.");
@@ -117,7 +119,7 @@ public Action L4D_OnSpawnMob(int &amount)
 	// - Not Called on Boomer Hordes.
 	// - Not Called on z_spawn mob.
 	////////////////////////////////////
-	
+
 	float fTime = GetGameTime();
 	float fHordeTimer;
 

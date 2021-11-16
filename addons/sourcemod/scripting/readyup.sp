@@ -17,7 +17,7 @@ public Plugin myinfo =
 	author = "CanadaRox, Target",
 	description = "New and improved ready-up plugin with optimal for convenience.",
 	version = PLUGIN_VERSION,
-	url = "https://github.com/Target5150/MoYu_Server_Stupid_Plugins"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 // ========================
@@ -42,6 +42,7 @@ public Plugin myinfo =
 #define TRANSLATION_READYUP "readyup.phrases"
 
 #define GAMEDATA_READYUP "l4d2_cdirector"
+//#define GAMEDATA_L4DH "left4downtown.l4d2"
 #define GAMEDATA_L4DH "left4dhooks.l4d2"
 
 #define READY_MODE_MANUAL 1
@@ -75,7 +76,7 @@ ConVar
 ConVar
 	l4d_ready_enabled,
 	l4d_ready_disable_spawns, l4d_ready_survivor_freeze,
-	l4d_ready_cfg_name, l4d_ready_server_cvar, 
+	l4d_ready_cfg_name, l4d_ready_server_cvar,
 	l4d_ready_max_players,
 	l4d_ready_delay, l4d_ready_force_extra, l4d_ready_autostart_delay, l4d_ready_autostart_wait,
 	l4d_ready_enable_sound, l4d_ready_chuckle, l4d_ready_countdown_sound, l4d_ready_live_sound, l4d_ready_autostart_sound,
@@ -97,7 +98,7 @@ int
 	footerCounter;
 float
 	fStartTimestamp;
-	
+
 // Standard Ready Up
 bool
 	inLiveCountdown,
@@ -183,7 +184,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("GetFooterStringAtIndex",	Native_GetFooterStringAtIndex);
 	CreateNative("IsInReady",				Native_IsInReady);
 	CreateNative("ToggleReadyPanel",		Native_ToggleReadyPanel);
-	
+
 	preInitiateForward = CreateGlobalForward("OnReadyUpInitiatePre", ET_Ignore);
 	initiateForward = CreateGlobalForward("OnReadyUpInitiate", ET_Ignore);
 	preCountdownForward = CreateGlobalForward("OnRoundLiveCountdownPre", ET_Ignore);
@@ -197,7 +198,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnPluginStart()
 {
 	LoadSDK(true);
-	
+
 	l4d_ready_enabled			= CreateConVar("l4d_ready_enabled", "1", "Enable this plugin. (Values: 1 = Manual ready, 2 = Auto start)", FCVAR_NOTIFY, true, 0.0, true, 2.0);
 	l4d_ready_cfg_name			= CreateConVar("l4d_ready_cfg_name", "", "Configname to display on the ready-up panel", FCVAR_NOTIFY|FCVAR_PRINTABLEONLY);
 	l4d_ready_server_cvar		= CreateConVar("l4d_ready_server_cvar", "sn_main_name", "ConVar to retrieve the server name for displaying on the ready-up panel", FCVAR_NOTIFY|FCVAR_PRINTABLEONLY);
@@ -209,14 +210,14 @@ public void OnPluginStart()
 	l4d_ready_autostart_delay	= CreateConVar("l4d_ready_autostart_delay", "5", "Number of seconds to count down before auto-start kicks in.", FCVAR_NOTIFY, true, 0.0);
 	l4d_ready_autostart_wait	= CreateConVar("l4d_ready_autostart_wait", "20", "Number of seconds to wait for connecting players before auto-start is forced.", FCVAR_NOTIFY, true, 0.0);
 	l4d_ready_enable_sound		= CreateConVar("l4d_ready_enable_sound", "1", "Enable sound during autostart & countdown & on live", FCVAR_NOTIFY, true, 0.0, true, 1.0);
-	l4d_ready_countdown_sound	= CreateConVar("l4d_ready_countdown_sound", DEFAULT_COUNTDOWN_SOUND, "The sound that plays when a round goes on countdown");	
+	l4d_ready_countdown_sound	= CreateConVar("l4d_ready_countdown_sound", DEFAULT_COUNTDOWN_SOUND, "The sound that plays when a round goes on countdown");
 	l4d_ready_live_sound		= CreateConVar("l4d_ready_live_sound", DEFAULT_LIVE_SOUND, "The sound that plays when a round goes live");
 	l4d_ready_autostart_sound	= CreateConVar("l4d_ready_autostart_sound", DEFAULT_AUTOSTART_SOUND, "The sound that plays when auto-start goes on countdown");
 	l4d_ready_chuckle			= CreateConVar("l4d_ready_chuckle", "0", "Enable random moustachio chuckle during countdown");
 	l4d_ready_secret			= CreateConVar("l4d_ready_secret", "1", "Play something good", _, true, 0.0, true, 1.0);
 	l4d_ready_unbalanced_start	= CreateConVar("l4d_ready_unbalanced_start", "0", "Allow game to go live when teams are not full.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	l4d_ready_unbalanced_min	= CreateConVar("l4d_ready_unbalanced_min", "2", "Minimum of players in each team to allow a unbalanced start.", FCVAR_NOTIFY, true, 0.0);
-	
+
 	director_no_specials = FindConVar("director_no_specials");
 	god = FindConVar("god");
 	sb_stop = FindConVar("sb_stop");
@@ -230,7 +231,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_toggleready",		ToggleReady_Cmd, "Toggle your ready status");
 	RegConsoleCmd("sm_unready",			Unready_Cmd, "Mark yourself as not ready if you have set yourself as ready");
 	RegConsoleCmd("sm_nr",				Unready_Cmd, "Mark yourself as not ready if you have set yourself as ready");
-	
+
 	// Admin Commands
 	RegAdminCmd("sm_forcestart",		ForceStart_Cmd, ADMFLAG_BAN, "Forces the round to start regardless of player ready status.");
 	RegAdminCmd("sm_fs",				ForceStart_Cmd, ADMFLAG_BAN, "Forces the round to start regardless of player ready status.");
@@ -239,7 +240,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_hide",			Hide_Cmd, "Hides the ready-up panel so other menus can be seen");
 	RegConsoleCmd("sm_show",			Show_Cmd, "Shows a hidden ready-up panel");
 	RegConsoleCmd("sm_return",			Return_Cmd, "Return to a valid saferoom spawn if you get stuck during an unfrozen ready-up period");
-	
+
 #if DEBUG
 	RegAdminCmd("sm_initready", InitReady_Cmd, ADMFLAG_ROOT);
 	RegAdminCmd("sm_initlive", InitLive_Cmd, ADMFLAG_ROOT);
@@ -253,7 +254,7 @@ public void OnPluginStart()
 
 	readySurvFreeze = l4d_ready_survivor_freeze.BoolValue;
 	l4d_ready_survivor_freeze.AddChangeHook(SurvFreezeChanged);
-	
+
 	l4d_ready_server_cvar.AddChangeHook(ServerCvarChanged);
 }
 
@@ -280,7 +281,7 @@ void LoadSDK(bool optional)
 		if (optional) LogError("Missing gamedata \""... GAMEDATA_L4DH ... "\"");
 		else SetFailState("Missing gamedata \""... GAMEDATA_L4DH ... "\"");
 	}
-	
+
 	conf = LoadGameConfigFile(GAMEDATA_READYUP);
 	if (conf != null)
 	{
@@ -323,7 +324,7 @@ public void OnLibraryRemoved(const char[] name)
 void LoadTranslation()
 {
 	char sPath[PLATFORM_MAX_PATH];
-	
+
 	BuildPath(Path_SM, sPath, sizeof sPath, "translations/" ... TRANSLATION_READYUP ... ".txt");
 	if (!FileExists(sPath))
 	{
@@ -354,7 +355,7 @@ void FindCasterSystem()
 public void SurvFreezeChanged(ConVar convar, const char[] oldValue, const char[] newValue)
 {
 	readySurvFreeze = convar.BoolValue;
-	
+
 	if (inReadyUp)
 	{
 		ReturnTeamToSaferoom(L4D2Team_Survivor);
@@ -399,23 +400,23 @@ public void PlayerTeam_Event(Event event, const char[] name, bool dontBroadcast)
 	int client = GetClientOfUserId(userid);
 	if (!client || IsFakeClient(client))
 		return;
-	
+
 	isPlayerReady[client] = false;
 	SetEngineTime(client);
-	
+
 	if (!inReadyUp) return;
-	
+
 	if (isAutoStartMode || isForceStart)
 		return;
-	
+
 	int team = event.GetInt("team");
 	int oldteam = event.GetInt("oldteam");
-	
+
 	if (team == L4D2Team_None && oldteam != L4D2Team_Spectator) // Player disconnecting
 	{
 		CancelFullReady(client, playerDisconn);
 	}
-	
+
 	else if (!g_hChangeTeamTimer[client]) // Player in-game swapping team
 	{
 		DataPack dp;
@@ -429,11 +430,11 @@ public void PlayerTeam_Event(Event event, const char[] name, bool dontBroadcast)
 public Action Timer_PlayerTeam(Handle timer, DataPack dp)
 {
 	dp.Reset();
-	
+
 	int client = dp.ReadCell();
 	int userid = dp.ReadCell();
 	int oldteam = dp.ReadCell();
-	
+
 	if (client == GetClientOfUserId(userid))
 	{
 		if (inLiveCountdown)
@@ -448,7 +449,7 @@ public Action Timer_PlayerTeam(Handle timer, DataPack dp)
 			}
 		}
 	}
-	
+
 	g_hChangeTeamTimer[client] = null;
 
 	return Plugin_Stop;
@@ -462,26 +463,26 @@ public void OnMapStart()
 {
 	/* OnMapEnd needs this to work */
 	char szPath[PLATFORM_MAX_PATH];
-	
+
 	l4d_ready_countdown_sound.GetString(countdownSound, sizeof(countdownSound));
 	l4d_ready_live_sound.GetString(liveSound, sizeof(liveSound));
 	l4d_ready_autostart_sound.GetString(autoStartSound, sizeof(autoStartSound));
-	
+
 	Format(szPath, sizeof(szPath), "sound/%s", countdownSound);
 	if (!FileExists(szPath, true)) {
 		strcopy(countdownSound, sizeof(countdownSound), DEFAULT_COUNTDOWN_SOUND);
 	}
-	
+
 	Format(szPath, sizeof(szPath), "sound/%s", liveSound);
 	if (!FileExists(szPath, true)) {
 		strcopy(liveSound, sizeof(liveSound), DEFAULT_LIVE_SOUND);
 	}
-	
+
 	Format(szPath, sizeof(szPath), "sound/%s", autoStartSound);
 	if (!FileExists(szPath, true)) {
 		strcopy(autoStartSound, sizeof(autoStartSound), DEFAULT_AUTOSTART_SOUND);
 	}
-	
+
 	PrecacheSound(SECRET_SOUND);
 	PrecacheSound(countdownSound);
 	PrecacheSound(liveSound);
@@ -533,7 +534,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 		if (!IsFakeClient(client))
 		{
 			static int iLastMouse[MAXPLAYERS+1][2];
-			
+
 			// Mouse Movement Check
 			if (mouse[0] != iLastMouse[client][0] || mouse[1] != iLastMouse[client][1])
 			{
@@ -543,7 +544,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 			}
 			else if (buttons || impulse) SetEngineTime(client);
 		}
-		
+
 		if (GetClientTeam(client) == L4D2Team_Survivor)
 		{
 			if (readySurvFreeze || inLiveCountdown)
@@ -604,7 +605,7 @@ public Action Vote_Callback(int client, const char[] command, int argc)
 	// Fast ready / unready through default keybinds for voting
 	if (!client) return Plugin_Continue;
 	if (BuiltinVote_IsVoteInProgress() && IsClientInBuiltinVotePool(client)) return Plugin_Continue;
-	
+
 	if (Game_IsVoteInProgress())
 	{
 		int voteteam = Game_GetVoteTeam();
@@ -613,7 +614,7 @@ public Action Vote_Callback(int client, const char[] command, int argc)
 			return Plugin_Continue;
 		}
 	}
-	
+
 	char sArg[8];
 	GetCmdArg(1, sArg, sizeof(sArg));
 	if (strcmp(sArg, "Yes", false) == 0)
@@ -650,7 +651,7 @@ public Action Unready_Cmd(int client, int args)
 	{
 		AdminId id = GetUserAdmin(client);
 		bool hasflag = (id != INVALID_ADMIN_ID && GetAdminFlag(id, Admin_Ban)); // Check for specific admin flag
-		
+
 		if (isForceStart)
 		{
 			if (!hasflag) return Plugin_Handled;
@@ -693,7 +694,7 @@ public Action ToggleReady_Cmd(int client, int args)
 public Action ForceStart_Cmd(int client, int args)
 {
 	if (inReadyUp && !isAutoStartMode)
-	{		
+	{
 		// Check if admin always allowed to do so
 		AdminId id = GetUserAdmin(client);
 		if (id != INVALID_ADMIN_ID && GetAdminFlag(id, Admin_Ban)) // Check for specific admin flag
@@ -848,29 +849,29 @@ void UpdatePanel()
 	int iPassTime = RoundToFloor(GetGameTime() - fStartTimestamp);
 
 	ServerNamer.GetString(ServerName, sizeof(ServerName));
-	
+
 	l4d_ready_cfg_name.GetString(cfgName, sizeof(cfgName));
 	Format(ServerBuffer, sizeof(ServerBuffer), "▸ Server: %s \n▸ Slots: %d/%d\n▸ Config: %s", ServerName, GetSeriousClientCount(), FindConVar("sv_maxplayers").IntValue, cfgName);
 	menuPanel.DrawText(ServerBuffer);
-	
+
 	FormatTime(ServerBuffer, sizeof(ServerBuffer), "▸ %m/%d/%Y - %I:%M%p");
 	Format(ServerBuffer, sizeof(ServerBuffer), "%s (%02d:%02d)", ServerBuffer, iPassTime / 60, iPassTime % 60);
 	menuPanel.DrawText(ServerBuffer);
-	
+
 	menuPanel.DrawText(" ");
 	menuPanel.DrawText("▸ Commands:");
 	menuPanel.DrawText(sCmd);
 	menuPanel.DrawText(" ");
-	
+
 	char nameBuf[64];
-	
+
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client))
 		{
 			++playerCount;
 			GetClientFixedName(client, nameBuf, sizeof(nameBuf));
-			
+
 			if (IsPlayer(client))
 			{
 				if (isPlayerReady[client])
@@ -879,7 +880,7 @@ void UpdatePanel()
 					Format(nameBuf, sizeof(nameBuf), isAutoStartMode ? "%s\n" : "☑ %s\n", nameBuf);
 					GetClientTeam(client) == L4D2Team_Survivor ? StrCat(survivorBuffer, sizeof(survivorBuffer), nameBuf) : StrCat(infectedBuffer, sizeof(infectedBuffer), nameBuf);
 				}
-				else 
+				else
 				{
 					if (!inLiveCountdown && !isAutoStartMode) PrintHintText(client, "%t", "HintUnready");
 					Format(nameBuf, sizeof(nameBuf), isAutoStartMode ? "%s\n" : "☐ %s%s\n", nameBuf, ( IsPlayerAfk(client) ? " [AFK]" : "" ));
@@ -906,7 +907,7 @@ void UpdatePanel()
 			}
 		}
 	}
-	
+
 	int textCount = 0;
 	int bufLen = strlen(survivorBuffer);
 	if (bufLen != 0)
@@ -927,7 +928,7 @@ void UpdatePanel()
 		menuPanel.DrawText(nameBuf);
 		menuPanel.DrawText(infectedBuffer);
 	}
-	
+
 	if (specCount && textCount) menuPanel.DrawText(" ");
 
 	if (casterSystemAvailable)
@@ -942,7 +943,7 @@ void UpdatePanel()
 			menuPanel.DrawText(casterBuffer);
 		}
 	}
-	
+
 	bufLen = strlen(specBuffer);
 	if (bufLen != 0)
 	{
@@ -967,13 +968,13 @@ void UpdatePanel()
 
 	for (int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && !IsFakeClient(client) && !hiddenPanel[client]) 
+		if (IsClientInGame(client) && !IsFakeClient(client) && !hiddenPanel[client])
 		{
 			if (BuiltinVote_IsVoteInProgress() && IsClientInBuiltinVotePool(client))
 			{
 				continue;
 			}
-			
+
 			if (Game_IsVoteInProgress())
 			{
 				int voteteam = Game_GetVoteTeam();
@@ -982,11 +983,11 @@ void UpdatePanel()
 					continue;
 				}
 			}
-			
+
 			menuPanel.Send(client, DummyHandler, 1);
 		}
 	}
-	
+
 	delete menuPanel;
 }
 
@@ -994,7 +995,7 @@ void InitiateReadyUp()
 {
 	Call_StartForward(preInitiateForward);
 	Call_Finish();
-	
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		isPlayerReady[i] = false;
@@ -1008,9 +1009,9 @@ void InitiateReadyUp()
 	inLiveCountdown = false;
 	isForceStart = false;
 	readyCountdownTimer = null;
-	
+
 	fStartTimestamp = GetGameTime();
-	
+
 	isAutoStartMode = (l4d_ready_enabled.IntValue == READY_MODE_AUTOSTART);
 
 	if (l4d_ready_disable_spawns.BoolValue)
@@ -1031,17 +1032,17 @@ void InitiateReadyUp()
 		readyFooter[i][0] = '\0';
 	}
 	footerCounter = 0;
-	
+
 	CreateTimer(0.3, Timer_RestartCountdowns, false, TIMER_FLAG_NO_MAPCHANGE);
-		
+
 	ToggleCommandListeners(true);
-	
+
 	if (isAutoStartMode)
 	{
 		expireTime = l4d_ready_autostart_wait.IntValue;
 		CreateTimer(1.0, Timer_AutoStartHelper, _, TIMER_FLAG_NO_MAPCHANGE | TIMER_REPEAT);
 	}
-	
+
 	Call_StartForward(initiateForward);
 	Call_Finish();
 }
@@ -1053,7 +1054,7 @@ void InitiateLive(bool real = true)
 		Call_StartForward(preLiveForward);
 		Call_Finish();
 	}
-	
+
 	inReadyUp = false;
 	inLiveCountdown = false;
 	isForceStart = false;
@@ -1068,19 +1069,19 @@ void InitiateLive(bool real = true)
 	god.SetBool(false);
 	god.Flags |= FCVAR_NOTIFY;
 	sb_stop.SetBool(false);
-	
+
 	ToggleCommandListeners(false);
 
 	if (real)
 	{
 		CreateTimer(0.1, Timer_RestartCountdowns, true, TIMER_FLAG_NO_MAPCHANGE);
-	
+
 		for (int i = 0; i < 4; i++)
 		{
 			GameRules_SetProp("m_iVersusDistancePerSurvivor", 0, _,
 					i + 4 * GameRules_GetProp("m_bAreTeamsFlipped"));
 		}
-		
+
 		Call_StartForward(liveForward);
 		Call_Finish();
 	}
@@ -1098,7 +1099,7 @@ public Action Timer_AutoStartHelper(Handle timer)
 		expireTime = l4d_ready_autostart_wait.IntValue;
 		return Plugin_Continue;
 	}
-	
+
 	if (IsAnyPlayerLoading())
 	{
 		if (expireTime > 0)
@@ -1108,7 +1109,7 @@ public Action Timer_AutoStartHelper(Handle timer)
 			return Plugin_Continue;
 		}
 	}
-	
+
 	CreateTimer(8.0, Timer_InitiateAutoStart, _, TIMER_FLAG_NO_MAPCHANGE);
 	return Plugin_Stop;
 }
@@ -1128,7 +1129,7 @@ void InitiateAutoStart(bool real = true)
 		autoStartTimer = null;
 		return;
 	}
-	
+
 	if (autoStartTimer == null)
 	{
 		PrintHintTextToAll("%t", "InitiateAutoStart");
@@ -1165,14 +1166,14 @@ void InitiateLiveCountdown()
 	{
 		Call_StartForward(preCountdownForward);
 		Call_Finish();
-		
+
 		ReturnTeamToSaferoom(L4D2Team_Survivor);
 		PrintHintTextToAll("%t", "LiveCountdownBegin");
 		inLiveCountdown = true;
 		readyDelay = l4d_ready_delay.IntValue;
 		if (isForceStart) readyDelay += l4d_ready_force_extra.IntValue;
 		readyCountdownTimer = CreateTimer(1.0, ReadyCountdownDelay_Timer, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
-	
+
 		Call_StartForward(countdownForward);
 		Call_Finish();
 	}
@@ -1221,17 +1222,17 @@ bool CheckFullReady()
 			}
 		}
 	}
-	
+
 	int survLimit = survivor_limit.IntValue;
 	int zombLimit = z_max_player_zombies.IntValue;
-	
+
 	if (l4d_ready_unbalanced_start.BoolValue)
 	{
 		int iBaseline = l4d_ready_unbalanced_min.IntValue;
-		
+
 		if (iBaseline > survLimit) iBaseline = survLimit;
 		if (iBaseline > zombLimit) iBaseline = zombLimit;
-		
+
 		return (iBaseline <= GetTeamHumanCount(L4D2Team_Survivor) <= survReadyCount)
 			&& (iBaseline <= GetTeamHumanCount(L4D2Team_Infected) <= infReadyCount);
 	}
@@ -1251,7 +1252,7 @@ void CancelFullReady(int client, disruptType type)
 		KillTimer(readyCountdownTimer);
 		readyCountdownTimer = null;
 		PrintHintTextToAll("%t", "LiveCountdownCancelled");
-		
+
 		switch (type)
 		{
 			case readyStatus: CPrintToChatAllEx(client, "%t", "DisruptReadyStatus", client);
@@ -1267,7 +1268,7 @@ public Action Timer_RestartCountdowns(Handle timer, bool startOn)
 	if (!inReadyUp && !startOn) {
 		return Plugin_Stop;
 	}
-	
+
 	if (IsScavenge())
 	{
 		RestartScvngSetupCountdown(startOn);
@@ -1276,7 +1277,7 @@ public Action Timer_RestartCountdowns(Handle timer, bool startOn)
 	{
 		RestartVersusStartCountdown(startOn);
 	}
-	
+
 	RestartMobCountdown(startOn);
 
 	return Plugin_Stop;
@@ -1285,7 +1286,7 @@ public Action Timer_RestartCountdowns(Handle timer, bool startOn)
 void RestartVersusStartCountdown(bool startOn)
 {
 	static float fDuration = 0.0;
-	
+
 	if (startOn)
 	{
 		if (fDuration != 0.0) L4D2_CTimerStart(L4D2CT_VersusStartTimer, fDuration);
@@ -1304,7 +1305,7 @@ void RestartVersusStartCountdown(bool startOn)
 void RestartMobCountdown(bool startOn)
 {
 	static float fDuration = 0.0;
-	
+
 	if (startOn)
 	{
 		if (fDuration != 0.0) L4D2_CTimerStart(L4D2CT_MobSpawnTimer, fDuration);
@@ -1323,7 +1324,7 @@ void RestartMobCountdown(bool startOn)
 void RestartScvngSetupCountdown(bool startOn)
 {
 	static float fDuration = 0.0;
-	
+
 	if (startOn)
 	{
 		if (fDuration != 0.0) CTimer_Start(L4D2Direct_GetScavengeRoundSetupTimer(), fDuration);
@@ -1337,7 +1338,7 @@ void RestartScvngSetupCountdown(bool startOn)
 			CTimer_Start(L4D2Direct_GetScavengeRoundSetupTimer(), 99999.0);
 		}
 	}
-	
+
 	ToggleCountdownPanel(startOn);
 }
 
@@ -1366,26 +1367,28 @@ void DoSecrets(int client)
 	if (GetClientTeam(client) == L4D2Team_Survivor && !blockSecretSpam[client])
 	{
 		int particle = CreateEntityByName("info_particle_system");
-		if (particle == -1) return;
-		
+		if (particle == -1) {
+			return;
+		}
+
 		float pos[3];
 		GetClientAbsOrigin(client, pos);
-		
+
 		pos[2] += 80;
-		
+
 		TeleportEntity(particle, pos, NULL_VECTOR, NULL_VECTOR);
-		
+
 		DispatchKeyValue(particle, "effect_name", "achieved");
 		DispatchKeyValue(particle, "targetname", "particle");
 		DispatchSpawn(particle);
 		ActivateEntity(particle);
 		AcceptEntityInput(particle, "start");
-		
+
 		CreateTimer(5.0, killParticle, EntIndexToEntRef(particle), TIMER_FLAG_NO_MAPCHANGE);
-		
+
 		EmitSoundToAll(SECRET_SOUND, client, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, 0.5);
 		CreateTimer(2.5, killSound);
-		
+
 		blockSecretSpam[client] = CreateTimer(5.0, SecretSpamDelay, client);
 	}
 	PrintCenterTextAll("\x42\x4f\x4e\x45\x53\x41\x57\x20\x49\x53\x20\x52\x45\x41\x44\x59\x21");
@@ -1399,20 +1402,25 @@ public Action SecretSpamDelay(Handle timer, int client)
 
 public Action killParticle(Handle timer, int entRef)
 {
-	int entity = EntRefToEntIndex(entRef);
-	if (entity > 0 && IsValidEntity(entity) && IsValidEdict(entity))
-	{
-		AcceptEntityInput(entity, "Kill");
+	int iEntity = EntRefToEntIndex(entRef);
+	if (iEntity != INVALID_ENT_REFERENCE && IsValidEdict(iEntity)) {
+#if SOURCEMOD_V_MINOR > 8
+		RemoveEntity(iEntity);
+#else
+		AcceptEntityInput(iEntity, "Kill");
+#endif
 	}
+
 	return Plugin_Stop;
 }
 
 public Action killSound(Handle timer)
 {
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientInGame(i) && !IsFakeClient(i))
+	for (int i = 1; i <= MaxClients; i++) {
+		if (IsClientInGame(i) && !IsFakeClient(i)) {
 			StopSound(i, SNDCHAN_AUTO, SECRET_SOUND);
-	
+		}
+	}
 	return Plugin_Stop;
 }
 
@@ -1449,7 +1457,7 @@ public int Native_EditFooterStringAtIndex(Handle plugin, int numParams)
 		char newString[MAX_FOOTER_LEN];
 		GetNativeString(2, newString, sizeof(newString));
 		int index = GetNativeCell(1);
-		
+
 		if (footerCounter < MAX_FOOTERS)
 		{
 			if (strlen(newString) < MAX_FOOTER_LEN)
@@ -1468,10 +1476,10 @@ public int Native_FindIndexOfFooterString(Handle plugin, int numParams)
 	{
 		char stringToSearchFor[MAX_FOOTER_LEN];
 		GetNativeString(1, stringToSearchFor, sizeof(stringToSearchFor));
-		
+
 		for (int i = 0; i < footerCounter; i++){
 			if (strlen(readyFooter[i]) == 0) continue;
-			
+
 			if (StrContains(readyFooter[i], stringToSearchFor, false) > -1){
 				return i;
 			}
@@ -1486,11 +1494,11 @@ public int Native_GetFooterStringAtIndex(Handle plugin, int numParams)
 	{
 		int index = GetNativeCell(1), maxlen = GetNativeCell(3);
 		char buffer[MAX_FOOTER_LEN];
-		
+
 		if (index < MAX_FOOTERS) {
 			strcopy(buffer, sizeof(buffer), readyFooter[index]);
 		}
-		
+
 		SetNativeString(2, buffer, maxlen, true);
 		return true;
 	}
@@ -1509,7 +1517,7 @@ public int Native_ToggleReadyPanel(Handle plugin, int numParams)
 	{
 		// TODO: Inform the client(s) that panel is supressed?
 		bool hide = !GetNativeCell(1);
-		
+
 		int client = GetNativeCell(2);
 		if (client && IsClientInGame(client))
 		{
@@ -1566,15 +1574,15 @@ stock void GetClientFixedName(int client, char[] name, int length)
 stock bool IsScavenge()
 {
 	static ConVar mp_gamemode;
-	
+
 	if (mp_gamemode == null)
 	{
 		mp_gamemode = FindConVar("mp_gamemode");
 	}
-	
+
 	char sGamemode[16];
 	mp_gamemode.GetString(sGamemode, sizeof(sGamemode));
-	
+
 	return strcmp(sGamemode, "scavenge") == 0;
 }
 
@@ -1587,7 +1595,7 @@ stock bool IsEmptyString(const char[] str, int length)
 			switch (str[i])
 			{
 				case '\r', '\n': continue;
-				
+
 				default: return false;
 			}
 		}
@@ -1610,7 +1618,7 @@ stock bool IsAnyPlayerLoading()
 stock int GetSeriousClientCount(bool inGame = false)
 {
 	int clients = 0;
-	
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (inGame)
@@ -1622,7 +1630,7 @@ stock int GetSeriousClientCount(bool inGame = false)
 			if (IsClientConnected(i) && !IsFakeClient(i)) clients++;
 		}
 	}
-	
+
 	return clients;
 }
 
@@ -1646,7 +1654,7 @@ stock void ReturnPlayerToSaferoom(int client, bool flagsSet = true)
 	{
 		SetCommandFlags("warp_to_start_area", warp_flags);
 	}
-	
+
 	TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, NULL_VELOCITY);
 }
 
@@ -1696,7 +1704,7 @@ stock bool IsPlayer(int client)
 stock int GetTeamHumanCount(int team)
 {
 	int humans = 0;
-	
+
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client) && GetClientTeam(client) == team)
@@ -1704,6 +1712,6 @@ stock int GetTeamHumanCount(int team)
 			humans++;
 		}
 	}
-	
+
 	return humans;
 }

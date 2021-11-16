@@ -105,6 +105,11 @@ public void __pl_l4dh_SetNTVOptional()
 	MarkNativeAsOptional("L4D2_VomitJarPrj");
 	MarkNativeAsOptional("L4D2_GrenadeLauncherPrj");
 
+	MarkNativeAsOptional("L4D_GetPointer");
+	MarkNativeAsOptional("L4D_GetClientFromAddress");
+	MarkNativeAsOptional("L4D_GetEntityFromAddress");
+	MarkNativeAsOptional("L4D_ReadMemoryString");
+	MarkNativeAsOptional("L4D_GetServerOS");
 	MarkNativeAsOptional("L4D2_ExecVScriptCode");
 	MarkNativeAsOptional("L4D2_GetVScriptOutput");
 	MarkNativeAsOptional("L4D2_SpitterPrj");
@@ -325,6 +330,12 @@ public void __pl_l4dh_SetNTVOptional()
 // ====================================================================================================
 // VARIOUS ENUMS
 // ====================================================================================================
+enum
+{
+	SERVER_OS_WINDOWS = 0,
+	SERVER_OS_LINUX = 1,
+}
+
 // For the game mode native and forward.
 enum
 {
@@ -333,6 +344,21 @@ enum
 	GAMEMODE_VERSUS		= 2,
 	GAMEMODE_SURVIVAL	= 4,
 	GAMEMODE_SCAVENGE	= 8
+}
+
+// For the "L4D_GetPointer" native
+enum PointerType
+{
+	POINTER_DIRECTOR		= 1,	// @TheDirector
+	POINTER_SERVER			= 2,	// @sv
+	POINTER_GAMERULES		= 3,	// @g_pGameRules
+	POINTER_NAVMESH			= 4,	// @TheNavMesh
+	POINTER_ZOMBIEMANAGER	= 5,	// @TheZombieManager
+	POINTER_WEAPONINFO		= 6,	// @_ZL20m_WeaponInfoDatabase
+	POINTER_MELEEINFO		= 7,	// @g_MeleeWeaponInfoStore (L4D2 Only)
+	POINTER_EVENTMANAGER	= 8,	// pScriptedEventManager (L4D2 Only)
+	POINTER_SCAVENGEMODE	= 9,	// pScavengeMode (L4D2 Only)
+	POINTER_VERSUSMODE		= 10	// pVersusMode
 }
 
 // Provided by "BHaType":
@@ -1377,6 +1403,49 @@ forward Action L4D_OnGetRandomPZSpawnPosition(int &client, int &zombieClass, int
 // ====================================================================================================
 // NATIVES - Silvers
 // ====================================================================================================
+/**
+ * @brief Returns the address pointer to various internal game objects
+ *
+ * @param	ptr_type		Using the PointerType enum to select which pointer to return
+ *
+ * @return	Address pointer or 0 on failure.
+ */
+native Address L4D_GetPointer(PointerType ptr_type);
+
+/**
+ * @brief Returns a client index from a memory address
+ *
+ * @param	addy		Address to check
+ *
+ * @return	Client index or 0 on failure.
+ */
+native int L4D_GetClientFromAddress(Address addy);
+
+/**
+ * @brief Returns an entity index from a memory address
+ *
+ * @param	addy		Address to check
+ *
+ * @return	Entity index or -1 on failure.
+ */
+native int L4D_GetEntityFromAddress(Address addy);
+
+/**
+ * @brief Returns an entity index from a memory address
+ *
+ * @param	addy		Address to check
+ *
+ * @return	Entity index or -1 on failure.
+ */
+native int L4D_ReadMemoryString(Address addy, char[] buffer, int maxlength);
+
+/**
+ * @brief Returns the servers operating system.
+ *
+ * @return	0=Windows. 1=Linux.
+ */
+native int L4D_GetServerOS();
+
 /**
 * @brief Runs a specified VScript code.
 * @remarks Saves having to create an entity. The entity can remain alive and used again...
