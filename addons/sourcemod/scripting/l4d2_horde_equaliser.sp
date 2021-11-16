@@ -11,6 +11,7 @@
 #define TEAM_INFECTED 3
 
 #define ZOMBIEMANAGER_GAMEDATA "l4d2_zombiemanager"
+//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
 #define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
 
 #define HORDE_MIN_SIZE_AUDIAL_FEEDBACK 120
@@ -36,7 +37,7 @@ bool
 	announcedInChat,
 	checkpointAnnounced[MAX_CHECKPOINTS];
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Horde Equaliser",
 	author = "Visor (original idea by Sir), A1m`",
@@ -48,7 +49,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	InitGameData();
-	
+
 	hCvarNoEventHordeDuringTanks = CreateConVar("l4d2_heq_no_tank_horde", "0", "Put infinite hordes on a 'hold up' during Tank fights");
 	hCvarHordeCheckpointAnnounce = CreateConVar("l4d2_heq_checkpoint_sound", "1", "Play the incoming mob sound at checkpoints (each 1/4 of total commons killed off) to simulate L4D1 behaviour");
 
@@ -66,14 +67,14 @@ void InitGameData()
 	if (!pZombieManager) {
 		SetFailState("Couldn't find the 'ZombieManager' address");
 	}
-	
+
 	delete hDamedata;
 
 	Handle hDamedata2 = LoadGameConfigFile(ZOMBIEMANAGER_GAMEDATA);
 	if (!hDamedata2) {
 		SetFailState("%s gamedata missing or corrupt", ZOMBIEMANAGER_GAMEDATA);
 	}
-	
+
 	m_nPendingMobCount = GameConfGetOffset(hDamedata2, "ZombieManager->m_nPendingMobCount");
 	if (m_nPendingMobCount == -1) {
 		SetFailState("Failed to get offset 'ZombieManager->m_nPendingMobCount'.");
@@ -108,25 +109,25 @@ public void OnEntityCreated(int entity, const char[] classname)
 		if (hCvarNoEventHordeDuringTanks.BoolValue && IsTankUp()) {
 			return;
 		}
-		
+
 		// Our job here is done
 		if (commonTotal >= commonLimit) {
 			return;
 		}
-		
+
 		commonTotal++;
-		if (hCvarHordeCheckpointAnnounce.BoolValue && 
+		if (hCvarHordeCheckpointAnnounce.BoolValue &&
 			(commonTotal >= ((lastCheckpoint + 1) * RoundFloat(float(commonLimit / MAX_CHECKPOINTS))))
 		) {
 			if (commonLimit >= HORDE_MIN_SIZE_AUDIAL_FEEDBACK) {
 				EmitSoundToAll(HORDE_SOUND);
 			}
-			
+
 			int remaining = commonLimit - commonTotal;
 			if (remaining != 0) {
 				CPrintToChatAll("<{olive}Horde{default}> {red}%i {default}common remaining..", remaining);
 			}
-			
+
 			checkpointAnnounced[lastCheckpoint] = true;
 			lastCheckpoint++;
 		}
@@ -144,9 +145,9 @@ public Action L4D_OnSpawnMob(int &amount)
 	// - Not Called on Boomer Hordes.
 	// - Not Called on z_spawn mob.
 	////////////////////////////////////
-	
+
 	// "Pause" the infinite horde during the Tank fight
-	if ((hCvarNoEventHordeDuringTanks.BoolValue || commonTank > 0) 
+	if ((hCvarNoEventHordeDuringTanks.BoolValue || commonTank > 0)
 		&& IsTankUp() && IsInfiniteHordeActive()
 	){
 		SetPendingMobCount(0);
@@ -165,7 +166,7 @@ public Action L4D_OnSpawnMob(int &amount)
 			CPrintToChatAll("<{olive}Horde{default}> A {blue}finite event{default} of {olive}%i{default} commons has started! Rush or wait it out, the choice is yours!", commonLimit);
 			announcedInChat = true;
 		}
-		
+
 		// ...and it's overlimit...
 		if (commonTotal >= commonLimit) {
 			SetPendingMobCount(0);
@@ -174,7 +175,7 @@ public Action L4D_OnSpawnMob(int &amount)
 		}
 		// commonTotal += amount;
 	}
-	
+
 	// ...or not.
 	return Plugin_Continue;
 }

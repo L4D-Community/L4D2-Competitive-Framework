@@ -2,21 +2,20 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <colors>
 
 bool
-	g_bIsEventHook;
+	g_bIsEventHook = false;
 
 ConVar
-	g_hCvarServerMessageToggle,
-	g_hCvarServerWelcomeMessage;
+	g_hCvarServerMessageToggle = null,
+	g_hCvarServerWelcomeMessage = null;
 
 public Plugin myinfo =
 {
 	name = "sv_consistency fixes",
 	author = "step, Sir, A1m`",
 	description = "Fixes multiple sv_consistency issues.",
-	version = "1.4.1",
+	version = "1.4.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -25,34 +24,18 @@ public void OnPluginStart()
 	if (!FileExists("whitelist.cfg")) {
 		SetFailState("Couldn't find whitelist.cfg");
 	}
-	
-	g_hCvarServerMessageToggle = g_hCvarServerWelcomeMessage = CreateConVar( \
-		"svctyfix_message_enable", \
-		"1.0", \
-		"Enable print message in console when player join.", \
-		_, true, 0.0, true, 1.0 \
-	);
-	
-	g_hCvarServerWelcomeMessage = CreateConVar( \
-		"svctyfix_welcome_message", \
-		"a SoundM Protected Server", \
-		"Message to show to Players in console" \
-	);
-	
-	ConVar hConsistencyCheckInterval = CreateConVar( \
-		"cl_consistencycheck_interval", \
-		"180.0", \
-		"Perform a consistency check after this amount of time (seconds) has passed since the last.", \
-		FCVAR_REPLICATED \
-	);
-	
-	ToggleMessage();
-	g_hCvarServerMessageToggle.AddChangeHook(Cvar_Changed);
-	
-	RegAdminCmd("sm_consistencycheck", Cmd_ConsistencyCheck, ADMFLAG_RCON, "Performs a consistency check on all players.");
+
+	g_hCvarServerMessageToggle = CreateConVar("svctyfix_message_enable", "1.0", "Enable print message in console when player join.", _, true, 0.0, true, 1.0);
+	g_hCvarServerWelcomeMessage = CreateConVar("svctyfix_welcome_message", "a SoundM Protected Server", "Message to show to Players in console");
+	ConVar hConsistencyCheckInterval = CreateConVar("cl_consistencycheck_interval", "180.0", "Perform a consistency check after this amount of time (seconds) has passed since the last.", FCVAR_REPLICATED);
 
 	hConsistencyCheckInterval.SetInt(999999);
-	
+
+	ToggleMessage();
+	g_hCvarServerMessageToggle.AddChangeHook(Cvar_Changed);
+
+	RegAdminCmd("sm_consistencycheck", Cmd_ConsistencyCheck, ADMFLAG_RCON, "Performs a consistency check on all players.");
+
 	LoadTranslations("common.phrases"); // Load translations (for targeting player)
 }
 
@@ -76,9 +59,9 @@ public void Cvar_Changed(ConVar hConVar, const char[] sOldValue, const char[] sN
 	ToggleMessage();
 }
 
-public void OnClientConnected(int client)
+public void OnClientConnected(int iClient)
 {
-	ClientCommand(client, "cl_consistencycheck");
+	ClientCommand(iClient, "cl_consistencycheck");
 }
 
 public void Event_PlayerConnectFull(Event hEvent, const char[] sEventName, bool bDontBroadcast)
@@ -92,7 +75,7 @@ public Action PrintWhitelist(Handle hTimer, any iUserId)
 	int iClient = GetClientOfUserId(iUserId);
 	if (iClient > 0) {
 		char sMessage[128];
-		GetConVarString(g_hCvarServerWelcomeMessage, sMessage, sizeof(sMessage));
+		g_hCvarServerWelcomeMessage.GetString(sMessage, sizeof(sMessage));
 
 		PrintToConsole(iClient, " ");
 		PrintToConsole(iClient, " ");
@@ -108,6 +91,7 @@ public Action PrintWhitelist(Handle hTimer, any iUserId)
 		PrintToConsole(iClient, " ");
 		PrintToConsole(iClient, " ");
 	}
+
 	return Plugin_Stop;
 }
 
@@ -119,7 +103,7 @@ public Action Cmd_ConsistencyCheck(int iClient, int iArgs)
 				ClientCommand(i, "cl_consistencycheck");
 			}
 		}
-		
+
 		ReplyToCommand(iClient, "Started checking the consistency of files for all players!");
 		return Plugin_Handled;
 	}
@@ -132,10 +116,10 @@ public Action Cmd_ConsistencyCheck(int iClient, int iArgs)
 	if (iTarget == -1) {
 		return Plugin_Handled;
 	}
-	
+
 	ClientCommand(iTarget, "cl_consistencycheck");
 
 	ReplyToCommand(iClient, "Started checking the consistency of files for the player %N (%d)", iTarget, iTarget);
-	
+
 	return Plugin_Handled;
 }

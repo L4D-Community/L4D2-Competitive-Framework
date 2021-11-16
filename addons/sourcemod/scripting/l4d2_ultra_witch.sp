@@ -41,7 +41,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	InitGameData();
-	
+
 	g_hZWitchDamage = FindConVar("z_witch_damage");
 
 	if (g_blateLoad) {
@@ -61,15 +61,15 @@ void InitGameData()
 	}
 
 	StartPrepSDKCall(SDKCall_Player);
-	
+
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, SIGNATURE_NAME)) {
 		SetFailState("Function '%s' not found", SIGNATURE_NAME);
 	}
-	
+
 	PrepSDKCall_AddParameter(SDKType_Vector, SDKPass_ByRef);
-	
+
 	g_hApplyAbsVelocityImpulse = EndPrepSDKCall();
-	
+
 	if (g_hApplyAbsVelocityImpulse == null) {
 		SetFailState("Function '%s' found, but something went wrong", SIGNATURE_NAME);
 	}
@@ -92,11 +92,11 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 	if (!(iDamageType & DMG_SLASH)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsWitch(iAttacker) || !IsValidSurvivor(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (IsIncapacitated(iVictim)) {
 		return Plugin_Continue;
 	}
@@ -113,16 +113,16 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 
 	NormalizeVector(fVictimPos, fVictimPos);
 	NormalizeVector(fWitchPos, fWitchPos);
-	
+
 	fThrowForce[0] = L4D2Util_ClampFloat((360000.0 * (fVictimPos[0] - fWitchPos[0])), -400.0, 400.0);
 	fThrowForce[1] = L4D2Util_ClampFloat((90000.0 * (fVictimPos[1] - fWitchPos[1])), -400.0, 400.0);
 	fThrowForce[2] = 300.0;
-	
+
 	ApplyAbsVelocityImpulse(iVictim, fThrowForce);
 	L4D2Direct_DoAnimationEvent(iVictim, ANIM_TANK_PUNCH_GETUP);
-	
+
 	fDamage = fWitchDamage;
-	
+
 	return Plugin_Changed;
 }
 
@@ -131,18 +131,18 @@ int iGetSurvivorPermanentHealth(int iClient)
 	if (GetEntProp(iClient, Prop_Send, "m_currentReviveCount") > 0) {
 		return 0;
 	}
-	
+
 	int iHealth = GetEntProp(iClient, Prop_Send, "m_iHealth");
-	
+
 	return (iHealth > 0) ? iHealth : 0;
 }
 
 bool IsWitch(int iEntity)
 {
-	if (iEntity < 1 || !IsValidEdict(iEntity)) {
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
 		return false;
 	}
-	
+
 	char sClassName[MAX_ENTITY_NAME_SIZE];
 	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
 	return (strncmp(sClassName, "witch", 5) == 0); //witch and witch_bride
