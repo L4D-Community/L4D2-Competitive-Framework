@@ -18,140 +18,183 @@
 	You should have received a copy of the GNU General Public License along
 	with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
+#pragma semicolon 1
+#pragma newdecls required
+
 #include <sourcemod>
 #include <left4dhooks>
 #include <colors>
 
 #undef REQUIRE_PLUGIN
-#include "readyup"
+#include <readyup>
 
-public Plugin:myinfo =
+#define MAX_STEAMID_LENGTH 64
+#define TEAM_INFECTED 3
+
+bool
+	g_bReadyUpIsAvailable = false,
+	g_bRoundEnd = false;
+
+ConVar
+	g_hCvarEnabled = null,
+	g_hCvarForce = null,
+	g_hCvarApdebug = null;
+
+StringMap
+	g_hCrashedPlayersTrie = null;
+
+ArrayList
+	g_hInfectedPlayersArray = null;
+
+public Plugin myinfo =
 {
-    name = "L4D2 Auto-pause",
-    author = "Darkid, Griffin",
-    description = "When a player disconnects due to crash, automatically pause the game. When they rejoin, give them a correct spawn timer.",
-    version = "1.9",
-    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+	name = "L4D2 Auto-pause",
+	author = "Darkid, Griffin, A1m`",
+	description = "When a player disconnects due to crash, automatically pause the game. When they rejoin, give them a correct spawn timer.",
+	version = "2.1",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
-new Handle:enabled;
-new Handle:force;
-new Handle:apdebug;
-new Handle:crashedPlayers;
-new Handle:infectedPlayers;
-new bool:readyUpIsAvailable;
-new bool:RoundEnd;
-
-public OnPluginStart() {
-    // Suggestion by Nati: Disable for any 1v1
-    enabled = CreateConVar("autopause_enable", "1", "Whether or not to automatically pause when a player crashes.");
-    force = CreateConVar("autopause_force", "0", "Whether or not to force pause when a player crashes.");
-    apdebug = CreateConVar("autopause_apdebug", "0", "Whether or not to debug information.");
-
-    crashedPlayers = CreateTrie();
-    infectedPlayers = CreateArray(64);
-
-    HookEvent("round_start", round_start);
-    HookEvent("round_end", round_end);
-    HookEvent("player_team", playerTeam);
-    HookEvent("player_disconnect", playerDisconnect, EventHookMode_Pre);
-}
-
-public OnAllPluginsLoaded()
+public void OnPluginStart()
 {
-    readyUpIsAvailable = LibraryExists("readyup");
+	// Suggestion by Nati: Disable for any 1v1
+	g_hCvarEnabled = CreateConVar("autopause_enable", "1", "Whether or not to automatically pause when a player crashes.", _, true, 0.0, true, 1.0);
+	g_hCvarForce = CreateConVar("autopause_force", "0", "Whether or not to force pause when a player crashes.", _, true, 0.0, true, 1.0);
+	g_hCvarApdebug = CreateConVar("autopause_apdebug", "0", "Whether or not to debug information.", _, true, 0.0, true, 1.0);
+
+	g_hCrashedPlayersTrie = new StringMap();
+	g_hInfectedPlayersArray = new ArrayList(ByteCountToCells(MAX_STEAMID_LENGTH));
+
+	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+	HookEvent("round_end", Event_RoundEnd, EventHookMode_PostNoCopy);
+	HookEvent("player_team", Event_PlayerTeam, EventHookMode_Post);
+	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 }
 
-public OnLibraryRemoved(const String:name[])
+public void OnAllPluginsLoaded()
 {
-    if (StrEqual(name, "readyup")) readyUpIsAvailable = false;
+	g_bReadyUpIsAvailable = LibraryExists("readyup");
 }
 
-public OnLibraryAdded(const String:name[])
+public void OnLibraryRemoved(const char[] sPluginName)
 {
-    if (StrEqual(name, "readyup")) readyUpIsAvailable = true;
+	if (strcmp(sPluginName, "readyup") == 0) {
+		g_bReadyUpIsAvailable = false;
+	}
 }
 
-public round_start(Handle:event, const String:name[], bool:dontBroadcast) {
-    ClearTrie(crashedPlayers);
-    ClearArray(infectedPlayers);
-    RoundEnd = false;
+public void OnLibraryAdded(const char[] sPluginName)
+{
+	if (strcmp(sPluginName, "readyup") == 0) {
+		g_bReadyUpIsAvailable = true;
+	}
 }
 
-public round_end(Handle:event, const String:name[], bool:dontBroadcast) {
-    RoundEnd = true;
+public void Event_RoundStart(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+{
+	g_hCrashedPlayersTrie.Clear();
+	g_hInfectedPlayersArray.Clear();
+
+	g_bRoundEnd = false;
+}
+
+public void Event_RoundEnd(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+{
+	g_bRoundEnd = true;
 }
 
 // Handles players leaving and joining the infected team.
-public playerTeam(Handle:event, const String:name[], bool:dontBroadcast) {
-    new client = GetClientOfUserId(GetEventInt(event, "userid"));
-    if (client <= 0 || client > MaxClients) return;
-    decl String:steamId[64];
-    GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
-    if (strcmp(steamId, "BOT") == 0) return;
-    new oldTeam = GetEventInt(event, "oldteam");
-    new newTeam = GetEventInt(event, "team");
+public void Event_PlayerTeam(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+{
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (iClient < 1) {
+		return;
+	}
 
-    new index = FindStringInArray(infectedPlayers, steamId);
-    if (oldTeam == 3) {
-        if (index != -1) RemoveFromArray(infectedPlayers, index);
-        if (GetConVarBool(apdebug)) LogMessage("[AutoPause] Removed player %s from infected team.", steamId);
-    }
-    if (newTeam == 3) {
-        decl Float:spawnTime;
-        if (GetTrieValue(crashedPlayers, steamId, spawnTime)) {
-            new CountdownTimer:spawnTimer = L4D2Direct_GetSpawnTimer(client);
-            CTimer_Start(spawnTimer, spawnTime);
-            RemoveFromTrie(crashedPlayers, steamId);
-            LogMessage("[AutoPause] Player %s rejoined, set spawn timer to %f.", steamId, spawnTime);
-        } else if (index == -1) {
-            PushArrayString(infectedPlayers, steamId);
-            if (GetConVarBool(apdebug)) LogMessage("[AutoPause] Added player %s to infected team.", steamId);
-        }
-    }
+	char sSteamId[MAX_STEAMID_LENGTH];
+	GetClientAuthId(iClient, AuthId_Steam2, sSteamId, sizeof(sSteamId));
+	if (strcmp(sSteamId, "BOT") == 0) {
+		return;
+	}
+
+	int iIndex = g_hInfectedPlayersArray.FindString(sSteamId);
+	if (hEvent.GetInt("oldteam") == TEAM_INFECTED) {
+		if (iIndex != -1) {
+			g_hInfectedPlayersArray.Erase(iIndex);
+		}
+		
+		if (g_hCvarApdebug.BoolValue) {
+			LogMessage("[AutoPause] Removed player %s from infected team.", sSteamId);
+		}
+	}
+
+	if (hEvent.GetInt("team") == TEAM_INFECTED) {
+		float fSpawnTime = 0.0;
+
+		if (g_hCrashedPlayersTrie.GetValue(sSteamId, fSpawnTime)) {
+			CountdownTimer cSpawnTimer = L4D2Direct_GetSpawnTimer(iClient);
+			CTimer_Start(cSpawnTimer, fSpawnTime);
+			g_hCrashedPlayersTrie.Remove(sSteamId);
+
+			LogMessage("[AutoPause] Player %s rejoined, set spawn timer to %f.", sSteamId, fSpawnTime);
+		} else if (iIndex == -1) {
+			g_hInfectedPlayersArray.PushString(sSteamId);
+
+			if (g_hCvarApdebug.BoolValue) {
+				LogMessage("[AutoPause] Added player %s to infected team.", sSteamId);
+			}
+		}
+	}
 }
 
-public playerDisconnect(Handle:event, const String:name[], bool:dontBroadcast) {
-    new client = GetClientOfUserId(GetEventInt(event, "userid"));
-    if (client <= 0 || client > MaxClients) return;
-    decl String:steamId[64];
-    GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
-    if (strcmp(steamId, "BOT") == 0) return;
+public Action Event_PlayerDisconnect(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+{
+	char sSteamId[MAX_STEAMID_LENGTH];
+	hEvent.GetString("networkid", sSteamId, sizeof(sSteamId));
+	if (strcmp(sSteamId, "BOT") == 0) {
+		return Plugin_Continue;
+	}
 
-    decl String:reason[128];
-    GetEventString(event, "reason", reason, sizeof(reason));
-    decl String:playerName[128];
-    GetEventString(event, "name", playerName, sizeof(playerName));
-    decl String:timedOut[256];
-    Format(timedOut, sizeof(timedOut), "%s timed out", playerName);
+	// If the client has not loaded yet
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (iClient < 1) {
+		return Plugin_Continue;
+	}
 
-    if (GetConVarBool(apdebug)) LogMessage("[AutoPause] Player %s (%s) left the game: %s", playerName, steamId, reason);
+	char sReason[128], sPlayerName[128], sTimedOut[256];
+	hEvent.GetString("reason", sReason, sizeof(sReason));
+	hEvent.GetString("name", sPlayerName, sizeof(sPlayerName));
+	Format(sTimedOut, sizeof(sTimedOut), "%s timed out", sPlayerName);
 
-    // If the leaving player crashed, pause.
-    if (strcmp(reason, timedOut) == 0 || strcmp(reason, "No Steam logon") == 0)
-    {
-        if ((!readyUpIsAvailable || !IsInReady()) && !RoundEnd && GetConVarBool(enabled)) 
-        {
-            if (GetConVarBool(force)) 
-            {
-                ServerCommand("sm_forcepause");
-            } 
-            else 
-            {
-                FakeClientCommand(client, "sm_pause");
-            }
-            CPrintToChatAll("{blue}[{default}AutoPause{blue}] {olive}%s {default}crashed.", playerName);
-        }
-    }
+	if (g_hCvarApdebug.BoolValue) {
+		LogMessage("[AutoPause] Player %s (%s) left the game: %s", sPlayerName, sSteamId, sReason);
+	}
 
-    // If the leaving player was on infected, save their spawn timer.
-    if (FindStringInArray(infectedPlayers, steamId) != -1) {
-        decl Float:timeLeft;
-        new CountdownTimer:spawnTimer = L4D2Direct_GetSpawnTimer(client);
-        if (spawnTimer != CTimer_Null) {
-            timeLeft = CTimer_GetRemainingTime(spawnTimer);
-            LogMessage("[AutoPause] Player %s left the game with %f time until spawn.", steamId, timeLeft);
-            SetTrieValue(crashedPlayers, steamId, timeLeft);
-        }
-    }
+	// If the leaving player crashed, pause.
+	if (strcmp(sReason, sTimedOut) == 0 || strcmp(sReason, "No Steam logon") == 0) {
+		if ((!g_bReadyUpIsAvailable || !IsInReady()) && !g_bRoundEnd && g_hCvarEnabled.BoolValue) {
+			if (g_hCvarForce.BoolValue) {
+				ServerCommand("sm_forcepause");
+			} else {
+				FakeClientCommand(iClient, "sm_pause");
+			}
+
+			CPrintToChatAll("{blue}[{default}AutoPause{blue}] {olive}%s {default}crashed.", sPlayerName);
+		}
+	}
+
+	// If the leaving player was on infected, save their spawn timer.
+	if (g_hInfectedPlayersArray.FindString(sSteamId) != -1) {
+		CountdownTimer cSpawnTimer = L4D2Direct_GetSpawnTimer(iClient);
+
+		if (cSpawnTimer != CTimer_Null) {
+			float fTimeLeft = CTimer_GetRemainingTime(cSpawnTimer);
+			g_hCrashedPlayersTrie.SetValue(sSteamId, fTimeLeft);
+			
+			LogMessage("[AutoPause] Player %s left the game with %f time until spawn.", sSteamId, fTimeLeft);
+		}
+	}
+
+	return Plugin_Continue;
 }
