@@ -1,196 +1,199 @@
 #pragma semicolon 1
+#pragma newdecls required
 
 #include <sourcemod>
 #include <sdktools>
 #undef REQUIRE_PLUGIN
 #include <caster_system>
-#define MAX_SPEED 2
 
-new bool:readyUpIsAvailable;
+#define CASTER_SYSTEM_NAME "caster_system"
+#define MAX_SPEED 2.0
+#define TEAM_SPECTATORS 1
 
-public Plugin:myinfo =
+bool
+	g_bCasterSystemAvailable = false;
+
+float
+	g_fCurrentMulti[MAXPLAYERS + 1] = {1.0, ...},
+	g_fCurrentIncrement[MAXPLAYERS + 1] = {0.1, ...},
+	g_fVerticalIncrement[MAXPLAYERS + 1] = {10.0, ...};
+
+public Plugin myinfo =
 {
 	name = "Caster Assister",
 	author = "CanadaRox, Sir",
 	description = "Allows spectators to control their own specspeed and move vertically",
-	version = "2.2",
+	version = "2.4",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
-new Float:currentMulti[MAXPLAYERS+1] = { 1.0, ... };
-new Float:currentIncrement[MAXPLAYERS+1] = { 0.1, ... };
-new Float:verticalIncrement[MAXPLAYERS+1] = { 10.0, ... };
-
-public OnPluginStart()
+public void OnPluginStart()
 {
-    RegConsoleCmd("sm_set_specspeed_multi", SetSpecspeed_Cmd);
-    RegConsoleCmd("sm_set_specspeed_increment", SetSpecspeedIncrement_Cmd);
-    RegConsoleCmd("sm_increase_specspeed", IncreaseSpecspeed_Cmd);
-    RegConsoleCmd("sm_decrease_specspeed", DecreaseSpecspeed_Cmd);
-    RegConsoleCmd("sm_set_vertical_increment", SetVerticalIncrement_Cmd);
+	RegConsoleCmd("sm_set_specspeed_multi", SetSpecspeed_Cmd);
+	RegConsoleCmd("sm_set_specspeed_increment", SetSpecspeedIncrement_Cmd);
+	RegConsoleCmd("sm_increase_specspeed", IncreaseSpecspeed_Cmd);
+	RegConsoleCmd("sm_decrease_specspeed", DecreaseSpecspeed_Cmd);
+	RegConsoleCmd("sm_set_vertical_increment", SetVerticalIncrement_Cmd);
 
-    HookEvent("player_team", PlayerTeam_Event);
+	HookEvent("player_team", PlayerTeam_Event);
 }
 
-public OnAllPluginsLoaded()
+public void OnAllPluginsLoaded()
 {
-    readyUpIsAvailable = LibraryExists("caster_system");
+	g_bCasterSystemAvailable = LibraryExists(CASTER_SYSTEM_NAME);
 }
 
-public OnLibraryRemoved(const String:name[])
+public void OnLibraryRemoved(const char[] sPluginName)
 {
-    if (StrEqual(name, "caster_system"))
-    {
-        readyUpIsAvailable = false;
-    }
+	if (StrEqual(sPluginName, CASTER_SYSTEM_NAME)) {
+		g_bCasterSystemAvailable = false;
+	}
 }
 
-public OnLibraryAdded(const String:name[])
+public void OnLibraryAdded(const char[] sPluginName)
 {
-    if (StrEqual(name, "caster_system"))
-    {
-        readyUpIsAvailable = true;
-    }
+	if (StrEqual(sPluginName, CASTER_SYSTEM_NAME)) {
+		g_bCasterSystemAvailable = true;
+	}
 }
 
-public OnClientPutInServer(client)
+public void OnClientPutInServer(int iClient)
 {
-    if (readyUpIsAvailable && IsClientCaster(client))
-    {
-        FakeClientCommand(client, "sm_spechud");
-    }
+	if (g_bCasterSystemAvailable && IsClientCaster(iClient)) {
+		FakeClientCommand(iClient, "sm_spechud");
+	}
 }
 
-public PlayerTeam_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void PlayerTeam_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-    new team = GetEventInt(event, "team");
-    if (team == 1)
-    {
-        new client = GetClientOfUserId(GetEventInt(event, "userid"));
-        SetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue", currentMulti[client]);
-    }
+	if (hEvent.GetBool("disconnect")) {
+		return;
+	}
+
+	if (hEvent.GetInt("team") != TEAM_SPECTATORS) {
+		return;
+	}
+
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (iClient < 1 || IsFakeClient(iClient)) {
+		return;
+	}
+
+	SetEntPropFloat(iClient, Prop_Send, "m_flLaggedMovementValue", g_fCurrentMulti[iClient]);
 }
 
-public Action:SetSpecspeed_Cmd(client, args)
+public Action SetSpecspeed_Cmd(int iClient, int iArgs)
 {
-    if (GetClientTeam(client) != 1)
-    {
-        return Plugin_Handled;
-    }
+	if (GetClientTeam(iClient) != TEAM_SPECTATORS) {
+		return Plugin_Handled;
+	}
 
-    if (args != 1)
-    {
-        ReplyToCommand(client, "Usage: sm_set_specspeed_multi # (default: 1.0)");
-        return Plugin_Handled;
-    }
-    decl String:buffer[10];
-    GetCmdArg(1, buffer, sizeof(buffer));
-    new Float:newVal = StringToFloat(buffer);
-    if (IsSpeedValid(newVal)) {
-        SetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue", newVal);
-        currentMulti[client] = newVal;
-    }
-    return Plugin_Handled;
+	if (iArgs != 1) {
+		ReplyToCommand(iClient, "Usage: sm_set_specspeed_multi # (default: 1.0)");
+		return Plugin_Handled;
+	}
+
+	char sBuffer[10];
+	GetCmdArg(1, sBuffer, sizeof(sBuffer));
+	float fNewVal = StringToFloat(sBuffer);
+
+	if (IsSpeedValid(fNewVal)) {
+		SetEntPropFloat(iClient, Prop_Send, "m_flLaggedMovementValue", fNewVal);
+		g_fCurrentMulti[iClient] = fNewVal;
+	}
+
+	return Plugin_Handled;
 }
 
-public Action:SetSpecspeedIncrement_Cmd(client, args)
+public Action SetSpecspeedIncrement_Cmd(int iClient, int iArgs)
 {
-    if (GetClientTeam(client) != 1)
-    {
-        return Plugin_Handled;
-    }
+	if (GetClientTeam(iClient) != TEAM_SPECTATORS) {
+		return Plugin_Handled;
+	}
 
-    if (args != 1)
-    {
-        ReplyToCommand(client, "Usage: sm_set_specspeed_increment # (default: 0.1)");
-        return Plugin_Handled;
-    }
-    decl String:buffer[10];
-    GetCmdArg(1, buffer, sizeof(buffer));
-    currentIncrement[client] = StringToFloat(buffer);
-    return Plugin_Handled;
+	if (iArgs != 1) {
+		ReplyToCommand(iClient, "Usage: sm_set_specspeed_increment # (default: 0.1)");
+		return Plugin_Handled;
+	}
+
+	char sBuffer[10];
+	GetCmdArg(1, sBuffer, sizeof(sBuffer));
+	g_fCurrentIncrement[iClient] = StringToFloat(sBuffer);
+	return Plugin_Handled;
 }
 
-public Action:IncreaseSpecspeed_Cmd(client, args)
+public Action IncreaseSpecspeed_Cmd(int iClient, int iArgs)
 {
-    if (GetClientTeam(client) != 1)
-    {
-        return Plugin_Handled;
-    }
+	if (GetClientTeam(iClient) != TEAM_SPECTATORS) {
+		return Plugin_Handled;
+	}
 
-    IncreaseSpecspeed(client, currentIncrement[client]);
-    return Plugin_Handled;
+	IncreaseSpecspeed(iClient, g_fCurrentIncrement[iClient]);
+	return Plugin_Handled;
 }
 
-public Action:DecreaseSpecspeed_Cmd(client, args)
+public Action DecreaseSpecspeed_Cmd(int iClient, int iArgs)
 {
-    if (GetClientTeam(client) != 1)
-    {
-        return Plugin_Handled;
-    }
+	if (GetClientTeam(iClient) != TEAM_SPECTATORS) {
+		return Plugin_Handled;
+	}
 
-    IncreaseSpecspeed(client, -currentIncrement[client]);
-    return Plugin_Handled;
+	IncreaseSpecspeed(iClient, -g_fCurrentIncrement[iClient]);
+	return Plugin_Handled;
 }
 
-stock IncreaseSpecspeed(client, Float:difference)
+public Action SetVerticalIncrement_Cmd(int iClient, int iArgs)
 {
-    new Float:curVal = GetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue");
-    if (IsSpeedValid(curVal + difference)) {
-        SetEntPropFloat(client, Prop_Send, "m_flLaggedMovementValue", curVal + difference);
-        currentMulti[client] = curVal + difference;
-    }
+	if (GetClientTeam(iClient) != TEAM_SPECTATORS) {
+		return Plugin_Handled;
+	}
+
+	if (iArgs != 1) {
+		ReplyToCommand(iClient, "Usage: sm_set_vertical_increment # (default: 10.0)");
+		return Plugin_Handled;
+	}
+
+	char sBuffer[10];
+	GetCmdArg(1, sBuffer, sizeof(sBuffer));
+	g_fVerticalIncrement[iClient] = StringToFloat(sBuffer);
+	return Plugin_Handled;
 }
 
-public Action:SetVerticalIncrement_Cmd(client, args)
+public Action OnPlayerRunCmd(int iClient, int &iButtons)
 {
-    if (GetClientTeam(client) != 1)
-    {
-        return Plugin_Handled;
-    }
+	if (GetClientTeam(iClient) != TEAM_SPECTATORS || IsFakeClient(iClient)) {
+		return Plugin_Continue;
+	}
 
-    if (args != 1)
-    {
-        ReplyToCommand(client, "Usage: sm_set_vertical_increment # (default: 10.0)");
-        return Plugin_Handled;
-    }
-    decl String:buffer[10];
-    GetCmdArg(1, buffer, sizeof(buffer));
-    verticalIncrement[client] = StringToFloat(buffer);
-    return Plugin_Handled;
-}
-
-public Action:OnPlayerRunCmd(client, &buttons)
-{
-	if (IsValidClient(client) && GetClientTeam(client) == 1)
-	{
-		if (buttons & IN_USE)
-		{
-			MoveUp(client, verticalIncrement[client]);
-		}
-		else if (buttons & IN_RELOAD)
-		{
-			MoveUp(client, -verticalIncrement[client]);
-		}
+	if (iButtons & IN_USE) {
+		MoveUp(iClient, g_fVerticalIncrement[iClient]);
+	} else if (iButtons & IN_RELOAD) {
+		MoveUp(iClient, -g_fVerticalIncrement[iClient]);
 	}
 
 	return Plugin_Continue;
 }
 
-bool IsSpeedValid(float speed)
+void IncreaseSpecspeed(int iClient, float fDifference)
 {
-	return (speed >= 0 && speed <= MAX_SPEED);
+	float fCalculate = GetEntPropFloat(iClient, Prop_Send, "m_flLaggedMovementValue") + fDifference;
+
+	if (IsSpeedValid(fCalculate)) {
+		SetEntPropFloat(iClient, Prop_Send, "m_flLaggedMovementValue", fCalculate);
+		g_fCurrentMulti[iClient] = fCalculate;
+	}
 }
 
-void MoveUp(int client, float distance)
+void MoveUp(int iClient, float fDistance)
 {
-	float origin[3];
-	GetClientAbsOrigin(client, origin);
-	origin[2] += distance;
-	TeleportEntity(client, origin, NULL_VECTOR, NULL_VECTOR);
+	float fOrigin[3];
+	GetClientAbsOrigin(iClient, fOrigin);
+	fOrigin[2] += fDistance;
+
+	TeleportEntity(iClient, fOrigin, NULL_VECTOR, NULL_VECTOR);
 }
 
-bool IsValidClient(int client)
+bool IsSpeedValid(float fSpeed)
 {
-	return (client > 0 && client <= MaxClients && IsClientInGame(client));
+	return (fSpeed >= 0.0 && fSpeed <= MAX_SPEED);
 }
