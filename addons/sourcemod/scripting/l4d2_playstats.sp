@@ -41,6 +41,8 @@
 #include <readyup>
 #include <confogl>
 
+#define MAX_ENTITY_NAME_SIZE 64
+
 #define IS_VALID_CLIENT(%1) (%1 > 0 && %1 <= MaxClients)
 #define IS_SURVIVOR(%1) (GetClientTeam(%1) == 2)
 #define IS_INFECTED(%1) (GetClientTeam(%1) == 3)
@@ -171,7 +173,6 @@
 #define AUTO_INFCON_ROUND		(1 << 17)						// 131072
 #define AUTO_INFCON_GAME		(1 << 18)						// 262144
 
-
 // fun fact
 #define FFACT_MAX_WEIGHT		10
 #define FFACT_TYPE_CROWN		1
@@ -247,7 +248,7 @@ enum /*strGameData*/
 {
 	gmFailed,												// survivors lost the mission * times
 	gmStartTime,											// GetTime() value when starting
-	
+
 	gmMaxSize
 };
 
@@ -273,7 +274,7 @@ enum /*strRoundData*/
 	rndStopTimePause,
 	rndStartTimeTank,
 	rndStopTimeTank,
-	
+
 	rndMaxSize
 };
 
@@ -413,13 +414,6 @@ enum /*strMapType*/
 	MP_FINALE
 };
 
-// trie values: OnEntityCreated classname
-enum /*strOEC*/
-{
-	OEC_INFECTED,
-	OEC_WITCH
-};
-
 bool
 	g_bLateLoad = false,
 	g_bFirstLoadDone = false,									// true after first onMapStart
@@ -454,7 +448,6 @@ Handle
 	g_hTriePlayers = null,										// trie for getting player index
 	g_hTrieWeapons = null,										// trie for getting weapon type (from classname)
 	g_hTrieMaps = null,											// trie for getting finale maps
-	g_hTrieEntityCreated = null,								// trie for getting classname of entity created
 	g_hStatsFile;												// handle for a statsfile that we write tables to
 
 int
@@ -481,7 +474,7 @@ int
 	g_strRoundPlayerInfData[MAXTRACKED][2][plyMaxSize], 		// player data for infected action per team (team is survivor team! -- when infected player was on opposite team)
 	g_iPlayers = 0,
 	g_iConsoleBufChunks = 0;
-	
+
 float
 	g_fHighestFlow[4];											// highest flow a survivor was seen to have in the round (per character 0-3)
 
@@ -499,7 +492,7 @@ public Plugin myinfo =
 	name = "Player Statistics",
 	author = "Tabun, A1m`",
 	description = "Tracks statistics, even when clients disconnect. MVP, Skills, Accuracy, etc.",
-	version = "1.1.1",
+	version = "1.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -507,43 +500,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 {
 	g_bLateLoad = late;
 
-	CreateNative("PLAYSTATS_BroadcastRoundStats",  Native_BroadcastRoundStats);
-	CreateNative("PLAYSTATS_BroadcastGameStats",  Native_BroadcastGameStats);
-	
+	CreateNative("PLAYSTATS_BroadcastRoundStats", Native_BroadcastRoundStats);
+	CreateNative("PLAYSTATS_BroadcastGameStats", Native_BroadcastGameStats);
+
 	RegPluginLibrary("l4d2_playstats");
 	return APLRes_Success;
-}
-
-// crox readyup usage
-public void OnAllPluginsLoaded()
-{
-	g_bLGOAvailable = LibraryExists("confogl");
-	g_bReadyUpAvailable = LibraryExists("readyup");
-	g_bPauseAvailable = LibraryExists("pause");
-	g_bSkillDetectLoaded = LibraryExists("skill_detect");
-}
-
-public void OnLibraryRemoved(const char[] LibName)
-{
-	CheckLib(LibName, false);
-}
-
-public void OnLibraryAdded(const char[] LibName)
-{
-	CheckLib(LibName, true);
-}
-
-void CheckLib(const char[] LibName, bool state)
-{
-	if (strcmp(LibName, "confogl") == 0) {
-		g_bLGOAvailable = state;
-	} else if (strcmp(LibName, "readyup") == 0) {
-		g_bReadyUpAvailable = state;
-	} else if (strcmp(LibName, "pause") == 0) {
-		g_bPauseAvailable = state;
-	} else if (strcmp(LibName, "skill_detect") == 0) {
-		g_bSkillDetectLoaded = state;
-	}
 }
 
 public void OnPluginStart()
@@ -588,49 +549,49 @@ public void OnPluginStart()
 		"Debug mode",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarMVPBrevityFlags = CreateConVar(
 		"sm_survivor_mvp_brevity_latest",
 		"4",
 		"Flags for setting brevity of MVP chat report (hide 1:SI, 2:CI, 4:FF, 8:rank, 32:perc, 64:abs).",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarAutoPrintVs = CreateConVar(
 		"sm_stats_autoprint_vs_round",
 		"8325",									 // default = 1 (mvpchat) + 4 (mvpcon-round) + 128 (special round) = 133 + (funfact round) 8192 = 8325
 		"Flags for automatic print [versus round] (show 1,4:MVP-chat, 4,8,16:MVP-console, 32,64:FF, 128,256:special, 512,1024,2048,4096:accuracy).",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarAutoPrintCoop = CreateConVar(
 		"sm_stats_autoprint_coop_round",
 		"1289",									 // default = 1 (mvpchat) + 8 (mvpcon-all) + 256 (special all) + 1024 (acc all) = 1289
 		"Flags for automatic print [campaign round] (show 1,4:MVP-chat, 4,8,16:MVP-console, 32,64:FF, 128,256:special, 512,1024,2048,4096:accuracy).",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarShowBots = CreateConVar(
 		"sm_stats_showbots",
 		"1",
 		"Show bots in all tables (0 = show them in MVP and FF tables only)",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarDetailPercent = CreateConVar(
 		"sm_stats_percentdecimal",
 		"0",
 		"Show the first decimal for (most) MVP percent in console tables.",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarWriteStats = CreateConVar(
 		"sm_stats_writestats",
 		"0",
 		"Whether to store stats in logs/ dir (1 = write csv; 2 = write csv & pretty tables). Versus only.",
 		_, true, 0.0, false
 	);
-	
+
 	g_hCvarSkipMap = CreateConVar(
 		"sm_stats_resetnextmap",
 		"0",
@@ -708,6 +669,38 @@ public void OnPluginStart()
 		// team
 		g_iCurTeam = (g_bModeCampaign) ? 0 : GetCurrentTeamSurvivor();
 		UpdatePlayerCurrentTeam();
+	}
+}
+
+// crox readyup usage
+public void OnAllPluginsLoaded()
+{
+	g_bLGOAvailable = LibraryExists("confogl");
+	g_bReadyUpAvailable = LibraryExists("readyup");
+	g_bPauseAvailable = LibraryExists("pause");
+	g_bSkillDetectLoaded = LibraryExists("skill_detect");
+}
+
+public void OnLibraryRemoved(const char[] LibName)
+{
+	CheckLib(LibName, false);
+}
+
+public void OnLibraryAdded(const char[] LibName)
+{
+	CheckLib(LibName, true);
+}
+
+void CheckLib(const char[] LibName, bool state)
+{
+	if (strcmp(LibName, "confogl") == 0) {
+		g_bLGOAvailable = state;
+	} else if (strcmp(LibName, "readyup") == 0) {
+		g_bReadyUpAvailable = state;
+	} else if (strcmp(LibName, "pause") == 0) {
+		g_bPauseAvailable = state;
+	} else if (strcmp(LibName, "skill_detect") == 0) {
+		g_bSkillDetectLoaded = state;
 	}
 }
 
@@ -799,7 +792,7 @@ public void OnMapStart()
 	} else if (g_bFirstLoadDone) {
 		// reset stats for previous round
 		PrintDebug(2, "OnMapStart: Reset stats for round (Timer_ResetStats)");
-		CreateTimer(STATS_RESET_DELAY, Timer_ResetStats, 1, TIMER_FLAG_NO_MAPCHANGE);
+		CreateTimer(STATS_RESET_DELAY, Timer_ResetStats, true, TIMER_FLAG_NO_MAPCHANGE);
 	}
 
 	g_bFirstLoadDone = true;
@@ -878,7 +871,7 @@ public void Event_RoundEnd(Event hEvent, const char[] eName, bool dontBroadcast)
 	if (g_bModeCampaign && g_bFailedPrevious) {
 		return;
 	}
-	
+
 	// called on versus round end
 	// and mission failed coop
 	HandleRoundEnd();
@@ -961,7 +954,7 @@ void SetRoundEndTimes()
 	for (i = rndStartTime; i < MAXRNDSTATS; i += 2) {
 		// set end
 		if (g_strRoundData[g_iRound][g_iCurTeam][i] && !g_strRoundData[g_iRound][g_iCurTeam][i + 1]) {
-			g_strRoundData[g_iRound][g_iCurTeam][i + 1] = time; 
+			g_strRoundData[g_iRound][g_iCurTeam][i + 1] = time;
 		}
 	}
 
@@ -969,14 +962,14 @@ void SetRoundEndTimes()
 	for (j = 0; j < g_iPlayers; j++) {
 		// start-stop times (always pairs)  <, not <=, because per 2!
 		for (i = plyTimeStartPresent; i < MAXPLYSTATS; i += 2) {
-			if (g_strRoundPlayerData[j][g_iCurTeam][i] && !g_strRoundPlayerData[j][g_iCurTeam][i + 1]) { 
-				g_strRoundPlayerData[j][g_iCurTeam][i + 1] = time; 
+			if (g_strRoundPlayerData[j][g_iCurTeam][i] && !g_strRoundPlayerData[j][g_iCurTeam][i + 1]) {
+				g_strRoundPlayerData[j][g_iCurTeam][i + 1] = time;
 			}
 		}
-		
+
 		for (i = infTimeStartPresent; i < MAXINFSTATS; i += 2) {
 			if (g_strRoundPlayerInfData[j][g_iCurTeam][i] && !g_strRoundPlayerInfData[j][g_iCurTeam][i + 1]) {
-				g_strRoundPlayerInfData[j][g_iCurTeam][i + 1] = time; 
+				g_strRoundPlayerInfData[j][g_iCurTeam][i + 1] = time;
 			}
 		}
 	}
@@ -992,7 +985,7 @@ void HandleRoundAddition()
 	// also sets end time to NOW for any 'ongoing' times for round/player
 
 	// round data
-	for (i = 0; i < view_as<int>(rndStartTime); i++) {
+	for (i = 0; i < rndStartTime; i++) {
 		g_strAllRoundData[g_iCurTeam][i] += g_strRoundData[g_iRound][g_iCurTeam][i];
 	}
 
@@ -1013,14 +1006,14 @@ void HandleRoundAddition()
 
 	// player data
 	for (j = 0; j < g_iPlayers; j++) {
-		for (i = 0; i < view_as<int>(plyTimeStartPresent); i++) {
+		for (i = 0; i < plyTimeStartPresent; i++) {
 			g_strPlayerData[j][i] += g_strRoundPlayerData[j][g_iCurTeam][i];
 		}
-		
+
 		// start-stop times (always pairs)  <, not <=, because per 2!
 		for (i = plyTimeStartPresent; i < MAXPLYSTATS; i += 2) {
-			if (!g_strRoundPlayerData[j][g_iCurTeam][i] || !g_strRoundPlayerData[j][g_iCurTeam][i + 1]) { 
-				continue; 
+			if (!g_strRoundPlayerData[j][g_iCurTeam][i] || !g_strRoundPlayerData[j][g_iCurTeam][i + 1]) {
+				continue;
 			}
 
 			if (!g_strPlayerData[j][i]) {
@@ -1032,12 +1025,12 @@ void HandleRoundAddition()
 		}
 
 		// same for infected data
-		for (i = 0; i < view_as<int>(infTimeStartPresent); i++) {
+		for (i = 0; i < infTimeStartPresent; i++) {
 			g_strPlayerInfData[j][i] += g_strRoundPlayerInfData[j][g_iCurTeam][i];
 		}
-		
+
 		for (i = infTimeStartPresent; i < MAXINFSTATS; i += 2) {
-			if (!g_strRoundPlayerInfData[j][g_iCurTeam][i] || !g_strRoundPlayerInfData[j][g_iCurTeam][i + 1]) { 
+			if (!g_strRoundPlayerInfData[j][g_iCurTeam][i] || !g_strRoundPlayerInfData[j][g_iCurTeam][i + 1]) {
 				continue;
 			}
 
@@ -1286,13 +1279,13 @@ public Action Cmd_StatsDisplayGeneral(int client, int args)
 
 	// determine main type (the command typed)
 	if (StrEqual(sArg, "sm_mvp", false)) {
-		iType = typMVP; 
+		iType = typMVP;
 	} else if (StrEqual(sArg, "sm_ff", false)) {
-		iType = typFF; 
+		iType = typFF;
 	} else if (StrEqual(sArg, "sm_skill", false)) {
 		iType = typSkill;
 	} else if (StrEqual(sArg, "sm_acc", false)) {
-		iType = typAcc; 
+		iType = typAcc;
 	} else if (StrEqual(sArg, "sm_inf", false)) {
 		iType = typInf;
 	}
@@ -1334,7 +1327,7 @@ public Action Cmd_StatsDisplayGeneral(int client, int args)
 			Format(bufBasic, CONBUFSIZELARGE, "%s|              'ff'     :  friendly fire damage (per type of weapon)           |\n", bufBasic);
 			Format(bufBasic, CONBUFSIZELARGE, "%s|              'acc'    :  accuracy details           (extra argument: 'more') |\n", bufBasic);
 			Format(bufBasic, CONBUFSIZELARGE, "%s|              'inf'    :  special infected stats (dp's, damage done etc)      |", bufBasic);
-			
+
 			if (IS_VALID_INGAME(client)) {
 				PrintToConsole(client, bufBasic);
 			} else {
@@ -1349,7 +1342,7 @@ public Action Cmd_StatsDisplayGeneral(int client, int args)
 			Format(bufBasic, CONBUFSIZELARGE, "%s|   'other' ('o') / 'my'         : team that is now infected; or your team NMW |\n", bufBasic);
 			Format(bufBasic, CONBUFSIZELARGE, "%s|   'tank'          [ MVP only ] : show stats for tank fight                   |\n", bufBasic);
 			Format(bufBasic, CONBUFSIZELARGE, "%s|   'more'    [ ACC & MVP only ] : show more stats ( MVP time / SI/tank hits ) |", bufBasic);
-			
+
 			if (IS_VALID_INGAME(client)) {
 				PrintToConsole(client, bufBasic);
 			} else {
@@ -1364,7 +1357,7 @@ public Action Cmd_StatsDisplayGeneral(int client, int args)
 			Format(bufBasic, CONBUFSIZELARGE, "%s|   '/stats acc my'          => shows accuracy stats (your team, this round)   |\n", bufBasic);
 			Format(bufBasic, CONBUFSIZELARGE, "%s|   '/stats mvp tank'        => shows survivor action while tank is/was up     |\n", bufBasic);
 			Format(bufBasic, CONBUFSIZELARGE, "%s|------------------------------------------------------------------------------|", bufBasic);
-			
+
 			if (IS_VALID_INGAME(client)) {
 				PrintToConsole(client, bufBasic);
 			} else {
@@ -1533,72 +1526,72 @@ public Action Cmd_Cookie_SetPrintFlags(int client, int args)
 					Format(tmpStr[part], 24, "mvp/chat(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_MVPCHAT_GAME) {
 					Format(tmpStr[part], 24, "mvp/chat(game)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_MVPCON_ROUND) {
 					Format(tmpStr[part], 24, "mvp(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_MVPCON_GAME) {
 					Format(tmpStr[part], 24, "mvp(game)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_MVPCON_MORE_ROUND) {
 					Format(tmpStr[part], 24, "mvp/more(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_MVPCON_MORE_GAME) {
 					Format(tmpStr[part], 24, "mvp/more(game)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_MVPCON_TANK) {
 					Format(tmpStr[part], 24, "mvp/tankfight");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_SKILLCON_ROUND) {
 					Format(tmpStr[part], 24, "skill/special(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_SKILLCON_GAME) {
 					Format(tmpStr[part], 24, "skill/special(game)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_FFCON_ROUND) {
 					Format(tmpStr[part], 24, "ff(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_FFCON_GAME) {
 					Format(tmpStr[part], 24, "ff(game)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_ACCCON_ROUND) {
 					Format(tmpStr[part], 24, "accuracy(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_ACCCON_GAME) {
 					Format(tmpStr[part], 24, "accuracy(game)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_ACCCON_MORE_ROUND) {
 					Format(tmpStr[part], 24, "acc/more(round)");
 					part++;
 				}
-				
+
 				if (iFlags & AUTO_ACCCON_MORE_GAME) {
 					Format(tmpStr[part], 24, "acc/more(game)");
 					part++;
@@ -1618,7 +1611,7 @@ public Action Cmd_Cookie_SetPrintFlags(int client, int args)
 						tmpPrint = "";
 					}
 				}
-				
+
 				PrintToChat(client, "\x01Use \x04/stats_auto test\x01 to get a report preview.");
 			}
 
@@ -1700,7 +1693,7 @@ public void Event_PlayerTeam(Event hEvent, const char[] eName, bool dontBroadcas
 		int oldTeam = hEvent.GetInt("oldteam");
 
 		// only do checks for players moving from or to survivor team
-		if (newTeam != TEAM_SURVIVOR && oldTeam != TEAM_SURVIVOR) { 
+		if (newTeam != TEAM_SURVIVOR && oldTeam != TEAM_SURVIVOR) {
 			return;
 		}
 
@@ -1737,12 +1730,12 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 	// survivor to infected
 	if (IS_VALID_SURVIVOR(attacker) && IS_VALID_INFECTED(victim)) {
 		if (damage < 1) {
-			return Plugin_Continue; 
+			return Plugin_Continue;
 		}
 
 		attIndex = GetPlayerIndexForClient(attacker);
 		if (attIndex == -1) {
-			return Plugin_Continue; 
+			return Plugin_Continue;
 		}
 
 		int dmgType = hEvent.GetInt("type");
@@ -1765,28 +1758,28 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 			}
 
 			switch (weaponType) {
-				case WPTYPE_SHOTGUN: { 
-					storeA = view_as<int>(plyHitsShotgun); 
-					storeB = view_as<int>(plyHitsSIShotgun);  
+				case WPTYPE_SHOTGUN: {
+					storeA = plyHitsShotgun;
+					storeB = plyHitsSIShotgun;
 				}
-				case WPTYPE_SMG: { 
-					storeA = view_as<int>(plyHitsSmg);
-					storeB = view_as<int>(plyHitsSISmg);
-					storeC = (hitgroup == HITGROUP_HEAD) ? (view_as<int>(plyHeadshotsSmg)) : -1; 
+				case WPTYPE_SMG: {
+					storeA = plyHitsSmg;
+					storeB = plyHitsSISmg;
+					storeC = (hitgroup == HITGROUP_HEAD) ? (plyHeadshotsSmg) : -1;
 				}
 				case WPTYPE_SNIPER: {
-					storeA = view_as<int>(plyHitsSniper);
-					storeB = view_as<int>(plyHitsSISniper);
-					storeC = (hitgroup == HITGROUP_HEAD) ? (view_as<int>(plyHeadshotsSniper)) : -1; 
+					storeA = plyHitsSniper;
+					storeB = plyHitsSISniper;
+					storeC = (hitgroup == HITGROUP_HEAD) ? (plyHeadshotsSniper) : -1;
 				}
 				case WPTYPE_PISTOL: {
-					storeA = view_as<int>(plyHitsPistol);
-					storeB = view_as<int>(plyHitsSIPistol); 
-					storeC = (hitgroup == HITGROUP_HEAD) ? (view_as<int>(plyHeadshotsPistol)) : -1;
-					
+					storeA = plyHitsPistol;
+					storeB = plyHitsSIPistol;
+					storeC = (hitgroup == HITGROUP_HEAD) ? (plyHeadshotsPistol) : -1;
+
 					// incapped: don't count hits
-					if (IsPlayerIncapacitated(attacker)) { 
-						storeA = -1; 
+					if (IsPlayerIncapacitated(attacker)) {
+						storeA = -1;
 					}
 				}
 			}
@@ -1798,24 +1791,24 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 				g_strRoundPlayerData[attIndex][g_iCurTeam][plyMeleesOnTank]++;
 			} else {
 				switch (weaponType) {
-					case WPTYPE_SHOTGUN: { 
-						storeA = view_as<int>(plyHitsShotgun); 
-						storeB = view_as<int>(plyHitsTankShotgun);  
+					case WPTYPE_SHOTGUN: {
+						storeA = plyHitsShotgun;
+						storeB = plyHitsTankShotgun;
 					}
 					case WPTYPE_SMG: {
-						storeA = view_as<int>(plyHitsSmg);	 
-						storeB = view_as<int>(plyHitsTankSmg); 
+						storeA = plyHitsSmg;
+						storeB = plyHitsTankSmg;
 					}
 					case WPTYPE_SNIPER: {
-						storeA = view_as<int>(plyHitsSniper);  
-						storeB = view_as<int>(plyHitsTankSniper); 
+						storeA = plyHitsSniper;
+						storeB = plyHitsTankSniper;
 					}
 					case WPTYPE_PISTOL: {
-						storeA = view_as<int>(plyHitsPistol);
-						storeB = view_as<int>(plyHitsTankPistol);
+						storeA = plyHitsPistol;
+						storeB = plyHitsTankPistol;
 						// incapped: don't count hits
-						if (IsPlayerIncapacitated(attacker)) { 
-							storeA = -1; 
+						if (IsPlayerIncapacitated(attacker)) {
+							storeA = -1;
 						}
 					}
 				}
@@ -1836,13 +1829,13 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 		// friendly fire
 
 		type = hEvent.GetInt("type");
-		if (damage < 1) { 
-			return Plugin_Continue; 
+		if (damage < 1) {
+			return Plugin_Continue;
 		}
 
 		attIndex = GetPlayerIndexForClient(attacker);
-		if (attIndex == -1) { 
-			return Plugin_Continue; 
+		if (attIndex == -1) {
+			return Plugin_Continue;
 		}
 
 		if (attacker == victim) {
@@ -1893,10 +1886,10 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 		}
 	} else if (IS_VALID_SURVIVOR(victim)) { // infected to survivor
 		vicIndex = GetPlayerIndexForClient(victim);
-		if (vicIndex == -1) { 
-			return Plugin_Continue; 
+		if (vicIndex == -1) {
+			return Plugin_Continue;
 		}
-		
+
 		int attackerent = hEvent.GetInt("attackerentid");
 
 		if (IS_VALID_INFECTED(attacker))
@@ -1908,7 +1901,7 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 
 			attIndex = GetPlayerIndexForClient(attacker);
 			if (attIndex == -1) {
-				return Plugin_Continue; 
+				return Plugin_Continue;
 			}
 
 			if (zClass == ZC_TANK) {
@@ -1963,13 +1956,13 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 					}
 				}
 			}
-		} else if (IsValidEntity(attackerent) && IsCommon(attackerent)) {
+		} else if (IsCommonInfected(attackerent)) {
 			if (!IsPlayerIncapacitatedAtAll(victim)) {
 				// how much damage did a boomer 'do'
 				if (g_iBoomedBy[victim]) {
 					attIndex = GetPlayerIndexForClient(g_iBoomedBy[victim]);
-					if (attIndex == -1) { 
-						return Plugin_Continue; 
+					if (attIndex == -1) {
+						return Plugin_Continue;
 					}
 
 					g_strRoundPlayerData[vicIndex][g_iCurTeam][plyDmgTaken] += damage;
@@ -1987,17 +1980,17 @@ public Action Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadc
 
 public void Event_InfectedHurt(Event hEvent, const char[] eName, bool dontBroadcast)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int attacker = GetClientOfUserId(hEvent.GetInt("attacker"));
-	if (!IS_VALID_SURVIVOR(attacker)) { 
-		return; 
+	if (!IS_VALID_SURVIVOR(attacker)) {
+		return;
 	}
 
 	int attIndex = GetPlayerIndexForClient(attacker);
-	if (attIndex == -1) { 
+	if (attIndex == -1) {
 		return;
 	}
 
@@ -2019,23 +2012,23 @@ public void Event_InfectedHurt(Event hEvent, const char[] eName, bool dontBroadc
 	}
 
 	switch (weaponType) {
-		case WPTYPE_SHOTGUN: { 
-			storeA = view_as<int>(plyHitsShotgun); 
+		case WPTYPE_SHOTGUN: {
+			storeA = plyHitsShotgun;
 		}
-		case WPTYPE_SMG: {	 
-			storeA = view_as<int>(plyHitsSmg);
-			storeC = (hitgroup == HITGROUP_HEAD) ? (view_as<int>(plyHeadshotsSmg)) : -1; 
+		case WPTYPE_SMG: {
+			storeA = plyHitsSmg;
+			storeC = (hitgroup == HITGROUP_HEAD) ? (plyHeadshotsSmg) : -1;
 		}
-		case WPTYPE_SNIPER: { 
-			storeA = view_as<int>(plyHitsSniper);
-			storeC = (hitgroup == HITGROUP_HEAD) ? (view_as<int>(plyHeadshotsSniper)) : -1; 
+		case WPTYPE_SNIPER: {
+			storeA = plyHitsSniper;
+			storeC = (hitgroup == HITGROUP_HEAD) ? (plyHeadshotsSniper) : -1;
 		}
 		case WPTYPE_PISTOL: {
-			storeA = view_as<int>(plyHitsPistol);  
-			storeC = (hitgroup == HITGROUP_HEAD) ? (view_as<int>(plyHeadshotsPistol)) : -1;
+			storeA = plyHitsPistol;
+			storeC = (hitgroup == HITGROUP_HEAD) ? (plyHeadshotsPistol) : -1;
 			// incapped: don't count hits
-			if (IsPlayerIncapacitated(attacker)) { 
-				storeA = -1; 
+			if (IsPlayerIncapacitated(attacker)) {
+				storeA = -1;
 			}
 		}
 	}
@@ -2056,8 +2049,8 @@ public void Event_InfectedHurt(Event hEvent, const char[] eName, bool dontBroadc
 
 public void Event_PlayerFallDamage(Event hEvent, const char[] eName, bool dontBroadcast)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int victim = GetClientOfUserId(hEvent.GetInt("userid"));
@@ -2068,7 +2061,7 @@ public void Event_PlayerFallDamage(Event hEvent, const char[] eName, bool dontBr
 	int damage = hEvent.GetInt("damage");
 	int index = GetPlayerIndexForClient(victim);
 	if (index == -1) {
-		return; 
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyFallDamage] += damage;
@@ -2094,8 +2087,8 @@ public void Event_PlayerDeath(Event hEvent, const char[] eName, bool dontBroadca
 		g_strRoundData[g_iRound][g_iCurTeam][rndDeaths]++;
 
 		index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
-			return; 
+		if (index == -1) {
+			return;
 		}
 
 		g_strRoundPlayerData[index][g_iCurTeam][plyDied]++;
@@ -2104,7 +2097,7 @@ public void Event_PlayerDeath(Event hEvent, const char[] eName, bool dontBroadca
 		int time = GetTime();
 		g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] = time;
 		if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright]) {
-			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = time; 
+			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = time;
 		}
 	} else if (IS_VALID_INFECTED(client)) {
 		// special infected died (check for tank)
@@ -2117,8 +2110,8 @@ public void Event_PlayerDeath(Event hEvent, const char[] eName, bool dontBroadca
 
 			if (IS_VALID_SURVIVOR(attacker)) {
 				index = GetPlayerIndexForClient(attacker);
-				if (index == -1) { 
-					return; 
+				if (index == -1) {
+					return;
 				}
 
 				g_strRoundData[g_iRound][g_iCurTeam][rndSIKilled]++;
@@ -2137,8 +2130,8 @@ public void Event_PlayerDeath(Event hEvent, const char[] eName, bool dontBroadca
 
 		if (IS_VALID_SURVIVOR(attacker) && !IsWitch(common)) {
 			index = GetPlayerIndexForClient(attacker);
-			if (index == -1) { 
-				return; 
+			if (index == -1) {
+				return;
 			}
 
 			g_strRoundData[g_iRound][g_iCurTeam][rndCommon]++;
@@ -2149,8 +2142,8 @@ public void Event_PlayerDeath(Event hEvent, const char[] eName, bool dontBroadca
 			}
 		} else if (IS_VALID_INFECTED(attacker)) {
 			index = GetPlayerIndexForClient(attacker);
-			if (index == -1) { 
-				return; 
+			if (index == -1) {
+				return;
 			}
 
 			// infected killed a common
@@ -2186,8 +2179,8 @@ public void Event_TankSpawned(Event hEvent, const char[] eName, bool dontBroadca
 	g_bTankInGame = true;
 	int time = GetTime();
 
-	if (!g_bInRound) { 
-		return; 
+	if (!g_bInRound) {
+		return;
 	}
 
 	// note time
@@ -2202,12 +2195,12 @@ public void Event_TankSpawned(Event hEvent, const char[] eName, bool dontBroadca
 	// store passes
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (!IS_VALID_INGAME(client) || IsFakeClient(client)) {
-		return; 
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(client);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerInfData[index][g_iCurTeam][infTankPasses]++;
@@ -2215,8 +2208,8 @@ public void Event_TankSpawned(Event hEvent, const char[] eName, bool dontBroadca
 
 public void Event_PlayerIncapped(Event hEvent, const char[] eName, bool dontBroadcast)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
@@ -2225,22 +2218,22 @@ public void Event_PlayerIncapped(Event hEvent, const char[] eName, bool dontBroa
 		g_strRoundData[g_iRound][g_iCurTeam][rndIncaps]++;
 
 		int index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
-			return; 
+		if (index == -1) {
+			return;
 		}
 
 		g_strRoundPlayerData[index][g_iCurTeam][plyIncaps]++;
 
 		// store time they incapped (if they weren't already)
-		if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright]) { 
-			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = GetTime(); 
+		if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright]) {
+			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = GetTime();
 		}
 	}
 }
 
 public void Event_PlayerRevived(Event hEvent, const char[] eName, bool dontBroadcast)
 {
-	if (!g_bPlayersLeftStart) { 
+	if (!g_bPlayersLeftStart) {
 		return;
 	}
 
@@ -2249,7 +2242,7 @@ public void Event_PlayerRevived(Event hEvent, const char[] eName, bool dontBroad
 	if (IS_VALID_SURVIVOR(client)) {
 		int index = GetPlayerIndexForClient(client);
 		if (index == -1) {
-			return; 
+			return;
 		}
 
 		if (!IsPlayerIncapacitatedAtAll(client) && IsPlayerAlive(client) && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright]) {
@@ -2265,8 +2258,8 @@ public void Event_SurvivorRescue(Event hEvent, const char[] eName, bool dontBroa
 	int client = GetClientOfUserId(hEvent.GetInt("victim"));
 
 	int index = GetPlayerIndexForClient(client);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	// if they were dead, they're alive now! magic.
@@ -2275,7 +2268,7 @@ public void Event_SurvivorRescue(Event hEvent, const char[] eName, bool dontBroa
 		g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive] += time - g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive];
 		g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] = 0;
 	}
-	
+
 	if (g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright]) {
 		g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright] += time - g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright];
 		g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = 0;
@@ -2294,19 +2287,19 @@ public void Event_PlayerLedged(Event hEvent, const char[] eName, bool dontBroadc
 	if (IS_VALID_SURVIVOR(client)) {
 		int index = GetPlayerIndexForClient(client);
 		if (index == -1) {
-			return; 
+			return;
 		}
 
 		// store time they incapped (if they weren't already)
-		if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright]) { 
-			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = GetTime(); 
+		if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright]) {
+			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = GetTime();
 		}
 
 		int causer = GetClientOfUserId(hEvent.GetInt("causer"));
 		if (IS_VALID_INFECTED(causer)) {
 			int attIndex = GetPlayerIndexForClient(causer);
-			if (attIndex == -1) { 
-				return; 
+			if (attIndex == -1) {
+				return;
 			}
 
 			g_strRoundPlayerInfData[attIndex][g_iCurTeam][infLedged] ++;
@@ -2316,16 +2309,16 @@ public void Event_PlayerLedged(Event hEvent, const char[] eName, bool dontBroadc
 
 public void Event_PlayerLedgeRelease(Event hEvent, const char[] eName, bool dontBroadcast)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 
 	if (IS_VALID_SURVIVOR(client)) {
 		int index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
-			return; 
+		if (index == -1) {
+			return;
 		}
 
 		if (!IsPlayerIncapacitatedAtAll(client) && IsPlayerAlive(client) && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright]) {
@@ -2344,8 +2337,8 @@ public void Event_DefibUsed(Event hEvent, const char[] eName, bool dontBroadcast
 
 	if (IS_VALID_SURVIVOR(client)) {
 		int index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
-			return; 
+		if (index == -1) {
+			return;
 		}
 
 		int time = GetTime();
@@ -2353,7 +2346,7 @@ public void Event_DefibUsed(Event hEvent, const char[] eName, bool dontBroadcast
 			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive] += time - g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive];
 			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] = 0;
 		}
-		
+
 		if (g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright])  {
 			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright] += time - g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright];
 			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = 0;
@@ -2380,17 +2373,17 @@ public void Event_AdrenUsed(Event hEvent, const char[] eName, bool dontBroadcast
 public void Event_WeaponFire(Event hEvent, const char[] eName, bool dontBroadcast)
 {
 	if (!g_bPlayersLeftStart) {
-		return; 
+		return;
 	}
 
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
-	if (!IS_VALID_SURVIVOR(client) || IsPlayerIncapacitated(client)) { 
-		return; 
+	if (!IS_VALID_SURVIVOR(client) || IsPlayerIncapacitated(client)) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(client);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	int weaponId = hEvent.GetInt("weaponid");
@@ -2423,8 +2416,8 @@ public void Event_WeaponFire(Event hEvent, const char[] eName, bool dontBroadcas
 public void Event_PlayerSpawn(Event hEvent, const char[] eName, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
-	if (!IS_VALID_INFECTED(client)) { 
-		return; 
+	if (!IS_VALID_INFECTED(client)) {
+		return;
 	}
 
 	int zClass = GetEntProp(client, Prop_Send, "m_zombieClass");
@@ -2433,30 +2426,30 @@ public void Event_PlayerSpawn(Event hEvent, const char[] eName, bool dontBroadca
 		g_strRoundData[g_iRound][g_iCurTeam][rndSISpawned]++;
 
 		int index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
+		if (index == -1) {
 			return;
 		}
-		
+
 		g_strRoundPlayerInfData[index][g_iCurTeam][infSpawns]++;
 
 		switch (zClass) {
-			case ZC_SMOKER: { 
+			case ZC_SMOKER: {
 				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnSmoker]++;
 			}
-			case ZC_BOOMER: { 
+			case ZC_BOOMER: {
 				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnBoomer]++;
 			}
-			case ZC_HUNTER: { 
+			case ZC_HUNTER: {
 				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnHunter]++;
 			}
-			case ZC_SPITTER: { 
+			case ZC_SPITTER: {
 				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnSpitter]++;
 			}
 			case ZC_JOCKEY: {
 				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnJockey]++;
 			}
-			case ZC_CHARGER: { 
-				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnCharger]++; 
+			case ZC_CHARGER: {
+				g_strRoundPlayerInfData[index][g_iCurTeam][infSpawnCharger]++;
 			}
 		}
 	}
@@ -2472,8 +2465,8 @@ public void Event_PlayerBoomed(Event hEvent, const char[] eName, bool dontBroadc
 		g_iBoomedBy[victim] = attacker;
 
 		int attIndex = GetPlayerIndexForClient(attacker);
-		if (attIndex == -1) { 
-			return; 
+		if (attIndex == -1) {
+			return;
 		}
 
 		g_strRoundPlayerInfData[attIndex][g_iCurTeam][infBooms]++;
@@ -2493,13 +2486,13 @@ public void Event_PlayerUnboomed(Event hEvent, const char[] eName, bool dontBroa
 // m2 & deadstop
 public void OnSpecialShoved(int attacker, int victim, int zombieClass)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyShoves]++;
@@ -2508,12 +2501,12 @@ public void OnSpecialShoved(int attacker, int victim, int zombieClass)
 public void OnHunterDeadstop(int attacker, int victim)
 {
 	if (!g_bPlayersLeftStart) {
-		return; 
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
 	if (index == -1) {
-		return; 
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyDeadStops]++;
@@ -2522,13 +2515,13 @@ public void OnHunterDeadstop(int attacker, int victim)
 // skeets
 public void OnSkeet(int attacker, int victim)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeets]++;
@@ -2536,13 +2529,13 @@ public void OnSkeet(int attacker, int victim)
 
 public void OnSkeetGL(int attacker, int victim)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeets]++;
@@ -2550,13 +2543,13 @@ public void OnSkeetGL(int attacker, int victim)
 
 public void OnSkeetHurt(int attacker,int victim, int damage)
 {
-	if (!g_bPlayersLeftStart) { 
+	if (!g_bPlayersLeftStart) {
 		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeetsHurt]++;
@@ -2564,13 +2557,13 @@ public void OnSkeetHurt(int attacker,int victim, int damage)
 
 public void OnSkeetMelee(int attacker, int victim)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeetsMelee]++;
@@ -2580,7 +2573,7 @@ public void OnSkeetMeleeHurt(int attacker, int victim, int damage)
 {
 	int index = GetPlayerIndexForClient(attacker);
 	if (index == -1) {
-		return; 
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeetsHurt]++;
@@ -2588,13 +2581,13 @@ public void OnSkeetMeleeHurt(int attacker, int victim, int damage)
 
 public void OnSkeetSniper(int attacker, int victim)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeets]++;
@@ -2602,13 +2595,13 @@ public void OnSkeetSniper(int attacker, int victim)
 
 public void OnSkeetSniperHurt(int attacker, int victim, int damage)
 {
-	if (!g_bPlayersLeftStart) { 
+	if (!g_bPlayersLeftStart) {
 		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
 	if (index == -1) {
-		return; 
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySkeetsHurt]++;
@@ -2617,13 +2610,13 @@ public void OnSkeetSniperHurt(int attacker, int victim, int damage)
 // pops
 public void OnBoomerPop(int attacker, int victim, int shoveCount, float timeAlive)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyPops]++;
@@ -2632,13 +2625,13 @@ public void OnBoomerPop(int attacker, int victim, int shoveCount, float timeAliv
 // levels
 public void OnChargerLevel(int attacker, int victim)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
 	if (index == -1) {
-		return; 
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyLevels]++;
@@ -2646,13 +2639,13 @@ public void OnChargerLevel(int attacker, int victim)
 
 public void OnChargerLevelHurt(int attacker, int victim, int damage)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyLevelsHurt]++;
@@ -2662,12 +2655,12 @@ public void OnChargerLevelHurt(int attacker, int victim, int damage)
 public void OnTongueCut(int attacker,int victim)
 {
 	if (!g_bPlayersLeftStart) {
-		return; 
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyTongueCuts]++;
@@ -2675,13 +2668,13 @@ public void OnTongueCut(int attacker,int victim)
 
 public void OnSmokerSelfClear(int attacker, int victim, int withShove)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plySelfClears]++;
@@ -2691,8 +2684,8 @@ public void OnSmokerSelfClear(int attacker, int victim, int withShove)
 public void OnWitchCrown(int attacker, int damage)
 {
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyCrowns]++;
@@ -2701,8 +2694,8 @@ public void OnWitchCrown(int attacker, int damage)
 public void OnWitchDrawCrown(int attacker, int damage, int chipdamage)
 {
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyCrownsHurt]++;
@@ -2711,13 +2704,13 @@ public void OnWitchDrawCrown(int attacker, int damage, int chipdamage)
 // tank rock
 public void OnTankRockEaten(int attacker, int victim)
 {
-	if (!g_bPlayersLeftStart) { 
-		return; 
+	if (!g_bPlayersLeftStart) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(victim);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyRockEats]++;
@@ -2726,8 +2719,8 @@ public void OnTankRockEaten(int attacker, int victim)
 public void OnTankRockSkeeted(int attacker, int victim)
 {
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyRockSkeets]++;
@@ -2736,13 +2729,13 @@ public void OnTankRockSkeeted(int attacker, int victim)
 // highpounces
 public void OnHunterHighPounce(int attacker, int victim, int actualDamage, float damage, float height, bool bReportedHigh)
 {
-	if (!bReportedHigh) { 
-		return; 
+	if (!bReportedHigh) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerInfData[index][g_iCurTeam][infHunterDPs]++;
@@ -2751,13 +2744,13 @@ public void OnHunterHighPounce(int attacker, int victim, int actualDamage, float
 
 public void OnJockeyHighPounce(int attacker, int victim, float height, bool bReportedHigh)
 {
-	if (!bReportedHigh) { 
-		return; 
+	if (!bReportedHigh) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerInfData[index][g_iCurTeam][infJockeyDPs]++;
@@ -2767,8 +2760,8 @@ public void OnJockeyHighPounce(int attacker, int victim, float height, bool bRep
 public void OnDeathCharge(int attacker, int victim, float height, float distance, bool bCarried)
 {
 	int index = GetPlayerIndexForClient(attacker);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerInfData[index][g_iCurTeam][infDeathCharges]++;
@@ -2778,26 +2771,26 @@ public void OnDeathCharge(int attacker, int victim, float height, float distance
 public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieClass, float timeA, float timeB, bool withShove)
 {
 	float fClearTime = timeA;
-	if (zombieClass == ZC_CHARGER || zombieClass == ZC_SMOKER) { 
-		fClearTime = timeB; 
+	if (zombieClass == ZC_CHARGER || zombieClass == ZC_SMOKER) {
+		fClearTime = timeB;
 	}
 
 	// ignore any that take longer than a minute to clear
 	// also ignore self-clears
-	if (fClearTime < 0.0 || fClearTime == 0.0 || fClearTime > 60.0 || clearer == pinvictim) { 
-		return; 
+	if (fClearTime < 0.0 || fClearTime == 0.0 || fClearTime > 60.0 || clearer == pinvictim) {
+		return;
 	}
 
 	int index = GetPlayerIndexForClient(clearer);
-	if (index == -1) { 
-		return; 
+	if (index == -1) {
+		return;
 	}
 
 	g_strRoundPlayerData[index][g_iCurTeam][plyAvgClearTime] = RoundFloat(
 			(float(g_strRoundPlayerData[index][g_iCurTeam][plyAvgClearTime] * g_strRoundPlayerData[index][g_iCurTeam][plyClears]) + fClearTime * 1000.0) /
 			float(g_strRoundPlayerData[index][g_iCurTeam][plyClears] + 1)
 	);
-	
+
 	g_strRoundPlayerData[index][g_iCurTeam][plyClears]++;
 }
 
@@ -2806,10 +2799,10 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 	-------------
 */
 // stats reset (called on map start, clears both roundhalves)
-public Action Timer_ResetStats(Handle hTimer, any roundOnly)
+public Action Timer_ResetStats(Handle hTimer, bool roundOnly)
 {
 	// reset stats (for current team)
-	ResetStats(view_as<bool>(roundOnly));
+	ResetStats(roundOnly);
 
 	return Plugin_Stop;
 }
@@ -2841,7 +2834,7 @@ void ResetStats(bool bCurrentRoundOnly = false, int iTeam = -1, bool bFailedRoun
 				}
 			}
 		}
-		
+
 		for (j = 0; j < 2; j++) {
 			for (k = 0; k <= MAXRNDSTATS; k++) {
 				g_strAllRoundData[j][k] = 0;
@@ -2853,11 +2846,11 @@ void ResetStats(bool bCurrentRoundOnly = false, int iTeam = -1, bool bFailedRoun
 			for (j = 0; j <= MAXPLYSTATS; j++) {
 				g_strPlayerData[i][j] = 0;
 			}
-			
+
 			for (j = 0; j <= MAXINFSTATS; j++) {
 				g_strPlayerInfData[i][j] = 0;
 			}
-			
+
 			// clear all-game teams
 			for (j = 0; j < 2; j++) {
 				g_iPlayerGameTeam[j][i] = -1;
@@ -2870,16 +2863,16 @@ void ResetStats(bool bCurrentRoundOnly = false, int iTeam = -1, bool bFailedRoun
 	} else {
 		if (iTeam == -1) {
 			for (k = 0; k <= MAXRNDSTATS; k++) {
-				if (bFailedRound && k == view_as<int>(rndRestarts)) { 
-					continue; 
+				if (bFailedRound && k == rndRestarts) {
+					continue;
 				}
 				g_strRoundData[g_iRound][LTEAM_A][k] = 0;
 				g_strRoundData[g_iRound][LTEAM_B][k] = 0;
 			}
 		} else {
 			for (k = 0; k <= MAXRNDSTATS; k++) {
-				if (bFailedRound && k == view_as<int>(rndRestarts)) {
-					continue; 
+				if (bFailedRound && k == rndRestarts) {
+					continue;
 				}
 				g_strRoundData[g_iRound][iTeam][k] = 0;
 			}
@@ -2894,7 +2887,7 @@ void ResetStats(bool bCurrentRoundOnly = false, int iTeam = -1, bool bFailedRoun
 				for (k = 0; k <= MAXPLYSTATS; k++) {
 					g_strRoundPlayerData[i][j][k] = 0;
 				}
-				
+
 				for (k = 0; k <= MAXPLYSTATS; k++) {
 					g_strRoundPlayerInfData[i][j][k] = 0;
 				}
@@ -2906,7 +2899,7 @@ void ResetStats(bool bCurrentRoundOnly = false, int iTeam = -1, bool bFailedRoun
 			for (k = 0; k <= MAXPLYSTATS; k++) {
 				g_strRoundPlayerData[i][iTeam][k] = 0;
 			}
-			
+
 			for (k = 0; k <= MAXINFSTATS; k++) {
 				g_strRoundPlayerInfData[i][iTeam][k] = 0;
 			}
@@ -2930,25 +2923,25 @@ void UpdatePlayerCurrentTeam()
 	// find all infected
 
 	for (client = 1; client <= MaxClients; client++) {
-		if (!IS_VALID_INGAME(client)) { 
-			continue; 
+		if (!IS_VALID_INGAME(client)) {
+			continue;
 		}
 
 		index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
-			continue; 
+		if (index == -1) {
+			continue;
 		}
 
 		if (IS_VALID_SURVIVOR(client)) {
 			g_iPlayerRoundTeam[LTEAM_CURRENT][index] = g_iCurTeam;
 
-			if (!g_bPlayersLeftStart) { 
-				continue; 
+			if (!g_bPlayersLeftStart) {
+				continue;
 			}
 
 			// check bots
-			if (index < FIRST_NON_BOT) { 
-				botPresent[index] = true; 
+			if (index < FIRST_NON_BOT) {
+				botPresent[index] = true;
 			}
 
 			// for tracking which players ever were in the team (only useful if they were in the team when round was live)
@@ -2962,11 +2955,11 @@ void UpdatePlayerCurrentTeam()
 			} else if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartPresent]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartPresent] = time;
 			}
-			
+
 			g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] = 0;
-			
-			if (g_bPaused) { 
-				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartPresent] -= time - g_iPauseStart; 
+
+			if (g_bPaused) {
+				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartPresent] -= time - g_iPauseStart;
 			}
 
 			// if player wasn't alive and is now, update -- if never joined and dead, start = stop
@@ -2976,9 +2969,9 @@ void UpdatePlayerCurrentTeam()
 				} else if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive]) {
 					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive] = time;
 				}
-				
+
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] = 0;
-				if (g_bPaused)  { 
+				if (g_bPaused)  {
 					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive] -= time - g_iPauseStart;
 				}
 			} else if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive]) {
@@ -2994,11 +2987,11 @@ void UpdatePlayerCurrentTeam()
 				} else if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright]) {
 					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright] = time;
 				}
-				
+
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = 0;
-				
-				if (g_bPaused) { 
-					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright] -= time - g_iPauseStart; 
+
+				if (g_bPaused) {
+					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright] -= time - g_iPauseStart;
 				}
 			} else if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright] = time;
@@ -3008,9 +3001,9 @@ void UpdatePlayerCurrentTeam()
 			// if the player moved here from the other team, stop his presence time (as infected)
 			if (!g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] && g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStartPresent]) {
 				g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] = time;
-				
+
 				if (g_bPaused) {
-					g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] -= time - g_iPauseStart; 
+					g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] -= time - g_iPauseStart;
 				}
 			}
 		} else {
@@ -3027,10 +3020,10 @@ void UpdatePlayerCurrentTeam()
 						} else if (!g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStartPresent]) {
 							g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStartPresent] = time;
 						}
-						
+
 						g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] = 0;
-						if (g_bPaused) { 
-							g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStartPresent] -= time - g_iPauseStart; 
+						if (g_bPaused) {
+							g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStartPresent] -= time - g_iPauseStart;
 						}
 					}
 				}
@@ -3040,9 +3033,9 @@ void UpdatePlayerCurrentTeam()
 				// if the player moved here from the other team, stop his presence time
 				if (!g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] && g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStartPresent]) {
 					g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] = time;
-					
-					if (g_bPaused) { 
-						g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] -= time - g_iPauseStart; 
+
+					if (g_bPaused) {
+						g_strRoundPlayerInfData[index][g_iCurTeam][infTimeStopPresent] -= time - g_iPauseStart;
 					}
 				}
 			}
@@ -3050,22 +3043,22 @@ void UpdatePlayerCurrentTeam()
 			// if the player moved here from the other team, stop his presence time
 			if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartPresent]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] = time;
-				if (g_bPaused) { 
+				if (g_bPaused) {
 					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] -= time - g_iPauseStart;
 				}
 			}
-			
+
 			if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] = time;
-				if (g_bPaused) { 
-					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] -= time - g_iPauseStart; 
+				if (g_bPaused) {
+					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] -= time - g_iPauseStart;
 				}
 			}
-			
+
 			if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = time;
-				if (g_bPaused) { 
-					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] -= time - g_iPauseStart; 
+				if (g_bPaused) {
+					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] -= time - g_iPauseStart;
 				}
 			}
 		}
@@ -3079,28 +3072,28 @@ void UpdatePlayerCurrentTeam()
 	*/
 	if (g_bPlayersLeftStart) {
 		for (index = 0; index < FIRST_NON_BOT; index++) {
-			if (botPresent[index]) { 
-				continue; 
+			if (botPresent[index]) {
+				continue;
 			}
 
 			// if the bot was removed from survivors:
 			if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartPresent]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] = time;
-				if (g_bPaused) { 
-					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] -= time - g_iPauseStart; 
+				if (g_bPaused) {
+					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopPresent] -= time - g_iPauseStart;
 				}
 			}
-			
+
 			if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartAlive]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] = time;
-				if (g_bPaused) { 
-					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] -= time - g_iPauseStart; 
+				if (g_bPaused) {
+					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopAlive] -= time - g_iPauseStart;
 				}
 			}
-			
+
 			if (!g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] && g_strRoundPlayerData[index][g_iCurTeam][plyTimeStartUpright]) {
 				g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] = time;
-				if (g_bPaused) { 
+				if (g_bPaused) {
 					g_strRoundPlayerData[index][g_iCurTeam][plyTimeStopUpright] -= time - g_iPauseStart;
 				}
 			}
@@ -3131,13 +3124,13 @@ void SetStartSurvivorTime(bool bGame = false, bool bRestart = false)
 	int client, index, time = GetTime();
 
 	for (client = 1; client <= MaxClients; client++) {
-		if (!IS_VALID_INGAME(client)) { 
-			continue; 
+		if (!IS_VALID_INGAME(client)) {
+			continue;
 		}
 
 		index = GetPlayerIndexForClient(client);
-		if (index == -1) { 
-			continue; 
+		if (index == -1) {
+			continue;
 		}
 
 		if (IS_VALID_SURVIVOR(client)) {
@@ -3176,8 +3169,8 @@ void SetStartSurvivorTime(bool bGame = false, bool bRestart = false)
 // display general stats -- if round set, only for that round no.
 void DisplayStats(int client = -1, int round = -1, bool bTeam = true, int iTeam = -1)
 {
-	if (round != -1) { 
-		round--; 
+	if (round != -1) {
+		round--;
 	}
 
 	char bufBasicHeader[CONBUFSIZE];
@@ -3188,10 +3181,10 @@ void DisplayStats(int client = -1, int round = -1, bool bTeam = true, int iTeam 
 	g_iConsoleBufChunks = 0;
 
 	int team = g_iCurTeam;
-	if (iTeam != -1) { 
-		team = iTeam; 
-	} else if (g_bSecondHalf && !g_bPlayersLeftStart) { 
-		team = (team) ? 0 : 1; 
+	if (iTeam != -1) {
+		team = iTeam;
+	} else if (g_bSecondHalf && !g_bPlayersLeftStart) {
+		team = (team) ? 0 : 1;
 	}
 
 	// display all rounds / game summary
@@ -3213,15 +3206,15 @@ void DisplayStats(int client = -1, int round = -1, bool bTeam = true, int iTeam 
 	Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------------------------|\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Time: %14s | Rounds/Fails: %4i /%5i |\n", bufBasicHeader, strTmp, g_iRound, g_strGameData[gmFailed]);
 	Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------------------------|\n", bufBasicHeader);
-	Format(bufBasicHeader, CONBUFSIZE, "%s| Kits/Pills:%3d /%4d | Kills:   %6i  specials |\n", bufBasicHeader, 
+	Format(bufBasicHeader, CONBUFSIZE, "%s| Kits/Pills:%3d /%4d | Kills:   %6i  specials |\n", bufBasicHeader,
 			g_strAllRoundData[team][rndKitsUsed],g_strAllRoundData[team][rndPillsUsed], g_strAllRoundData[team][rndSIKilled]);
 
 	Format(bufBasicHeader, CONBUFSIZE, "%s| SI kill rate:  %4s%s |          %6i  commons  |\n",
 			bufBasicHeader, strTmpA, (g_strAllRoundData[team][rndSISpawned]) ? "%%" : " ", g_strAllRoundData[team][rndCommon]);
-			
+
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Deaths:       %6i |          %6i  witches  |\n", bufBasicHeader,
 			g_strAllRoundData[team][rndDeaths], g_strAllRoundData[team][rndWitchKilled]);
-	
+
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Incaps:       %6i |          %6i  tanks    |\n", bufBasicHeader,
 			g_strAllRoundData[team][rndIncaps], g_strAllRoundData[team][rndTankKilled]);
 
@@ -3249,7 +3242,7 @@ void DisplayStats(int client = -1, int round = -1, bool bTeam = true, int iTeam 
 
 	// round header
 	Format(bufBasicHeader, CONBUFSIZE, "\n| General data per game round -- %11s                                                        |\n", (bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players");
-	
+
 	//									| ###. ############### | ###h ##m ##s | ##### | ###### |  ##### |  ##### | #### |  ##### |   ###### |
 	Format(bufBasicHeader, CONBUFSIZE, "%s|---------------------------------------------------------------------------------------------------|\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Round                | Time         | SI    | Common | Deaths | Incaps | Kits | Pills  | Restarts |\n", bufBasicHeader);
@@ -3258,10 +3251,10 @@ void DisplayStats(int client = -1, int round = -1, bool bTeam = true, int iTeam 
 	// round data
 	BuildConsoleBufferGeneral(bTeam, iTeam);
 
-	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-		g_iConsoleBufChunks--; 
+	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+		g_iConsoleBufChunks--;
 	}
-	
+
 	if (g_iConsoleBufChunks > -1) {
 		Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE, "%s\n|---------------------------------------------------------------------------------------------------|",
 				g_sConsoleBuf[g_iConsoleBufChunks]);
@@ -3328,8 +3321,8 @@ void DisplayStatsMVPChat(int client, bool bRound = true, bool bTeam = true, int 
 	} else {
 		for (j = 1; j <= MaxClients; j++) {
 			for (i = 0; i < intPieces; i++) {
-				if (!IS_VALID_INGAME(j) || g_iCookieValue[j] != 0) { 
-					continue; 
+				if (!IS_VALID_INGAME(j) || g_iCookieValue[j] != 0) {
+					continue;
 				}
 				PrintToChat(j, "\x01%s", strLines[i]);
 			}
@@ -3339,10 +3332,10 @@ void DisplayStatsMVPChat(int client, bool bRound = true, bool bTeam = true, int 
 	int iBrevityFlags = GetConVarInt(g_hCvarMVPBrevityFlags);
 
 	int team = g_iCurTeam;
-	if (iTeam != -1) { 
-		team = iTeam; 
-	} else if (g_bSecondHalf && !g_bPlayersLeftStart) { 
-		team = (team) ? 0 : 1; 
+	if (iTeam != -1) {
+		team = iTeam;
+	} else if (g_bSecondHalf && !g_bPlayersLeftStart) {
+		team = (team) ? 0 : 1;
 	}
 
 	// find index for this client
@@ -3357,27 +3350,27 @@ void DisplayStatsMVPChat(int client, bool bRound = true, bool bTeam = true, int 
 		for (i = 1; i < g_iTeamSize && i < g_iPlayers; i++) {
 			index = g_iPlayerIndexSorted[SORT_SI][i];
 
-			if (index == -1) { 
-				break; 
+			if (index == -1) {
+				break;
 			}
-			
+
 			found = -1;
-			
+
 			for (x = 1; x <= MaxClients; x++) {
 				if (IS_VALID_INGAME(x)) {
-					if (index == GetPlayerIndexForClient(x)) { 
-						found = x; break; 
+					if (index == GetPlayerIndexForClient(x)) {
+						found = x; break;
 					}
 				}
 			}
-			
-			if (found == -1) { 
-				continue; 
+
+			if (found == -1) {
+				continue;
 			}
 
 			// only count survivors for the round in question
-			if (bRound && bTeam && g_iPlayerRoundTeam[team][i] != team) { 
-				continue; 
+			if (bRound && bTeam && g_iPlayerRoundTeam[team][i] != team) {
+				continue;
 			}
 
 			if (listNumber && (client == -1 || client == found) && IS_VALID_CLIENT(found) && !IsFakeClient(found) && g_iCookieValue[found] != -1) {
@@ -3433,27 +3426,27 @@ void DisplayStatsMVPChat(int client, bool bRound = true, bool bTeam = true, int 
 		for (i = 1; i < g_iTeamSize && i < g_iPlayers; i++) {
 			index = g_iPlayerIndexSorted[SORT_CI][i];
 
-			if (index == -1) { 
-				break; 
+			if (index == -1) {
+				break;
 			}
-			
+
 			found = -1;
 			for (x = 1; x <= MAXPLAYERS; x++) {
 				if (IS_VALID_INGAME(x)) {
-					if (index == GetPlayerIndexForClient(x)) { 
-						found = x; 
-						break; 
+					if (index == GetPlayerIndexForClient(x)) {
+						found = x;
+						break;
 					}
 				}
 			}
-			
-			if (found == -1) { 
-				continue; 
+
+			if (found == -1) {
+				continue;
 			}
 
 			// only count survivors for the round in question
-			if (bRound && bTeam && g_iPlayerRoundTeam[team][i] != team) { 
-				continue; 
+			if (bRound && bTeam && g_iPlayerRoundTeam[team][i] != team) {
+				continue;
 			}
 
 			if (listNumber && (client == -1 || client == found) && IS_VALID_CLIENT(found) && !IsFakeClient(found) && g_iCookieValue[found] != -1) {
@@ -3497,31 +3490,31 @@ void DisplayStatsMVPChat(int client, bool bRound = true, bool bTeam = true, int 
 		for (i = 1; i < g_iTeamSize && i < g_iPlayers; i++) {
 			index = g_iPlayerIndexSorted[SORT_FF][i];
 
-			if (index == -1) { 
-				break; 
+			if (index == -1) {
+				break;
 			}
-			
+
 			found = -1;
 			for (x = 1; x <= MaxClients; x++) {
 				if (IS_VALID_INGAME(x)) {
-					if (index == GetPlayerIndexForClient(x)) { 
-						found = x; 
-						break; 
+					if (index == GetPlayerIndexForClient(x)) {
+						found = x;
+						break;
 					}
 				}
 			}
-			
-			if (found == -1) { 
-				continue; 
+
+			if (found == -1) {
+				continue;
 			}
 
 			// only count survivors for the round in question
-			if (bRound && bTeam && g_iPlayerRoundTeam[team][i] != team) { 
-				continue; 
+			if (bRound && bTeam && g_iPlayerRoundTeam[team][i] != team) {
+				continue;
 			}
 
-			if (bRound && !g_strRoundPlayerData[index][team][plyFFGiven] || !bRound && !g_strPlayerData[index][plyFFGiven]) { 
-				continue; 
+			if (bRound && !g_strRoundPlayerData[index][team][plyFFGiven] || !bRound && !g_strPlayerData[index][plyFFGiven]) {
+				continue;
 			}
 
 			if (listNumber && (client == -1 || client == found) && IS_VALID_CLIENT(found) && !IsFakeClient(found) && g_iCookieValue[found] != -1) {
@@ -3570,15 +3563,15 @@ void GetMVPChatString(char[] printBuffer, const int iLen, bool bRound = true, bo
 	int iBrevityFlags = GetConVarInt(g_hCvarMVPBrevityFlags);
 
 	// if null data, set them to -1
-	if (g_iPlayers < 1 || bRound && !g_strRoundPlayerData[mvp_SI][team][plySIDamage] || !bRound && !g_strPlayerData[mvp_SI][plySIDamage]) { 
-		mvp_SI = -1; 
+	if (g_iPlayers < 1 || bRound && !g_strRoundPlayerData[mvp_SI][team][plySIDamage] || !bRound && !g_strPlayerData[mvp_SI][plySIDamage]) {
+		mvp_SI = -1;
 	}
-	
-	if (g_iPlayers < 1 || bRound && !g_strRoundPlayerData[mvp_Common][team][plyCommon] || !bRound && !g_strPlayerData[mvp_Common][plyCommon]) { 
+
+	if (g_iPlayers < 1 || bRound && !g_strRoundPlayerData[mvp_Common][team][plyCommon] || !bRound && !g_strPlayerData[mvp_Common][plyCommon]) {
 		mvp_Common = -1;
 	}
-	
-	if (g_iPlayers < 1 || bRound && !g_strRoundPlayerData[mvp_FF][team][plyFFGiven] || !bRound && !g_strPlayerData[mvp_FF][plyFFGiven]) { 
+
+	if (g_iPlayers < 1 || bRound && !g_strRoundPlayerData[mvp_FF][team][plyFFGiven] || !bRound && !g_strPlayerData[mvp_FF][plyFFGiven]) {
 		mvp_FF = -1;
 	}
 
@@ -3625,7 +3618,7 @@ void GetMVPChatString(char[] printBuffer, const int iLen, bool bRound = true, bo
 							)
 					);
 				}
-				
+
 				StrCat(printBuffer, iLen, tmpBuffer);
 			} else {
 				Format(tmpBuffer, sizeof(tmpBuffer), "[MVP%s] SI: \x03(nobody)\x01\n", (bRound) ? "" : " - Game");
@@ -3675,7 +3668,7 @@ void GetMVPChatString(char[] printBuffer, const int iLen, bool bRound = true, bo
 			Format(tmpBuffer, sizeof(tmpBuffer), "[LVP%s] FF: no friendly fire at all!\n",
 					(bRound) ? "" : " - Game"
 			);
-			
+
 			StrCat(printBuffer, iLen, tmpBuffer);
 		} else {
 			Format(tmpBuffer, sizeof(tmpBuffer), "[LVP%s] FF:\x03 %s \x01(\x05%d \x01dmg)\n",
@@ -3683,7 +3676,7 @@ void GetMVPChatString(char[] printBuffer, const int iLen, bool bRound = true, bo
 					g_sPlayerName[mvp_FF],
 					(bRound) ? g_strRoundPlayerData[mvp_FF][team][plyFFGiven] : g_strPlayerData[mvp_FF][plyFFGiven]
 			);
-			
+
 			StrCat(printBuffer, iLen, tmpBuffer);
 		}
 	}
@@ -3697,7 +3690,7 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 	// get sorted players list
 	SortPlayersMVP(bRound, SORT_SI, bTeam, iTeam);
 
-	bool bTankUp = view_as<bool>(!g_bModeCampaign && IsTankInGame() && g_bInRound);
+	bool bTankUp = (!g_bModeCampaign && IsTankInGame() && g_bInRound);
 
 	// prepare buffer(s) for printing
 	if (!bTank || !bTankUp) {
@@ -3722,10 +3715,10 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 			Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | SI during tank | CI d. tank | Melees | Rock skeet/eat |\n", bufBasicHeader);
 			Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|----------------|------------|--------|----------------|", bufBasicHeader);
 
-			if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-				g_iConsoleBufChunks--; 
+			if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+				g_iConsoleBufChunks--;
 			}
-			
+
 			if (g_iConsoleBufChunks > -1) {
 				Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 						"%s\n|------------------------------------------------------------------------------|\n",
@@ -3744,16 +3737,16 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 				(bRound) ? "This Round" : "ALL Rounds",
 				(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 			);
-			
+
 		//															 ###h ##m ##s
 		Format(bufBasicHeader, CONBUFSIZE, "%s|---------------------------------------------------------------------------------------|\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Time Present  %%%% of rnd | Alive  | Upright |                    |\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|------------------------|--------|---------|--------------------|", bufBasicHeader);
 
-		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-			g_iConsoleBufChunks--; 
+		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+			g_iConsoleBufChunks--;
 		}
-		
+
 		if (g_iConsoleBufChunks > -1) {
 			Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 					"%s\n|---------------------------------------------------------------------------------------|\n",
@@ -3772,15 +3765,15 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 				(bRound) ? "This Round" : "ALL Rounds",
 				(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 		);
-		
+
 		Format(bufBasicHeader, CONBUFSIZE, "%s|--------------------------------------------------------------------------------------------------------|\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Specials   kills/dmg  | Commons         | Tank   | Witch  | FF    | Rcvd | Time |\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|-----------------------|-----------------|--------|--------|-------|------|------|", bufBasicHeader);
 
-		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-			g_iConsoleBufChunks--; 
+		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+			g_iConsoleBufChunks--;
 		}
-		
+
 		if (g_iConsoleBufChunks > -1) {
 			Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 					"%s\n|--------------------------------------------------------------------------------------------------------|",
@@ -3847,19 +3840,19 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 			ReplaceString(bufBasicHeader, CONBUFSIZE, "%%", "%");
 			WriteFileString(g_hStatsFile, bufBasicHeader, false);
 			WriteFileString(g_hStatsFile, "\n", false);
-			
+
 			for (j = 0; j <= g_iConsoleBufChunks; j++) {
 				ReplaceString(g_sConsoleBuf[j], CONBUFSIZELARGE, "%%", "%");
 				WriteFileString(g_hStatsFile, g_sConsoleBuf[j], false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			if (bFooter) {
 				ReplaceString(bufBasicFooter, CONBUFSIZE, "%%", "%");
 				WriteFileString(g_hStatsFile, bufBasicFooter, false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			WriteFileString(g_hStatsFile, "\n", false);
 		}
 	} else if (client == -1) {
@@ -3870,7 +3863,7 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 				for (j = 0; j <= g_iConsoleBufChunks; j++) {
 					PrintToConsole(i, g_sConsoleBuf[j]);
 				}
-				
+
 				if (bFooter) {
 					PrintToConsole(i, bufBasicFooter);
 				}
@@ -3882,7 +3875,7 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 		for (j = 0; j <= g_iConsoleBufChunks; j++) {
 			PrintToServer(g_sConsoleBuf[j]);
 		}
-		
+
 		if (bFooter) {
 			PrintToServer(bufBasicFooter);
 		}
@@ -3891,7 +3884,7 @@ void DisplayStatsMVP(int client, bool bTank = false, bool bMore = false, bool bR
 		for (j = 0; j <= g_iConsoleBufChunks; j++) {
 			PrintToConsole(client, g_sConsoleBuf[j]);
 		}
-		
+
 		if (bFooter) {
 			PrintToConsole(client, bufBasicFooter);
 		}
@@ -3907,8 +3900,8 @@ void DisplayStatsFunFactChat(int client, bool bRound = true, bool bTeam = true, 
 	GetFunFactChatString(printBuffer, sizeof(printBuffer), bRound, bTeam, iTeam);
 
 	// only print if we got something
-	if (!strlen(printBuffer)) { 
-		return; 
+	if (!strlen(printBuffer)) {
+		return;
 	}
 
 	if (client == -1) {
@@ -3929,8 +3922,8 @@ void DisplayStatsFunFactChat(int client, bool bRound = true, bool bTeam = true, 
 	} else {
 		for (j = 1; j <= MaxClients; j++) {
 			for (i = 0; i < intPieces; i++) {
-				if (!IS_VALID_INGAME(j) || g_iCookieValue[j] != 0) { 
-					continue; 
+				if (!IS_VALID_INGAME(j) || g_iCookieValue[j] != 0) {
+					continue;
 				}
 				PrintToChat(j, "\x01%s", strLines[i]);
 			}
@@ -4052,8 +4045,8 @@ void GetFunFactChatString(char[] printBuffer, const int iLen, bool bRound = true
 		}
 
 		highest = GetPlayerWithHighestValue(iproperty, bRound, bTeam, team, bInf);
-		if (highest == -1) { 
-			continue; 
+		if (highest == -1) {
+			continue;
 		}
 
 		if (bInf) {
@@ -4094,14 +4087,14 @@ void GetFunFactChatString(char[] printBuffer, const int iLen, bool bRound = true
 		}
 
 		if (wTmp) {
-			for (j = 0; j < wTmp; j++) { 
-				wPicks[wTotal+j] = i; 
+			for (j = 0; j < wTmp; j++) {
+				wPicks[wTotal+j] = i;
 			}
 			wTotal += wTmp;
 		}
 	}
 
-	if (!wTotal) { 
+	if (!wTotal) {
 		return;
 	}
 
@@ -4257,10 +4250,10 @@ void DisplayStatsAccuracy(int client, bool bDetails = false, bool bRound = false
 		Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Shotgun             | SMG / Rifle         | Sniper              | Pistol              |\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------------------|---------------------|---------------------|---------------------|", bufBasicHeader);
 
-		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-			g_iConsoleBufChunks--; 
+		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+			g_iConsoleBufChunks--;
 		}
-		
+
 		if (g_iConsoleBufChunks > -1) {
 			Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 					"%s\n|--------------------------------------------------------------------------------------------------------------|",
@@ -4279,15 +4272,15 @@ void DisplayStatsAccuracy(int client, bool bDetails = false, bool bRound = false
 				(bRound) ? "This Round" : "ALL Rounds",
 				(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 		);
-		
+
 		Format(bufBasicHeader, CONBUFSIZE, "%s|--------------------------------------------------------------------------------------------------------------|\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Shotgun buckshot    | SMG / Rifle  acc hs | Sniper       acc hs | Pistol       acc hs |\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------------------|---------------------|---------------------|---------------------|", bufBasicHeader);
 
-		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-			g_iConsoleBufChunks--; 
+		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+			g_iConsoleBufChunks--;
 		}
-		
+
 		if (g_iConsoleBufChunks > -1) {
 			Format(g_sConsoleBuf[g_iConsoleBufChunks],
 					CONBUFSIZELARGE,
@@ -4309,13 +4302,13 @@ void DisplayStatsAccuracy(int client, bool bDetails = false, bool bRound = false
 			ReplaceString(bufBasicHeader, CONBUFSIZE, "%%", "%");
 			WriteFileString(g_hStatsFile, bufBasicHeader, false);
 			WriteFileString(g_hStatsFile, "\n", false);
-			
+
 			for (j = 0; j <= g_iConsoleBufChunks; j++) {
 				ReplaceString(g_sConsoleBuf[j], CONBUFSIZELARGE, "%%", "%");
 				WriteFileString(g_hStatsFile, g_sConsoleBuf[j], false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			WriteFileString(g_hStatsFile, "\n", false);
 		}
 	} else if (client == -1) {
@@ -4323,7 +4316,7 @@ void DisplayStatsAccuracy(int client, bool bDetails = false, bool bRound = false
 		for (i = 1; i <= MaxClients; i++) {
 			if (IS_VALID_INGAME(i) && g_iCookieValue[i] == 0) {
 				PrintToConsole(i, bufBasicHeader);
-				
+
 				for (j = 0; j <= g_iConsoleBufChunks; j++) {
 					PrintToConsole(i, g_sConsoleBuf[j]);
 				}
@@ -4365,20 +4358,20 @@ void DisplayStatsSpecial(int client, bool bRound = true, bool bTeam = true, bool
 			(bRound) ? "This Round" : "ALL Rounds",
 			(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 	);
-	 
+
 	if (!g_bSkillDetectLoaded) {
 		Format(bufBasicHeader, CONBUFSIZE, "%s| ( skill_detect library not loaded: most of these stats won't be tracked )                         |\n", bufBasicHeader);
 	}
-	
+
 	//															 #### / ### / ###   ### / ###	### / ###   ### / ###   ####   #### / ####
 	Format(bufBasicHeader, CONBUFSIZE, "%s|---------------------------------------------------------------------------------------------------|\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Skeets  fl/ht/ml | Levels    | Crowns    | Pops | Cuts / Self | DSs / M2s  |\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|------------------|-----------|-----------|------|-------------|------------|", bufBasicHeader);
 
-	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-		g_iConsoleBufChunks--; 
+	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+		g_iConsoleBufChunks--;
 	}
-	
+
 	if (g_iConsoleBufChunks > -1) {
 		Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 				"%s\n|---------------------------------------------------------------------------------------------------|",
@@ -4397,13 +4390,13 @@ void DisplayStatsSpecial(int client, bool bRound = true, bool bTeam = true, bool
 			ReplaceString(bufBasicHeader, CONBUFSIZE, "%%", "%");
 			WriteFileString(g_hStatsFile, bufBasicHeader, false);
 			WriteFileString(g_hStatsFile, "\n", false);
-			
+
 			for (j = 0; j <= g_iConsoleBufChunks; j++) {
 				ReplaceString(g_sConsoleBuf[j], CONBUFSIZELARGE, "%%", "%");
 				WriteFileString(g_hStatsFile, g_sConsoleBuf[j], false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			WriteFileString(g_hStatsFile, "\n", false);
 		}
 	} else if (client == -1) {
@@ -4452,20 +4445,20 @@ void DisplayStatsInfected(int client, bool bRound = true, bool bTeam = true, boo
 			(bRound) ? "This Round" : "ALL Rounds",
 			(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 	);
-	
+
 	if (!g_bSkillDetectLoaded) {
 		Format(bufBasicHeader, CONBUFSIZE, "%s| ( skill_detect library not loaded: most of these stats won't be tracked )                |\n", bufBasicHeader);
 	}
-	
+
 	//															  ##### / #####	#####	   ### / ####	  ####	 ####   ####
 	Format(bufBasicHeader, CONBUFSIZE, "%s|-------------------------------------------------------------------------------------------|\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Dmg  up / tot | Commons | Hunt DPs / dmg | DCharge | Spawns | Time |\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------------|---------|----------------|---------|--------|------|", bufBasicHeader);
 
-	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-		g_iConsoleBufChunks--; 
+	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+		g_iConsoleBufChunks--;
 	}
-	
+
 	if (g_iConsoleBufChunks > -1) {
 		Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 				"%s\n|-------------------------------------------------------------------------------------------|",
@@ -4484,13 +4477,13 @@ void DisplayStatsInfected(int client, bool bRound = true, bool bTeam = true, boo
 			ReplaceString(bufBasicHeader, CONBUFSIZE, "%%", "%");
 			WriteFileString(g_hStatsFile, bufBasicHeader, false);
 			WriteFileString(g_hStatsFile, "\n", false);
-			
+
 			for (j = 0; j <= g_iConsoleBufChunks; j++) {
 				ReplaceString(g_sConsoleBuf[j], CONBUFSIZELARGE, "%%", "%");
 				WriteFileString(g_hStatsFile, g_sConsoleBuf[j], false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			WriteFileString(g_hStatsFile, "\n", false);
 		}
 	} else if (client == -1) {
@@ -4536,22 +4529,22 @@ void DisplayStatsFriendlyFire(int client, bool bRound = true, bool bTeam = true,
 	bool bNoStatsToShow = true;
 	if (bRound) {
 		if (bTeam) {
-			if (g_strRoundData[g_iRound][team][rndFFDamageTotal]) { 
-				bNoStatsToShow = false; 
+			if (g_strRoundData[g_iRound][team][rndFFDamageTotal]) {
+				bNoStatsToShow = false;
 			}
 		} else {
-			if (g_strRoundData[g_iRound][LTEAM_A][rndFFDamageTotal] || g_strRoundData[g_iRound][LTEAM_B][rndFFDamageTotal]) { 
-				bNoStatsToShow = false; 
+			if (g_strRoundData[g_iRound][LTEAM_A][rndFFDamageTotal] || g_strRoundData[g_iRound][LTEAM_B][rndFFDamageTotal]) {
+				bNoStatsToShow = false;
 			}
 		}
 	} else {
 		if (bTeam) {
-			if (g_strAllRoundData[team][rndFFDamageTotal]) { 
-				bNoStatsToShow = false; 
+			if (g_strAllRoundData[team][rndFFDamageTotal]) {
+				bNoStatsToShow = false;
 			}
 		} else {
-			if (g_strAllRoundData[LTEAM_A][rndFFDamageTotal] || g_strAllRoundData[LTEAM_B][rndFFDamageTotal]) { 
-				bNoStatsToShow = false; 
+			if (g_strAllRoundData[LTEAM_A][rndFFDamageTotal] || g_strAllRoundData[LTEAM_B][rndFFDamageTotal]) {
+				bNoStatsToShow = false;
 			}
 		}
 	}
@@ -4569,15 +4562,15 @@ void DisplayStatsFriendlyFire(int client, bool bRound = true, bool bTeam = true,
 				(bRound) ? "This Round" : "ALL Rounds",
 				(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 		);
-		
+
 		Format(bufBasicHeader, CONBUFSIZE, "%s|--------------------------------||---------------------------------------------------------||---------|\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Total   || Shotgun | Bullets | Melee  | Fire   | On Incap | Other  || to Self |\n", bufBasicHeader);
 		Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------||---------|---------|--------|--------|----------|--------||---------|", bufBasicHeader);
 
-		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-			g_iConsoleBufChunks--; 
+		if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+			g_iConsoleBufChunks--;
 		}
-		
+
 		if (g_iConsoleBufChunks > -1) {
 			Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 					"%s\n|--------------------------------||---------------------------------------------------------||---------|",
@@ -4597,13 +4590,13 @@ void DisplayStatsFriendlyFire(int client, bool bRound = true, bool bTeam = true,
 			ReplaceString(bufBasicHeader, CONBUFSIZE, "%%", "%");
 			WriteFileString(g_hStatsFile, bufBasicHeader, false);
 			WriteFileString(g_hStatsFile, "\n", false);
-			
+
 			for (j = 0; j <= g_iConsoleBufChunks; j++) {
 				ReplaceString(g_sConsoleBuf[j], CONBUFSIZELARGE, "%%", "%");
 				WriteFileString(g_hStatsFile, g_sConsoleBuf[j], false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			WriteFileString(g_hStatsFile, "\n", false);
 		}
 	} else if (client == -1) {
@@ -4629,10 +4622,10 @@ void DisplayStatsFriendlyFire(int client, bool bRound = true, bool bTeam = true,
 		}
 	}
 
-	if (bNoStatsToShow) { 
-		return; 
+	if (bNoStatsToShow) {
+		return;
 	}
-	
+
 	BuildConsoleBufferFriendlyFireTaken(bRound, bTeam, iTeam);
 
 	// friendly fire -- taken
@@ -4641,15 +4634,15 @@ void DisplayStatsFriendlyFire(int client, bool bRound = true, bool bTeam = true,
 				(bRound) ? "This Round" : "ALL Rounds",
 				(bTeam) ? ((team == LTEAM_A) ? "Team A     " : "Team B     ") : "ALL Players"
 	);
-	
+
 	Format(bufBasicHeader, CONBUFSIZE, "%s|--------------------------------||---------------------------------------------------------||---------|\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s| Name                 | Total   || Shotgun | Bullets | Melee  | Fire   | Incapped | Other  || Fall    |\n", bufBasicHeader);
 	Format(bufBasicHeader, CONBUFSIZE, "%s|----------------------|---------||---------|---------|--------|--------|----------|--------||---------|", bufBasicHeader);
 
-	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) { 
-		g_iConsoleBufChunks--; 
+	if (!strlen(g_sConsoleBuf[g_iConsoleBufChunks])) {
+		g_iConsoleBufChunks--;
 	}
-	
+
 	if (g_iConsoleBufChunks > -1) {
 		Format(g_sConsoleBuf[g_iConsoleBufChunks], CONBUFSIZELARGE,
 				"%s\n|--------------------------------||---------------------------------------------------------||---------|\n",
@@ -4669,13 +4662,13 @@ void DisplayStatsFriendlyFire(int client, bool bRound = true, bool bTeam = true,
 			ReplaceString(bufBasicHeader, CONBUFSIZE, "%%", "%");
 			WriteFileString(g_hStatsFile, bufBasicHeader, false);
 			WriteFileString(g_hStatsFile, "\n", false);
-			
+
 			for (j = 0; j <= g_iConsoleBufChunks; j++) {
 				ReplaceString(g_sConsoleBuf[j], CONBUFSIZELARGE, "%%", "%");
 				WriteFileString(g_hStatsFile, g_sConsoleBuf[j], false);
 				WriteFileString(g_hStatsFile, "\n", false);
 			}
-			
+
 			WriteFileString(g_hStatsFile, "\n", false);
 		}
 	} else if (client == -1) {
@@ -4724,10 +4717,10 @@ void BuildConsoleBufferGeneral(bool bTeam = true, int iTeam = -1)
 		// round header:
 		strcopy(strTmpMap, sizeof(strTmpMap), g_sMapName[i]);
 		RightPadString(strTmpMap, sizeof(strTmpMap), 15);
-		if (strlen(strTmpMap) > 15) { 
-			Format(strTmpMap, 15, "%s", strTmpMap); 
+		if (strlen(strTmpMap) > 15) {
+			Format(strTmpMap, 15, "%s", strTmpMap);
 		}
-		
+
 		Format(strTmp[0], s_len, "%3d. %15s", i + 1, strTmpMap);
 
 		// round time
@@ -4840,17 +4833,17 @@ void BuildConsoleBufferSpecial(bool bRound = false, bool bTeam = true, int iTeam
 		i = g_iPlayerIndexSorted[SORT_SI][x];
 
 		// also skip bots for this list
-		if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) { 
-			continue; 
+		if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) {
+			continue;
 		}
 
 		// only show survivors for the round in question
 		if (!bTeam && bRound) {
 			team = g_iPlayerSortedUseTeam[SORT_SI][i];
 		}
-		
-		if (!TableIncludePlayer(i, team, bRound)) { 
-			continue; 
+
+		if (!TableIncludePlayer(i, team, bRound)) {
+			continue;
 		}
 
 		// skeets:
@@ -4974,17 +4967,17 @@ void BuildConsoleBufferInfected(bool bRound = false, bool bTeam = true, int iTea
 		i = g_iPlayerIndexSorted[SORT_INF][x];
 
 		// also skip bots for this list
-		if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) { 
-			continue; 
+		if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) {
+			continue;
 		}
 
 		// only show survivors for the round in question
 		if (!bTeam && bRound) {
 			team = g_iPlayerSortedUseTeam[SORT_INF][i];
 		}
-		
+
 		if (!TableIncludePlayer(i, team, bRound, true, infDmgTotal, infSpawns)) {
-			continue; 
+			continue;
 		}	 // reverse lookup this time
 
 		// damage
@@ -5054,10 +5047,10 @@ void BuildConsoleBufferInfected(bool bRound = false, bool bTeam = true, int iTea
 				presTime = 0;
 			}
 		}
-		
+
 		presTime -= pauseTime;
-		if (presTime < 0) { 
-			presTime = 0; 
+		if (presTime < 0) {
+			presTime = 0;
 		}
 
 		FormatPercentage(strTmpA, s_len, presTime, fullTime, false);  // never a decimal
@@ -5116,17 +5109,17 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 		// Accuracy - details
 		for (i = 0; i < g_iPlayers; i++) {
 			// also skip bots for this list
-			if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) { 
-				continue; 
+			if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) {
+				continue;
 			}
 
 			// only show survivors for the round in question
 			if (!bTeam && bRound) {
 				team = g_iPlayerSortedUseTeam[SORT_SI][i];
 			}
-			
-			if (!TableIncludePlayer(i, team, bRound)) { 
-				continue; 
+
+			if (!TableIncludePlayer(i, team, bRound)) {
+				continue;
 			}
 
 			// shotgun:
@@ -5141,16 +5134,16 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 
 			// smg:
 			if (bRound && g_strRoundPlayerData[i][team][plyHitsSmg] || !bRound && g_strPlayerData[i][plyHitsSmg]) {
-				if (bRound) { 
+				if (bRound) {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHeadshotsSISmg]) / float(g_strRoundPlayerData[i][team][plyHitsSISmg]) * 100.0);
 				} else {
-					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsSISmg]) / float(g_strPlayerData[i][plyHitsSISmg]) * 100.0); 
+					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsSISmg]) / float(g_strPlayerData[i][plyHitsSISmg]) * 100.0);
 				}
-				
+
 				while (strlen(strTmpA) < 5) {
-					Format(strTmpA, s_len, " %s", strTmpA); 
+					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
+
 				Format(strTmp[1], s_len, "%6d %5s%%%% %5d",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsSISmg] : g_strPlayerData[i][plyHitsSISmg]),
 						strTmpA,
@@ -5162,16 +5155,16 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 
 			// sniper:
 			if (bRound && g_strRoundPlayerData[i][team][plyHitsSniper] || !bRound && g_strPlayerData[i][plyHitsSniper]) {
-				if (bRound) { 
+				if (bRound) {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHeadshotsSISniper]) / float(g_strRoundPlayerData[i][team][plyHitsSISniper]) * 100.0);
-				} else { 
+				} else {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsSISniper]) / float(g_strPlayerData[i][plyHitsSISniper]) * 100.0);
 				}
-				
+
 				while (strlen(strTmpA) < 5) {
 					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
+
 				Format(strTmp[2], s_len, "%6d %5s%%%% %5d",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsSISniper] : g_strPlayerData[i][plyHitsSISniper]),
 						strTmpA,
@@ -5183,16 +5176,16 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 
 			// pistols:
 			if (bRound && g_strRoundPlayerData[i][team][plyHitsPistol] || !bRound && g_strPlayerData[i][plyHitsPistol]) {
-				if (bRound) { 
+				if (bRound) {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHeadshotsSIPistol]) / float(g_strRoundPlayerData[i][team][plyHitsSIPistol]) * 100.0);
-				} else { 
+				} else {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsSIPistol]) / float(g_strPlayerData[i][plyHitsSIPistol]) * 100.0);
 				}
-				
+
 				while (strlen(strTmpA) < 5) {
 					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
+
 				Format(strTmp[3], s_len, "%6d %5s%%%% %5d",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsSIPistol] : g_strPlayerData[i][plyHitsSIPistol]),
 						strTmpA,
@@ -5240,23 +5233,23 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 			if (!bTeam && bRound) {
 				team = g_iPlayerSortedUseTeam[SORT_SI][i];
 			}
-			
+
 			if (!TableIncludePlayer(i, team, bRound)) {
 				continue;
 			}
 
 			// shotgun:
 			if (bRound && g_strRoundPlayerData[i][team][plyShotsShotgun] || !bRound && g_strPlayerData[i][plyShotsShotgun]) {
-				if (bRound) { 
+				if (bRound) {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHitsShotgun]) / float(g_strRoundPlayerData[i][team][plyShotsShotgun]) * 100.0);
 				} else {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHitsShotgun]) / float(g_strPlayerData[i][plyShotsShotgun]) * 100.0);
 				}
-				
-				while (strlen(strTmpA) < 5) { 
+
+				while (strlen(strTmpA) < 5) {
 					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
+
 				Format(strTmp[0], s_len, "%7d      %5s%%%%",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsShotgun] : g_strPlayerData[i][plyHitsShotgun]),
 						strTmpA
@@ -5272,21 +5265,21 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 				} else {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHitsSmg]) / float(g_strPlayerData[i][plyShotsSmg]) * 100.0);
 				}
-				
-				while (strlen(strTmpA) < 5) { 
+
+				while (strlen(strTmpA) < 5) {
 					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
-				if (bRound) { 
+
+				if (bRound) {
 					FormatEx(strTmpB, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHeadshotsSmg]) / float(g_strRoundPlayerData[i][team][plyHitsSmg] - g_strRoundPlayerData[i][team][plyHitsTankSmg]) * 100.0);
 				} else {
 					FormatEx(strTmpB, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsSmg]) / float(g_strPlayerData[i][plyHitsSmg] - g_strPlayerData[i][plyHitsTankSmg]) * 100.0);
 				}
-				
-				while (strlen(strTmpB) < 5) { 
+
+				while (strlen(strTmpB) < 5) {
 					Format(strTmpB, s_len, " %s", strTmpB);
 				}
-				
+
 				Format(strTmp[1], s_len, "%5d %5s%%%% %5s%%%%",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsSmg] : g_strPlayerData[i][plyHitsSmg]),
 						strTmpA,
@@ -5298,26 +5291,26 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 
 			// sniper:
 			if (bRound && g_strRoundPlayerData[i][team][plyShotsSniper] || !bRound && g_strPlayerData[i][plyShotsSniper]) {
-				if (bRound) { 
+				if (bRound) {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHitsSniper]) / float(g_strRoundPlayerData[i][team][plyShotsSniper]) * 100.0);
 				} else {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHitsSniper]) / float(g_strPlayerData[i][plyShotsSniper]) * 100.0);
 				}
-				
-				while (strlen(strTmpA) < 5) { 
-					Format(strTmpA, s_len, " %s", strTmpA); 
+
+				while (strlen(strTmpA) < 5) {
+					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
+
 				if (bRound) {
 					FormatEx(strTmpB, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHeadshotsSniper]) / float(g_strRoundPlayerData[i][team][plyHitsSniper] - g_strRoundPlayerData[i][team][plyHitsTankSniper]) * 100.0);
 				} else {
 					FormatEx(strTmpB, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsSniper]) / float(g_strPlayerData[i][plyHitsSniper] - g_strPlayerData[i][plyHitsTankSniper]) * 100.0);
 				}
-				
+
 				while (strlen(strTmpB) < 5) {
 					Format(strTmpB, s_len, " %s", strTmpB);
 				}
-				
+
 				Format(strTmp[2], s_len, "%5d %5s%%%% %5s%%%%",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsSniper] : g_strPlayerData[i][plyHitsSniper]),
 						strTmpA,
@@ -5329,26 +5322,26 @@ void BuildConsoleBufferAccuracy(bool details = false, bool bRound = false, bool 
 
 			// pistols:
 			if (bRound && g_strRoundPlayerData[i][team][plyShotsPistol] || !bRound && g_strPlayerData[i][plyShotsPistol]) {
-				if (bRound) { 
+				if (bRound) {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHitsPistol]) / float(g_strRoundPlayerData[i][team][plyShotsPistol]) * 100.0);
-				} else {		
+				} else {
 					FormatEx(strTmpA, s_len, "%3.1f", float(g_strPlayerData[i][plyHitsPistol]) / float(g_strPlayerData[i][plyShotsPistol]) * 100.0);
 				}
-				
-				while (strlen(strTmpA) < 5) { 
-					Format(strTmpA, s_len, " %s", strTmpA); 
+
+				while (strlen(strTmpA) < 5) {
+					Format(strTmpA, s_len, " %s", strTmpA);
 				}
-				
+
 				if (bRound) {
 					FormatEx(strTmpB, s_len, "%3.1f", float(g_strRoundPlayerData[i][team][plyHeadshotsPistol]) / float(g_strRoundPlayerData[i][team][plyHitsPistol] - g_strRoundPlayerData[i][team][plyHitsTankPistol]) * 100.0);
 				} else {
 					FormatEx(strTmpB, s_len, "%3.1f", float(g_strPlayerData[i][plyHeadshotsPistol]) / float(g_strPlayerData[i][plyHitsPistol] - g_strPlayerData[i][plyHitsTankPistol]) * 100.0);
 				}
-				
-				while (strlen(strTmpB) < 5) { 
-					Format(strTmpB, s_len, " %s", strTmpB); 
+
+				while (strlen(strTmpB) < 5) {
+					Format(strTmpB, s_len, " %s", strTmpB);
 				}
-				
+
 				Format(strTmp[3], s_len, "%5d %5s%%%% %5s%%%%",
 						((bRound) ? g_strRoundPlayerData[i][team][plyHitsPistol] : g_strPlayerData[i][plyHitsPistol]),
 						strTmpA,
@@ -5421,9 +5414,9 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 			if (!bTeam && bRound) {
 				team = g_iPlayerSortedUseTeam[SORT_SI][i];
 			}
-			
-			if (!TableIncludePlayer(i, team, bRound)) { 
-				continue; 
+
+			if (!TableIncludePlayer(i, team, bRound)) {
+				continue;
 			}
 
 			// si damage
@@ -5432,8 +5425,8 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 						((bRound) ? g_strRoundPlayerData[i][team][plySIKilledTankUp] : g_strPlayerData[i][plySIKilledTankUp]),
 						((bRound) ? g_strRoundPlayerData[i][team][plySIDamageTankUp] : g_strPlayerData[i][plySIDamageTankUp])
 				);
-			} else { 
-				FormatEx(strTmp[0], s_len, "              "); 
+			} else {
+				FormatEx(strTmp[0], s_len, "              ");
 			}
 
 			// commons
@@ -5441,8 +5434,8 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 				FormatEx(strTmp[1], s_len, "  %8d",
 						((bRound) ? g_strRoundPlayerData[i][team][plyCommonTankUp] : g_strPlayerData[i][plyCommonTankUp])
 				);
-			} else { 
-				FormatEx(strTmp[1], s_len, "          "); 
+			} else {
+				FormatEx(strTmp[1], s_len, "          ");
 			}
 
 			// melee on tank
@@ -5450,8 +5443,8 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 				FormatEx(strTmp[2], s_len, "%6d",
 						((bRound) ? g_strRoundPlayerData[i][team][plyMeleesOnTank] : g_strPlayerData[i][plyMeleesOnTank])
 				);
-			} else { 
-				FormatEx(strTmp[2], s_len, "      "); 
+			} else {
+				FormatEx(strTmp[2], s_len, "      ");
 			}
 
 			// rock skeets / eats	   ----- / -----
@@ -5462,8 +5455,8 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 						((bRound) ? g_strRoundPlayerData[i][team][plyRockSkeets] : g_strPlayerData[i][plyRockSkeets]),
 						((bRound) ? g_strRoundPlayerData[i][team][plyRockEats] : g_strPlayerData[i][plyRockEats])
 				);
-			} else { 
-				FormatEx(strTmp[3], s_len, "              "); 
+			} else {
+				FormatEx(strTmp[3], s_len, "              ");
 			}
 
 			// cut into chunks:
@@ -5498,17 +5491,17 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 			i = g_iPlayerIndexSorted[SORT_SI][x];
 
 			// also skip bots for this list?
-			//if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) { 
-			//	continue; 
+			//if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) {
+			//	continue;
 			//}
 
 			// only show survivors for the round in question
 			if (!bTeam && bRound) {
 				team = g_iPlayerSortedUseTeam[SORT_SI][i];
 			}
-			
-			if (!TableIncludePlayer(i, team, bRound)) { 
-				continue; 
+
+			if (!TableIncludePlayer(i, team, bRound)) {
+				continue;
 			}
 
 			// time present
@@ -5525,14 +5518,14 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 					presTime = 0;
 				}
 			}
-			
+
 			presTime -= pauseTime;
-			if (presTime < 0) { 
-				presTime = 0; 
+			if (presTime < 0) {
+				presTime = 0;
 			}
 
 			FormatPercentage(strTmpA, s_len, presTime, fullTime, false);  // never a decimal
-			
+
 			LeftPadString(strTmpA, s_len, 7);
 			FormatEx(strTmpA, s_len, "%7s%s",
 					strTmpA,
@@ -5545,7 +5538,7 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 			} else {
 				Format(strTmpB, s_len, "             ");
 			}
-			
+
 			Format(strTmp[0], s_len, "%13s %8s", strTmpB, strTmpA);
 
 			// time alive
@@ -5562,10 +5555,10 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 					aliveTime = 0;
 				}
 			}
-			
+
 			aliveTime -= pauseTime;
-			if (aliveTime < 0) { 
-				aliveTime = 0; 
+			if (aliveTime < 0) {
+				aliveTime = 0;
 			}
 
 			FormatPercentage(strTmpA, s_len, aliveTime, presTime, false);  // never a decimal
@@ -5589,10 +5582,10 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 					upTime = 0;
 				}
 			}
-			
+
 			upTime -= pauseTime;
-			if (upTime < 0) { 
-				upTime = 0; 
+			if (upTime < 0) {
+				upTime = 0;
 			}
 
 			FormatPercentage(strTmpA, s_len, upTime, presTime, false);  // never a decimal
@@ -5631,23 +5624,23 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 	} else {
 		// MVP normal
 		bool bPrcDecimal = GetConVarBool(g_hCvarDetailPercent);
-		bool bTankUp = view_as<bool>(!g_bModeCampaign && (!bTeam || team == g_iCurTeam) && g_bInRound && IsTankInGame());
+		bool bTankUp = (!g_bModeCampaign && (!bTeam || team == g_iCurTeam) && g_bInRound && IsTankInGame());
 
 		for (x = 0; x < g_iPlayers; x++) {
 			i = g_iPlayerIndexSorted[SORT_SI][x];
 
 			// also skip bots for this list?
-			if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) { 
-				continue; 
+			if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) {
+				continue;
 			}
 
 			// only show survivors for the round in question
 			if (!bTeam && bRound) {
 				team = g_iPlayerSortedUseTeam[SORT_SI][i];
 			}
-			
-			if (!TableIncludePlayer(i, team, bRound)) { 
-				continue; 
+
+			if (!TableIncludePlayer(i, team, bRound)) {
+				continue;
 			}
 
 			// si damage
@@ -5657,7 +5650,7 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 						(bRound) ? g_strRoundData[g_iRound][team][rndSIDamage] : g_strAllRoundData[team][rndSIDamage],
 						bPrcDecimal
 				);
-				
+
 				LeftPadString(strTmpA, s_len, 5);
 
 				Format(strTmp[0], s_len, "%4d %8d  %5s%s",
@@ -5697,8 +5690,8 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 					FormatEx(strTmp[2], s_len, "%6d",
 							(bRound) ? g_strRoundPlayerData[i][team][plyTankDamage] : g_strPlayerData[i][plyTankDamage]
 					);
-				} else { 
-					FormatEx(strTmp[2], s_len, "      "); 
+				} else {
+					FormatEx(strTmp[2], s_len, "      ");
 				}
 			}
 
@@ -5707,7 +5700,7 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 				FormatEx(strTmp[3], s_len, "%6d",
 						(bRound) ? g_strRoundPlayerData[i][team][plyWitchDamage] : g_strPlayerData[i][plyWitchDamage]
 				);
-			} else { 
+			} else {
 				FormatEx(strTmp[3], s_len, "      ");
 			}
 
@@ -5717,7 +5710,7 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 						(bRound) ? g_strRoundPlayerData[i][team][plyFFGiven] : g_strPlayerData[i][plyFFGiven]
 				);
 			} else {
-				FormatEx(strTmp[4], s_len, "     "); 
+				FormatEx(strTmp[4], s_len, "     ");
 			}
 
 			// damage received
@@ -5725,7 +5718,7 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 				FormatEx(strTmp[5], s_len, "%4d",
 						(bRound) ? g_strRoundPlayerData[i][team][plyDmgTaken] : g_strPlayerData[i][plyDmgTaken]
 				);
-			} else { 
+			} else {
 				FormatEx(strTmp[5], s_len, "    ");
 			}
 
@@ -5743,10 +5736,10 @@ void BuildConsoleBufferMVP(bool bTank = false, bool bMore = false, bool bRound =
 					presTime = 0;
 				}
 			}
-			
+
 			presTime -= pauseTime;
-			if (presTime < 0) { 
-				presTime = 0; 
+			if (presTime < 0) {
+				presTime = 0;
 			}
 
 			FormatPercentage(strTmpA, s_len, presTime, fullTime, false);  // never a decimal
@@ -5805,17 +5798,17 @@ void BuildConsoleBufferFriendlyFireGiven(bool bRound = true, bool bTeam = true, 
 		i = g_iPlayerIndexSorted[SORT_FF][x];
 
 		// also skip bots for this list?
-		if (i < FIRST_NON_BOT) { 
-			continue; 
+		if (i < FIRST_NON_BOT) {
+			continue;
 		}  // never show bots here, they never do FF
 
 		// only show survivors for the round in question
 		if (!bTeam && bRound) {
 			team = g_iPlayerSortedUseTeam[SORT_FF][i];
 		}
-		
-		if (!TableIncludePlayer(i, team, bRound)) { 
-			continue; 
+
+		if (!TableIncludePlayer(i, team, bRound)) {
+			continue;
 		}
 
 		// skip any row where total of given and taken is 0
@@ -5829,45 +5822,45 @@ void BuildConsoleBufferFriendlyFireGiven(bool bRound = true, bool bTeam = true, 
 		if (!bRound && g_strPlayerData[i][plyFFGivenTotal] || bRound && g_strRoundPlayerData[i][team][plyFFGivenTotal]) {
 			FormatEx(strPrint[FFTYPE_TOTAL], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFGivenTotal] : g_strRoundPlayerData[i][team][plyFFGivenTotal]);
 		} else {
-			FormatEx(strPrint[FFTYPE_TOTAL], s_len, "       "); 
+			FormatEx(strPrint[FFTYPE_TOTAL], s_len, "       ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenPellet] || bRound && g_strRoundPlayerData[i][team][plyFFGivenPellet]) {
 			FormatEx(strPrint[FFTYPE_PELLET], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFGivenPellet] : g_strRoundPlayerData[i][team][plyFFGivenPellet]);
 		} else {
-			FormatEx(strPrint[FFTYPE_PELLET], s_len, "       "); 
+			FormatEx(strPrint[FFTYPE_PELLET], s_len, "       ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenBullet] || bRound && g_strRoundPlayerData[i][team][plyFFGivenBullet]) {
 			FormatEx(strPrint[FFTYPE_BULLET], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFGivenBullet] : g_strRoundPlayerData[i][team][plyFFGivenBullet]);
 		} else {
 			FormatEx(strPrint[FFTYPE_BULLET], s_len, "       ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenMelee] || bRound && g_strRoundPlayerData[i][team][plyFFGivenMelee]) {
 			FormatEx(strPrint[FFTYPE_MELEE], s_len, "%6d", (!bRound) ? g_strPlayerData[i][plyFFGivenMelee] : g_strRoundPlayerData[i][team][plyFFGivenMelee]);
 		} else {
 			FormatEx(strPrint[FFTYPE_MELEE], s_len, "      ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenFire] || bRound && g_strRoundPlayerData[i][team][plyFFGivenFire]) {
 			FormatEx(strPrint[FFTYPE_FIRE], s_len, "%6d", (!bRound) ? g_strPlayerData[i][plyFFGivenFire] : g_strRoundPlayerData[i][team][plyFFGivenFire]);
 		} else {
-			FormatEx(strPrint[FFTYPE_FIRE], s_len, "      "); 
+			FormatEx(strPrint[FFTYPE_FIRE], s_len, "      ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenIncap] || bRound && g_strRoundPlayerData[i][team][plyFFGivenIncap]) {
 			FormatEx(strPrint[FFTYPE_INCAP], s_len, "%8d", (!bRound) ? g_strPlayerData[i][plyFFGivenIncap] : g_strRoundPlayerData[i][team][plyFFGivenIncap]);
 		} else {
-			FormatEx(strPrint[FFTYPE_INCAP], s_len, "        "); 
+			FormatEx(strPrint[FFTYPE_INCAP], s_len, "        ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenOther] || bRound && g_strRoundPlayerData[i][team][plyFFGivenOther]) {
 			FormatEx(strPrint[FFTYPE_OTHER], s_len, "%6d", (!bRound) ? g_strPlayerData[i][plyFFGivenOther] : g_strRoundPlayerData[i][team][plyFFGivenOther]);
 		} else {
-			FormatEx(strPrint[FFTYPE_OTHER], s_len, "      "); 
+			FormatEx(strPrint[FFTYPE_OTHER], s_len, "      ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFGivenSelf] || bRound && g_strRoundPlayerData[i][team][plyFFGivenSelf]) {
 			FormatEx(strPrint[FFTYPE_SELF], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFGivenSelf] : g_strRoundPlayerData[i][team][plyFFGivenSelf]);
 		} else {
@@ -5923,17 +5916,17 @@ void BuildConsoleBufferFriendlyFireTaken (bool bRound = true, bool bTeam = true,
 		i = g_iPlayerIndexSorted[SORT_FF][x];
 
 		// also skip bots for this list?
-		//if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) { 
-		//	continue; 
+		//if (i < FIRST_NON_BOT && !GetConVarBool(g_hCvarShowBots)) {
+		//	continue;
 		//}
 
 		// only show survivors for the round in question
 		if (!bTeam && bRound) {
 			team = g_iPlayerSortedUseTeam[SORT_SI][i];
 		}
-		
+
 		if (!TableIncludePlayer(i, team, bRound)) {
-			continue; 
+			continue;
 		}
 
 		// skip any row where total of given and taken is 0
@@ -5947,49 +5940,49 @@ void BuildConsoleBufferFriendlyFireTaken (bool bRound = true, bool bTeam = true,
 		if (!bRound && g_strPlayerData[i][plyFFTakenTotal] || bRound && g_strRoundPlayerData[i][team][plyFFTakenTotal]) {
 			FormatEx(strPrint[FFTYPE_TOTAL], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFTakenTotal] : g_strRoundPlayerData[i][team][plyFFTakenTotal]);
 		} else {
-			FormatEx(strPrint[FFTYPE_TOTAL], s_len, "       "); 
+			FormatEx(strPrint[FFTYPE_TOTAL], s_len, "       ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFTakenPellet] || !bRound && g_strRoundPlayerData[i][team][plyFFTakenPellet]) {
 			FormatEx(strPrint[FFTYPE_PELLET], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFTakenPellet] : g_strRoundPlayerData[i][team][plyFFTakenPellet]);
 		} else {
 			FormatEx(strPrint[FFTYPE_PELLET], s_len, "       ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFTakenBullet] || bRound && g_strRoundPlayerData[i][team][plyFFTakenBullet]) {
 			FormatEx(strPrint[FFTYPE_BULLET], s_len, "%7d", (!bRound) ? g_strPlayerData[i][plyFFTakenBullet] : g_strRoundPlayerData[i][team][plyFFTakenBullet]);
 		} else {
-			FormatEx(strPrint[FFTYPE_BULLET], s_len, "       "); 
+			FormatEx(strPrint[FFTYPE_BULLET], s_len, "       ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFTakenMelee] || bRound && g_strRoundPlayerData[i][team][plyFFTakenMelee]) {
 			FormatEx(strPrint[FFTYPE_MELEE], s_len, "%6d", (!bRound) ? g_strPlayerData[i][plyFFTakenMelee] : g_strRoundPlayerData[i][team][plyFFTakenMelee]);
 		} else {
 			FormatEx(strPrint[FFTYPE_MELEE], s_len, "      ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFTakenFire] || bRound && g_strRoundPlayerData[i][team][plyFFTakenFire]) {
 			FormatEx(strPrint[FFTYPE_FIRE], s_len, "%6d", (!bRound) ? g_strPlayerData[i][plyFFTakenFire] : g_strRoundPlayerData[i][team][plyFFTakenFire]);
 		} else {
-			FormatEx(strPrint[FFTYPE_FIRE], s_len, "      "); 
+			FormatEx(strPrint[FFTYPE_FIRE], s_len, "      ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFTakenIncap] || bRound && g_strRoundPlayerData[i][team][plyFFTakenIncap]) {
 			FormatEx(strPrint[FFTYPE_INCAP], s_len, "%8d", (!bRound) ? g_strPlayerData[i][plyFFTakenIncap] : g_strRoundPlayerData[i][team][plyFFTakenIncap]);
 		} else {
-			FormatEx(strPrint[FFTYPE_INCAP], s_len, "        "); 
+			FormatEx(strPrint[FFTYPE_INCAP], s_len, "        ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFFTakenOther] || bRound && g_strRoundPlayerData[i][team][plyFFTakenOther]) {
 			FormatEx(strPrint[FFTYPE_OTHER], s_len, "%6d", (!bRound) ? g_strPlayerData[i][plyFFTakenOther] : g_strRoundPlayerData[i][team][plyFFTakenOther]);
 		} else {
-			FormatEx(strPrint[FFTYPE_OTHER], s_len, "      "); 
+			FormatEx(strPrint[FFTYPE_OTHER], s_len, "      ");
 		}
-		
+
 		if (!bRound && g_strPlayerData[i][plyFallDamage] || bRound && g_strRoundPlayerData[i][team][plyFallDamage]) {
 			FormatEx(strPrint[FFTYPE_SELF], s_len, "%7d", (!bRound) ? g_strRoundPlayerData[i][team][plyFallDamage] : g_strPlayerData[i][plyFallDamage]);
 		} else {
-			FormatEx(strPrint[FFTYPE_SELF], s_len, "       "); 
+			FormatEx(strPrint[FFTYPE_SELF], s_len, "       ");
 		}
 
 		// cut into chunks:
@@ -6030,8 +6023,8 @@ void SortPlayersMVP (bool bRound = true, int sortCol = SORT_SI, bool bTeam = tru
 	bool found;
 	int highest, highTeam, pickTeam;
 
-	if (sortCol < SORT_SI || sortCol > MAXSORTS -1) { 
-		return; 
+	if (sortCol < SORT_SI || sortCol > MAXSORTS -1) {
+		return;
 	}
 
 	int team = (iTeam != -1) ? iTeam : ((g_bSecondHalf && !g_bPlayersLeftStart) ? ((g_iCurTeam) ? 0 : 1) : g_iCurTeam);
@@ -6043,13 +6036,13 @@ void SortPlayersMVP (bool bRound = true, int sortCol = SORT_SI, bool bTeam = tru
 			// if we already sorted the index, skip it
 			found = false;
 			for (j = 0; j < iStored; j++){
-				if (g_iPlayerIndexSorted[sortCol][j] == i) { 
-					found = true; 
+				if (g_iPlayerIndexSorted[sortCol][j] == i) {
+					found = true;
 				}
 			}
-			
-			if (found) { 
-				continue; 
+
+			if (found) {
+				continue;
 			}
 
 			// if the index is the (next) highest, take it
@@ -6233,11 +6226,11 @@ bool TableIncludePlayer(int index, int team, bool bRound = true, bool bReverseTe
 	// not on team at all: don't show
 	if (bReverseTeam) {
 		if (g_iPlayerRoundTeam[team][index] != ((team) ? 0 : 1)) {
-			return false; 
+			return false;
 		}
 	} else {
-		if (g_iPlayerRoundTeam[team][index] != team) { 
-			return false; 
+		if (g_iPlayerRoundTeam[team][index] != team) {
+			return false;
 		}
 	}
 
@@ -6251,15 +6244,15 @@ bool TableIncludePlayer(int index, int team, bool bRound = true, bool bReverseTe
 				return true;
 			}
 		} else {
-			if (team == g_iCurTeam && g_iPlayerRoundTeam[LTEAM_CURRENT][index] == team) { 
-				return true; 
+			if (team == g_iCurTeam && g_iPlayerRoundTeam[LTEAM_CURRENT][index] == team) {
+				return true;
 			}
 		}
 	} else if (!bRound) {
 		// if player was never on the team, don't show
 		if (bReverseTeam) {
 			// no specs, only real infected
-			if (!(g_strPlayerInfData[index][infTimeStartPresent]&& (g_strPlayerInfData[index][infSpawns] || g_strPlayerInfData[index][infTankPasses])) 
+			if (!(g_strPlayerInfData[index][infTimeStartPresent]&& (g_strPlayerInfData[index][infSpawns] || g_strPlayerInfData[index][infTankPasses]))
 				|| g_iPlayerGameTeam[team][index] != ((team) ? 0 : 1) || index < FIRST_NON_BOT
 			) {
 				return false;
@@ -6273,12 +6266,12 @@ bool TableIncludePlayer(int index, int team, bool bRound = true, bool bReverseTe
 		// just allow it if he is currently a survivor
 		if (index >= FIRST_NON_BOT) {
 			if (!IsIndexSurvivor(index, bReverseTeam)) {
-				if (team == g_iCurTeam) { 
-					return false; 
+				if (team == g_iCurTeam) {
+					return false;
 				}
 			} else {
 				if (team != g_iCurTeam) {
-					return false; 
+					return false;
 				}
 			}
 		}
@@ -6287,29 +6280,29 @@ bool TableIncludePlayer(int index, int team, bool bRound = true, bool bReverseTe
 	// has positive relevant scores? show
 	if (bReverseTeam) {
 		if (bRound) {
-			if (g_strRoundPlayerInfData[index][team][statA] || g_strRoundPlayerInfData[index][team][statB]) { 
-				return true; 
+			if (g_strRoundPlayerInfData[index][team][statA] || g_strRoundPlayerInfData[index][team][statB]) {
+				return true;
 			}
 		} else {
-			if (g_strPlayerInfData[index][statA] || g_strPlayerInfData[index][statB]) { 
-				return true; 
+			if (g_strPlayerInfData[index][statA] || g_strPlayerInfData[index][statB]) {
+				return true;
 			}
 		}
 	} else {
 		if (bRound) {
-			if (g_strRoundPlayerData[index][team][statA] || g_strRoundPlayerData[index][team][statB]) { 
-				return true; 
+			if (g_strRoundPlayerData[index][team][statA] || g_strRoundPlayerData[index][team][statB]) {
+				return true;
 			}
 		} else {
-			if (g_strPlayerData[index][statA] || g_strPlayerData[index][statB]) { 
-				return true; 
+			if (g_strPlayerData[index][statA] || g_strPlayerData[index][statB]) {
+				return true;
 			}
 		}
 	}
 
 	// this point, any bot should not be shown
-	if (index < FIRST_NON_BOT) { 
-		return false; 
+	if (index < FIRST_NON_BOT) {
+		return false;
 	}
 
 	// been on the team for longer than X seconds? show
@@ -6329,9 +6322,9 @@ bool TableIncludePlayer(int index, int team, bool bRound = true, bool bReverseTe
 			presTime = ((g_strPlayerInfData[index][infTimeStopPresent]) ? g_strPlayerInfData[index][infTimeStopPresent] : time) - g_strPlayerInfData[index][infTimeStartPresent];
 		}
 	}
-	
-	if (presTime >= MIN_TEAM_PRESENT_TIME) { 
-		return true; 
+
+	if (presTime >= MIN_TEAM_PRESENT_TIME) {
+		return true;
 	}
 
 	return false;
@@ -6371,7 +6364,7 @@ int GetFullRoundTime(int bRound, int bTeam, int team, bool bTank = false)
 					}
 				}
 			}
-			
+
 			if (g_strRoundData[g_iRound][LTEAM_B][start]) {
 				fullTime += ((g_strRoundData[g_iRound][LTEAM_B][stop]) ? g_strRoundData[g_iRound][LTEAM_B][stop] : time) - g_strRoundData[g_iRound][LTEAM_B][start];
 				if (g_bPaused && LTEAM_B == g_iCurTeam) {
@@ -6400,7 +6393,7 @@ int GetFullRoundTime(int bRound, int bTeam, int team, bool bTank = false)
 					}
 				}
 			}
-			
+
 			if (g_strAllRoundData[LTEAM_B][start]) {
 				fullTime += ((g_strAllRoundData[LTEAM_B][stop]) ? g_strAllRoundData[LTEAM_B][stop] : time) - g_strAllRoundData[LTEAM_B][start];
 				if (g_bPaused && LTEAM_B == g_iCurTeam) {
@@ -6439,7 +6432,7 @@ int GetPauseTime(int bRound, int bTeam, int team, bool bCurrentOnly = false)
 			if (g_strRoundData[g_iRound][team][start] && g_strRoundData[g_iRound][team][stop]) {
 				fullTime = g_strRoundData[g_iRound][team][stop] - g_strRoundData[g_iRound][team][start];
 			}
-			
+
 			if (g_bPaused && team == g_iCurTeam) {
 				fullTime += time - g_iPauseStart;
 			}
@@ -6447,11 +6440,11 @@ int GetPauseTime(int bRound, int bTeam, int team, bool bCurrentOnly = false)
 			if (g_strRoundData[g_iRound][LTEAM_A][start] && g_strRoundData[g_iRound][LTEAM_A][stop]) {
 				fullTime = g_strRoundData[g_iRound][LTEAM_A][stop] - g_strRoundData[g_iRound][LTEAM_A][start];
 			}
-			
+
 			if (g_strRoundData[g_iRound][LTEAM_B][start] && g_strRoundData[g_iRound][LTEAM_B][stop]) {
 				fullTime += g_strRoundData[g_iRound][LTEAM_B][stop] - g_strRoundData[g_iRound][LTEAM_B][start];
 			}
-			
+
 			if (g_bPaused) {
 				fullTime += time - g_iPauseStart;
 			}
@@ -6469,11 +6462,11 @@ int GetPauseTime(int bRound, int bTeam, int team, bool bCurrentOnly = false)
 			if (g_strAllRoundData[LTEAM_A][start] && g_strAllRoundData[LTEAM_A][stop]) {
 				fullTime = g_strAllRoundData[LTEAM_A][stop] - g_strAllRoundData[LTEAM_A][start];
 			}
-			
+
 			if (g_strAllRoundData[LTEAM_B][start] && g_strAllRoundData[LTEAM_B][stop]) {
 				fullTime += g_strAllRoundData[LTEAM_B][stop] - g_strAllRoundData[LTEAM_B][start];
 			}
-			
+
 			/* if (g_bPaused) {
 				fullTime += time - g_iPauseStart;
 			} */
@@ -6490,8 +6483,8 @@ void SaveFurthestFlows()
 	float fTmp;
 
 	for (int i = 1; i <= MaxClients; i++) {
-		if (!IS_VALID_SURVIVOR(i) || !IsPlayerAlive(i)) { 
-			continue; 
+		if (!IS_VALID_SURVIVOR(i) || !IsPlayerAlive(i)) {
+			continue;
 		}
 
 		chr = GetPlayerCharacter(i);
@@ -6505,8 +6498,8 @@ void SaveFurthestFlows()
 
 public Action Timer_SaveFlows(Handle hTimer)
 {
-	if (!g_bPlayersLeftStart || !g_bInRound) { 
-		return Plugin_Continue; 
+	if (!g_bPlayersLeftStart || !g_bInRound) {
+		return Plugin_Continue;
 	}
 
 	SaveFurthestFlows();
@@ -6524,8 +6517,8 @@ void AutomaticRoundEndPrint(bool doDelay = true)
 	g_iLastRoundEndPrint = GetTime();
 
 	float fDelay = ROUNDEND_DELAY;
-	if (g_bModeScavenge) { 
-		fDelay = ROUNDEND_DELAY_SCAV; 
+	if (g_bModeScavenge) {
+		fDelay = ROUNDEND_DELAY_SCAV;
 	}
 
 	if (doDelay) {
@@ -6568,9 +6561,9 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 	}
 
 	float fDelay;
-	bool bAddDelay; 
+	bool bAddDelay;
 	int iDelayedFlags;
-	
+
 	Handle pack[6];
 
 	bool bTeam = true;
@@ -6593,7 +6586,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		bAddDelay = true;
 		DisplayStatsMVP(client, false, false, true, bTeam, iTeam);
 	}
-	
+
 	if (iFlags & AUTO_MVPCON_GAME) {
 		bAddDelay = true;
 		DisplayStatsMVP(client, false, false, false, bTeam, iTeam);
@@ -6606,12 +6599,12 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		WritePackCell(pack[4], iDelayedFlags);
 		WritePackCell(pack[4], client);
 		WritePackCell(pack[4], iTeam);
-		WritePackCell(pack[4], (bSorted) ? 1 : 0);
-		WritePackCell(pack[4], (bSortedForGame) ? 1 : 0);
+		WritePackCell(pack[4], (bSorted) ? true : false);
+		WritePackCell(pack[4], (bSortedForGame) ? true : false);
 		CreateTimer(fDelay, Timer_DelayedPrint, pack[4]);
 		iDelayedFlags = 0;
 	}
-	
+
 	if (bAddDelay) {
 		fDelay += PRINT_DELAY_INC;
 		bAddDelay = false;
@@ -6625,7 +6618,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsMVP(client, false, true, true, bTeam, iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_MVPCON_MORE_GAME) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6651,12 +6644,12 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		WritePackCell(pack[0], iDelayedFlags);
 		WritePackCell(pack[0], client);
 		WritePackCell(pack[0], iTeam);
-		WritePackCell(pack[0], (bSorted) ? 1 : 0);
-		WritePackCell(pack[0], (bSortedForGame) ? 1 : 0);
+		WritePackCell(pack[0], (bSorted) ? true : false);
+		WritePackCell(pack[0], (bSortedForGame) ? true : false);
 		CreateTimer(fDelay, Timer_DelayedPrint, pack[0]);
 		iDelayedFlags = 0;
 	}
-	
+
 	if (bAddDelay) {
 		fDelay += PRINT_DELAY_INC;
 		bAddDelay = false;
@@ -6670,7 +6663,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		}
 		DisplayStatsMVPChat(client, true);
 	}
-	
+
 	if (iFlags & AUTO_MVPCHAT_GAME) {
 		if (!bSorted || !bSortedForGame) {
 			// not sorted yet, sort for SI
@@ -6685,7 +6678,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 	if (iFlags & AUTO_FUNFACT_ROUND) {
 		DisplayStatsFunFactChat(client, true, bTeam, iTeam);
 	}
-	
+
 	if (iFlags & AUTO_FUNFACT_GAME) {
 		DisplayStatsFunFactChat(client, false, bTeam, iTeam);
 	}
@@ -6699,7 +6692,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsSpecial(client, true, bTeam, false, iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_SKILLCON_GAME) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6715,12 +6708,12 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		WritePackCell(pack[1], iDelayedFlags);
 		WritePackCell(pack[1], client);
 		WritePackCell(pack[1], iTeam);
-		WritePackCell(pack[1], (bSorted) ? 1 : 0);
-		WritePackCell(pack[1], (bSortedForGame) ? 1 : 0);
+		WritePackCell(pack[1], (bSorted) ? true : false);
+		WritePackCell(pack[1], (bSortedForGame) ? true : false);
 		CreateTimer(fDelay, Timer_DelayedPrint, pack[1]);
 		iDelayedFlags = 0;
 	}
-	
+
 	if (bAddDelay) {
 		fDelay += PRINT_DELAY_INC;
 		bAddDelay = false;
@@ -6735,7 +6728,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsInfected(client, true, bTeam, false, iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_INFCON_GAME) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6751,12 +6744,12 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		WritePackCell(pack[5], iDelayedFlags);
 		WritePackCell(pack[5], client);
 		WritePackCell(pack[5], iTeam);
-		WritePackCell(pack[5], (bSorted) ? 1 : 0);
-		WritePackCell(pack[5], (bSortedForGame) ? 1 : 0);
+		WritePackCell(pack[5], (bSorted) ? true : false);
+		WritePackCell(pack[5], (bSortedForGame) ? true : false);
 		CreateTimer(fDelay, Timer_DelayedPrint, pack[5]);
 		iDelayedFlags = 0;
 	}
-	
+
 	if (bAddDelay) {
 		fDelay += PRINT_DELAY_INC;
 		bAddDelay = false;
@@ -6771,7 +6764,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsFriendlyFire(client, true, bTeam, (bSorted && !bSortedForGame), iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_FFCON_GAME) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6787,12 +6780,12 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		WritePackCell(pack[2], iDelayedFlags);
 		WritePackCell(pack[2], client);
 		WritePackCell(pack[2], iTeam);
-		WritePackCell(pack[2], (bSorted) ? 1 : 0);
-		WritePackCell(pack[2], (bSortedForGame) ? 1 : 0);
+		WritePackCell(pack[2], (bSorted) ? true : false);
+		WritePackCell(pack[2], (bSortedForGame) ? true : false);
 		CreateTimer(fDelay, Timer_DelayedPrint, pack[2]);
 		iDelayedFlags = 0;
 	}
-	
+
 	if (bAddDelay) {
 		fDelay += PRINT_DELAY_INC;
 		bAddDelay = false;
@@ -6807,7 +6800,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsAccuracy(client, false, true, bTeam, (bSorted && !bSortedForGame), iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_ACCCON_GAME) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6816,7 +6809,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsAccuracy(client, false, false, bTeam, (bSorted && bSortedForGame), iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_ACCCON_MORE_ROUND) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6825,7 +6818,7 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 			DisplayStatsAccuracy(client, true, true, bTeam, (bSorted && !bSortedForGame), iTeam);
 		}
 	}
-	
+
 	if (iFlags & AUTO_ACCCON_MORE_GAME) {
 		bAddDelay = true;
 		if (!bNoDelay && fDelay > 0.0) {
@@ -6841,12 +6834,12 @@ void AutomaticPrintPerClient(int iFlags, int client = -1, int iTeam = -1, bool b
 		WritePackCell(pack[3], iDelayedFlags);
 		WritePackCell(pack[3], client);
 		WritePackCell(pack[3], iTeam);
-		WritePackCell(pack[3], (bSorted) ? 1 : 0);
-		WritePackCell(pack[3], (bSortedForGame) ? 1 : 0);
+		WritePackCell(pack[3], (bSorted) ? true : false);
+		WritePackCell(pack[3], (bSortedForGame) ? true : false);
 		CreateTimer(fDelay, Timer_DelayedPrint, pack[3]);
 		iDelayedFlags = 0;
 	}
-	
+
 	if (bAddDelay) {
 		fDelay += PRINT_DELAY_INC;
 		bAddDelay = false;
@@ -6862,8 +6855,8 @@ public Action Timer_DelayedPrint(Handle hTimer, Handle pack)
 	int flags = ReadPackCell(pack);
 	int client = ReadPackCell(pack);
 	int team = ReadPackCell(pack);
-	bool bSortedRound = view_as<bool>(ReadPackCell(pack));
-	bool bSortedGame = view_as<bool>(ReadPackCell(pack));
+	bool bSortedRound = ReadPackCell(pack);
+	bool bSortedGame = ReadPackCell(pack);
 	CloseHandle(pack);
 
 	// send non-recursive print call ('first' true must be set for no further delays)
@@ -6921,8 +6914,8 @@ int GetWeaponTypeForClassname(const char[] classname)
 
 int GetPlayerIndexForClient(int client)
 {
-	if (!IS_VALID_INGAME(client)) { 
-		return -1; 
+	if (!IS_VALID_INGAME(client)) {
+		return -1;
 	}
 
 	char sSteamId[32];
@@ -6977,24 +6970,24 @@ int GetPlayerCharacter(int client)
 		char model[256];
 		GetEntPropString(client, Prop_Data, "m_ModelName", model, sizeof(model));
 
-		if (StrContains(model, "gambler") != -1) { 
-			tmpChr = 0; 
-		} else if (StrContains(model, "coach") != -1) { 
-			tmpChr = 2; 
-		} else if (StrContains(model, "mechanic") != -1) { 
-			tmpChr = 3; 
-		} else if (StrContains(model, "producer") != -1) { 
-			tmpChr = 1; 
-		} else if (StrContains(model, "namvet") != -1) { 
-			tmpChr = 0; 
-		} else if (StrContains(model, "teengirl") != -1) { 
-			tmpChr = 1; 
-		} else if (StrContains(model, "biker") != -1) { 
-			tmpChr = 3; 
-		} else if (StrContains(model, "manager") != -1) { 
-			tmpChr = 2; 
-		} else { 
-			tmpChr = 0; 
+		if (StrContains(model, "gambler") != -1) {
+			tmpChr = 0;
+		} else if (StrContains(model, "coach") != -1) {
+			tmpChr = 2;
+		} else if (StrContains(model, "mechanic") != -1) {
+			tmpChr = 3;
+		} else if (StrContains(model, "producer") != -1) {
+			tmpChr = 1;
+		} else if (StrContains(model, "namvet") != -1) {
+			tmpChr = 0;
+		} else if (StrContains(model, "teengirl") != -1) {
+			tmpChr = 1;
+		} else if (StrContains(model, "biker") != -1) {
+			tmpChr = 3;
+		} else if (StrContains(model, "manager") != -1) {
+			tmpChr = 2;
+		} else {
+			tmpChr = 0;
 		}
 	}
 
@@ -7004,24 +6997,24 @@ int GetPlayerCharacter(int client)
 bool IsIndexSurvivor(int index, bool bInfectedInstead = false)
 {
 	// assume bots are always survivors
-	if (index < FIRST_NON_BOT) { 
-		return true; 
+	if (index < FIRST_NON_BOT) {
+		return true;
 	}
 
 	int tmpind;
 	for (int client = 1; client <= MaxClients; client++) {
 		if (bInfectedInstead) {
-			if (!IS_VALID_INFECTED(client)) { 
-				continue; 
+			if (!IS_VALID_INFECTED(client)) {
+				continue;
 			}
 		} else {
-			if (!IS_VALID_SURVIVOR(client)) { 
-				continue; 
+			if (!IS_VALID_SURVIVOR(client)) {
+				continue;
 			}
 		}
 
 		tmpind = GetPlayerIndexForClient(client);
-		if (tmpind == index) { 
+		if (tmpind == index) {
 			return true;
 		}
 	}
@@ -7031,36 +7024,24 @@ bool IsIndexSurvivor(int index, bool bInfectedInstead = false)
 
 bool IsWitch(int iEntity)
 {
-	if (iEntity > 0 && IsValidEntity(iEntity) && IsValidEdict(iEntity)) {
-		char strClassName[64];
-		GetEdictClassname(iEntity, strClassName, sizeof(strClassName));
-		int entType;
-
-		if (!GetTrieValue(g_hTrieEntityCreated, strClassName, entType)) { 
-			return false; 
-		}
-
-		return (entType == OEC_WITCH);
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
 	}
 
-	return false;
+	char sClassName[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
+	return (strncmp(sClassName, "witch", 5) == 0); //witch and witch_bride
 }
 
-bool IsCommon(int iEntity)
+bool IsCommonInfected(int iEntity)
 {
-	if (iEntity > 0 && IsValidEntity(iEntity) && IsValidEdict(iEntity)) {
-		char strClassName[64];
-		GetEdictClassname(iEntity, strClassName, sizeof(strClassName));
-		int entType;
-
-		if (!GetTrieValue(g_hTrieEntityCreated, strClassName, entType)) { 
-			return false; 
-		}
-
-		return (entType == OEC_INFECTED);
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
 	}
 
-	return false;
+	char sClassName[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
+	return (strcmp(sClassName, "infected") == 0);
 }
 
 bool IsTankInGame()
@@ -7093,8 +7074,8 @@ bool AreClientsConnected()
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		if (IS_VALID_INGAME(i) && !IsFakeClient(i)) { 
-			return true; 
+		if (IS_VALID_INGAME(i) && !IsFakeClient(i)) {
+			return true;
 		}
 	}
 	return false;
@@ -7115,8 +7096,8 @@ int GetUprightSurvivors()
 	}
 
 	// if incapped in saferoom with upright survivors, counts as survival
-	if (count) { 
-		count += incapcount; 
+	if (count) {
+		count += incapcount;
 	}
 
 	return count;
@@ -7137,7 +7118,7 @@ public Action Timer_WriteStats(Handle hTimer, any iTeam)
 // write round stats to a text file
 void WriteStatsToFile(int iTeam, bool bSecondHalf)
 {
-	if (g_bModeCampaign) { 
+	if (g_bModeCampaign) {
 		return;
 	}
 
@@ -7180,7 +7161,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 				g_sConfigName,
 				sTmpMap
 		);
-		
+
 		StrCat(sStats, sizeof(sStats), strTmpLine);
 	}
 
@@ -7193,7 +7174,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 	for (i = 0; i <= MAXRNDSTATS; i++) {
 		Format(strTmpLine, sizeof(strTmpLine), "%s%i;", strTmpLine, g_strRoundData[g_iRound][iTeam][i]);
 	}
-	
+
 	Format(strTmpLine, sizeof(strTmpLine), "%s\n\n", strTmpLine);
 	StrCat(sStats, sizeof(sStats), strTmpLine);
 
@@ -7203,8 +7184,8 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 	float farFlowDist[MAXPLAYERS + 1];
 	int clients = 0;
 	for (i = 1; i <= MaxClients; i++) {
-		if (!IS_VALID_SURVIVOR(i)) { 
-			continue; 
+		if (!IS_VALID_SURVIVOR(i)) {
+			continue;
 		}
 
 		if (clients < 4) {
@@ -7212,7 +7193,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 			// instead, we're tracking it per character 0-3
 			farFlowDist[clients] = g_fHighestFlow[clients];
 		}
-		
+
 		curFlowDist[clients] = L4D2Direct_GetFlowDistance(i);
 		clients++;
 	}
@@ -7235,7 +7216,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 				curFlowDist[i]
 		);
 	}
-	
+
 	Format(strTmpLine, sizeof(strTmpLine), "%s\n\n", strTmpLine);
 	StrCat(sStats, sizeof(sStats), strTmpLine);
 
@@ -7246,10 +7227,10 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 	int iPlayerCount;
 	for (j = FIRST_NON_BOT; j < g_iPlayers; j++)
 	{
-		if (g_iPlayerRoundTeam[iTeam][j] != iTeam) { 
-			continue; 
+		if (g_iPlayerRoundTeam[iTeam][j] != iTeam) {
+			continue;
 		}
-		
+
 		iPlayerCount++;
 
 		// player lines, ";"-delimited: <#>;<index>;<steamid>;<plyStat0>;<etc>;\n
@@ -7257,11 +7238,11 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 		for (i = 0; i <= MAXPLYSTATS; i++) {
 			Format(strTmpLine, sizeof(strTmpLine), "%s%i;", strTmpLine, g_strRoundPlayerData[j][iTeam][i]);
 		}
-		
+
 		Format(strTmpLine, sizeof(strTmpLine), "%s\n", strTmpLine);
 		StrCat(sStats, sizeof(sStats), strTmpLine);
 	}
-	
+
 	StrCat(sStats, sizeof(sStats), "\n");
 
 	// infected player data
@@ -7271,8 +7252,8 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 	iPlayerCount = 0;
 	for (j = FIRST_NON_BOT; j < g_iPlayers; j++) {
 		// opposite team!
-		if (g_iPlayerRoundTeam[iTeam][j] != (iTeam) ? 0 : 1) { 
-			continue; 
+		if (g_iPlayerRoundTeam[iTeam][j] != (iTeam) ? 0 : 1) {
+			continue;
 		}
 
 		// leave out players that were actually specs...
@@ -7281,7 +7262,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 		) {
 			continue;
 		}
-		
+
 		iPlayerCount++;
 
 		// player lines, ";"-delimited: <#>;<index>;<steamid>;<plyStat0>;<etc>;\n
@@ -7289,11 +7270,11 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 		for (i = 0; i <= MAXINFSTATS; i++) {
 			Format(strTmpLine, sizeof(strTmpLine), "%s%i;", strTmpLine, g_strRoundPlayerInfData[j][iTeam][i]);
 		}
-		
+
 		Format(strTmpLine, sizeof(strTmpLine), "%s\n", strTmpLine);
 		StrCat(sStats, sizeof(sStats), strTmpLine);
 	}
-	
+
 	StrCat(sStats, sizeof(sStats), "\n");
 
 
@@ -7320,8 +7301,8 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 
 		iPlayerCount = 0;
 		for (j = FIRST_NON_BOT; j < g_iPlayers; j++) {
-			if (!strlen(g_sPlayerId[j]) || !strlen(g_sPlayerName[j])) { 
-				continue; 
+			if (!strlen(g_sPlayerId[j]) || !strlen(g_sPlayerName[j])) {
+				continue;
 			}
 
 			iPlayerCount++;
@@ -7330,7 +7311,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 			FormatEx(strTmpLine, sizeof(strTmpLine), "%i;%s;%s\n", iPlayerCount, g_sPlayerId[j], g_sPlayerName[j]);
 			StrCat(sStats, sizeof(sStats), strTmpLine);
 		}
-		
+
 		StrCat(sStats, sizeof(sStats), "\n");
 	}
 
@@ -7341,7 +7322,7 @@ void WriteStatsToFile(int iTeam, bool bSecondHalf)
 		PrintDebug(0, "Error: could not write to file: '%s'.", path);
 		return;
 	}
-	
+
 	WriteFileString(fh, sStats, false);
 	CloseHandle(fh);
 
@@ -7412,10 +7393,6 @@ void InitTries()
 	//SetTrieValue(g_hTrieWeapons, "weapon_chainsaw",			WPTYPE_NONE);
 	//SetTrieValue(g_hTrieWeapons, "weapon_grenade_launcher",	WPTYPE_NONE);
 
-	g_hTrieEntityCreated = CreateTrie();
-	SetTrieValue(g_hTrieEntityCreated, "infected",			  OEC_INFECTED);
-	SetTrieValue(g_hTrieEntityCreated, "witch",				 OEC_WITCH);
-
 	// finales
 	g_hTrieMaps = CreateTrie();
 	SetTrieValue(g_hTrieMaps, "c1m4_atrium",					MP_FINALE);
@@ -7463,7 +7440,7 @@ void LeftPadString(char[] text, int maxlength, int cutOff = 20, bool bNumber = f
 void RightPadString(char[] text, int maxlength, int cutOff = 20)
 {
 	char[] tmp = new char[maxlength];
-	
+
 	int safe = 0; // just to make sure we're never stuck in an eternal loop
 
 	strcopy(tmp, maxlength, text);
@@ -7479,7 +7456,7 @@ void RightPadString(char[] text, int maxlength, int cutOff = 20)
 void FormatTimeAsDuration(char[] text, int maxlength, int time, bool bPad = true)
 {
 	char[] tmp = new char[maxlength];
-	
+
 	if (time < 1) {
 		Format(text, maxlength, "");
 		return;
@@ -7495,7 +7472,7 @@ void FormatTimeAsDuration(char[] text, int maxlength, int time, bool bPad = true
 		if (strlen(tmp)) {
 			Format(tmp, maxlength, "%s ", tmp);
 		}
-		
+
 		int tmpMin = RoundToFloor(float(time) / 60.0);
 		Format(tmp, maxlength, "%s%im", (bPad && tmpMin < 10) ? " " : "" , tmpMin);
 		time -= (tmpMin * 60);
@@ -7511,7 +7488,7 @@ void FormatTimeAsDuration(char[] text, int maxlength, int time, bool bPad = true
 void FormatPercentage(char[] text, int maxlength, int part, int whole, bool bDecimal = false)
 {
 	char[] strTmp = new char[maxlength];
-	
+
 	if (!whole || !part) {
 		FormatEx(strTmp, maxlength, "");
 		strcopy(text, maxlength, strTmp);
@@ -7575,7 +7552,8 @@ void stripUnicode(char testString[MAXNAME], int maxLength = 20)
 
 	strcopy(tmpString, maxLength, testString);
 
-	int uni = 0, currentChar, tmpCharLength = 0;
+	int uni = 0, tmpCharLength = 0;
+	char currentChar;
 
 	for (int i = 0; i < maxLength && tmpString[i] != 0; i++) {
 		// estimate current character value
