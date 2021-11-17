@@ -34,7 +34,7 @@ public Plugin myinfo =
 	name = "L4D2 Ultra Witch",
 	author = "Visor, A1m`",
 	description = "The Witch's hit deals a set amount of damage instead of instantly incapping, while also sending the survivor flying. Fixes convar z_witch_damage",
-	version = "1.2.2",
+	version = "1.2.3",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
