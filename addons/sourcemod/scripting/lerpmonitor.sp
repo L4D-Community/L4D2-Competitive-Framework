@@ -121,7 +121,7 @@ public void OnPluginStart()
 
 public void OnClientPutInServer(int client)
 {
-	if (IsValidEntity(client) && !IsFakeClient(client)) {
+	if (!IsFakeClient(client)) {
 		CreateTimer(1.0, Process, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
@@ -129,7 +129,7 @@ public void OnClientPutInServer(int client)
 public Action Process(Handle hTimer, int userid)
 {
 	int client = GetClientOfUserId(userid);
-	if (client > 0 && GetClientTeam(client) > L4D_TEAM_SPECTATE) {
+	if (client > 0) {
 		ProcessPlayerLerp(client);
 	}
 

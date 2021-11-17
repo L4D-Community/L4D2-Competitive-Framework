@@ -31,7 +31,8 @@ public Plugin myinfo =
 	name = "L4D2 Drop Secondary",
 	author = "Sir, ProjectSky (Initial Plugin by Jahze & Visor)",
 	version = "1.1",
-	description = "Testing Purposes"
+	description = "Testing Purposes",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
 public void OnPluginStart() 
@@ -110,10 +111,10 @@ public void Event_OnPlayerUse(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	int targetid = event.GetInt("targetid");
 
-	if (IsValidSurvivor(client) && IsValidEntity(targetid)) 
+	if (IsValidSurvivor(client) && IsValidEdict(targetid)) 
 	{
 		char sClassname[32];
-		GetEntityClassname(targetid, sClassname, sizeof(sClassname))
+		GetEdictClassname(targetid, sClassname, sizeof(sClassname))
 
 		if (StrContains(sClassname, "pistol") != -1 ||
 		StrContains(sClassname, "melee") != -1)
@@ -122,10 +123,10 @@ public void Event_OnPlayerUse(Event event, const char[] name, bool dontBroadcast
 			// The limitation would cause the secondary to be set on the client while the client didn't even equip it.
 			int iWeaponIndex = GetPlayerWeaponSlot(client, 1);
 
-			if (IsValidEntity(iWeaponIndex))
+			if (iWeaponIndex != -1 && IsValidEdict(iWeaponIndex))
 			{
 				char sWeaponName[32];
-				GetEntityClassname(iWeaponIndex, sWeaponName, sizeof(sWeaponName));
+				GetEdictClassname(iWeaponIndex, sWeaponName, sizeof(sWeaponName));
 
 				if (StrEqual(sWeaponName, "weapon_pistol")) sSecondary[client] = SECONDARY_PISTOL;
 				else if (StrEqual(sWeaponName, "weapon_pistol_magnum")) sSecondary[client] = SECONDARY_PISTOL_MAGNUM;

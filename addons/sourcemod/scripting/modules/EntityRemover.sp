@@ -337,9 +337,9 @@ public Action:ER_RoundStart_Timer(Handle:timer)
 	if(kERData != INVALID_HANDLE) KvRewind(kERData);
 	
 	new iEntCount = GetEntityCount();
-	for (new ent = MaxClients+1; ent <= iEntCount; ent++)
+	for (new ent = (MaxClients + 1); ent <= iEntCount; ent++)
 	{
-		if (IsValidEntity(ent))
+		if (IsValidEdict(ent))
 		{
 			GetEdictClassname(ent, sBuffer, sizeof(sBuffer));
 			if (ER_bKillParachutist && ER_KillParachutist(ent))

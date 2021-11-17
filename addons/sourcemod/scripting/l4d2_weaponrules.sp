@@ -134,7 +134,7 @@ void AddWeaponRule(int match, int to)
 void WeaponSearchLoop()
 {
 	int entcnt = GetEntityCount();
-	for (int ent = 1; ent <= entcnt; ent++) {
+	for (int ent = (MaxClients + 1); ent <= entcnt; ent++) {
 		int source = IdentifyWeapon(ent);
 		if (source > WEPID_NONE && g_GlobalWeaponRules[source] != -1) {
 			if (g_GlobalWeaponRules[source] == WEPID_NONE) {

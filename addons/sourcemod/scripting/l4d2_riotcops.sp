@@ -85,5 +85,5 @@ public Action RiotCopTraceAttack(int iVictim, int &iAttacker, int &iInflictor, f
 
 bool IsRiotCop(int iEntity)
 {
-	return (iEntity > MaxClients && IsValidEntity(iEntity) && GetGender(iEntity) == L4D2Gender_Riot_Control);
+	return (iEntity > MaxClients && IsValidEdict(iEntity) && GetGender(iEntity) == L4D2Gender_Riot_Control);
 }

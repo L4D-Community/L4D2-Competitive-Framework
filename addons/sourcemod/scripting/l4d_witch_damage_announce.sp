@@ -18,11 +18,6 @@
 	You should have received a copy of the GNU General Public License along
 	with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <sourcemod>
-#include <sdktools>
-#include <sdkhooks>
-#include <colors>
-
 
 /*
 * Version 0.1b
@@ -56,9 +51,12 @@
 * - Color Prints!
 */
 
-new const TEAM_SURVIVOR = 2;
-static const String:CLASSNAME_WITCH[]  	= "witch";
+#include <sourcemod>
+#include <sdktools>
+#include <sdkhooks>
+#include <colors>
 
+new const TEAM_SURVIVOR = 2;
 
 new bool: bRoundOver;                //Did Round End?
 new bool: bWitchSpawned;             //Did Witch Spawn?
@@ -78,14 +76,14 @@ new g_iSurvivorLimit = 4;
 //Handles Cvars
 new Handle:cvar_witch_true_damage;
 
-public Plugin:myinfo = 
+public Plugin myinfo = 
 {
 	name = "Witch Damage Announce",
 	author = "Sir",
 	description = "Print Witch Damage to chat",
-	version = "1.2",
+	version = "1.3",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
-}
+};
 
 public OnPluginStart()
 {
@@ -106,8 +104,7 @@ public OnPluginStart()
 
 public OnEntityCreated(entity, const String:classname[])
 {
-	if (StrEqual(classname, CLASSNAME_WITCH, false))
-	{
+	if (strcmp(classname, "witch", false) == 0) {
 		//Get Health
 		bWitchSpawned = true;
 		bHasPrinted = false;
@@ -156,7 +153,7 @@ public RoundEnd_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	{
 		bRoundOver = true;
 		
-		if(DamageWitchTotal > 0) CalculateWitch();
+		if (DamageWitchTotal > 0) CalculateWitch();
 		
 		bWitchSpawned = false;
 	}
@@ -197,7 +194,7 @@ public PlayerDied_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	new victim = GetClientOfUserId(userId);
 	new attacker = GetEventInt(event, "attackerentid");
 
-	if (IsClientAndInGame(victim) && GetClientTeam(victim) == TEAM_SURVIVOR && IsWitch(attacker))
+	if (IsValidClient(victim) && GetClientTeam(victim) == TEAM_SURVIVOR && IsWitch(attacker))
 	{
 		//Delayed Timer in case Witch gets killed while she's running off.
 		CreateTimer(3.0, PrintAnyway)
@@ -206,8 +203,8 @@ public PlayerDied_Event(Handle:event, const String:name[], bool:dontBroadcast)
 
 public Action:PrintAnyway(Handle:timer)
 {
-    CalculateWitch();
-    ClearDamage();
+	CalculateWitch();
+	ClearDamage();
 }
 
 CalculateWitch()
@@ -292,20 +289,15 @@ PrintWitchDamage()
 	}
 }
 
-stock bool:IsWitch(iEntity)
+bool IsWitch(int iEntity)
 {
-	if(iEntity > 0 && IsValidEntity(iEntity) && IsValidEdict(iEntity))
-	{
-		decl String:strClassName[64];
-		GetEdictClassname(iEntity, strClassName, sizeof(strClassName));
-		return StrEqual(strClassName, "witch");
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
 	}
-	return false;
-}
 
-stock bool:IsClientAndInGame(index)
-{
-	return (index > 0 && index <= MaxClients && IsClientInGame(index));
+	char sClassName[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
+	return (strncmp(sClassName, "witch", 5) == 0); //witch and witch_bride
 }
 
 int GetDamageAsPercent(int damage)
@@ -321,17 +313,14 @@ bool IsExactPercent(int damage)
 	return (FloatAbs(fDifference) < 0.001) ? true : false;
 }
 
-stock bool IsTank(int client)
+bool IsTank(int iClient)
 {
-	return (GetEntProp(client, Prop_Send, "m_zombieClass") == 8);
+	return (GetEntProp(iClient, Prop_Send, "m_zombieClass") == 8);
 }
 
-bool:IsValidClient(client)
+bool IsValidClient(int iClient)
 {
-	if (client <= 0 || client > MaxClients) return false;
-	if (!IsClientInGame(client)) return false;
-	if (IsClientSourceTV(client) || IsClientReplay(client)) return false;
-	return true;
+	return (iClient > 0 && iClient <= MaxClients && IsClientInGame(iClient));
 }
 
 public SortByDamageDesc(elem1, elem2, const array[], Handle:hndl)
@@ -344,9 +333,11 @@ public SortByDamageDesc(elem1, elem2, const array[], Handle:hndl)
 	return 0;
 }
 
-ClearDamage()
+void ClearDamage()
 {
-	new i, maxplayers = MaxClients;
-	for (i = 1; i <= maxplayers; i++) iDamageWitch[i] = 0;
+	for (int i = 1; i <= MaxClients; i++) {
+		iDamageWitch[i] = 0;
+	}
+
 	DamageWitchTotal = 0;
 }
