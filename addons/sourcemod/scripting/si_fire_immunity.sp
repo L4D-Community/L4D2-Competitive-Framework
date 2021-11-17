@@ -18,7 +18,7 @@ enum
 	eExtinguishBurnsThroughTime
 };
 
-static const char sEntityList[][] = 
+static const char sEntityList[][] =
 {
 	"inferno",
 	"entityflame",
@@ -52,28 +52,28 @@ public void OnPluginStart()
 		"What type of fire immunity should infected have? 0 = None, 3 = Extinguish burns through time, 2 = Prevent burns, 1 = Complete immunity", \
 		_, true, 0.0, true, 3.0 \
 	);
-	
+
 	tank_fire_immunity = CreateConVar( \
 		"tank_fire_immunity", \
 		"2", \
 		"What type of fire immunity should the tank have? 0 = None, 3 = Extinguish burns through time, 2 = Prevent burns, 1 = Complete immunity", \
 		_, true, 0.0, true, 3.0 \
 	);
-	
+
 	infected_extinguish_time = CreateConVar( \
 		"infected_extinguish_time", \
 		"1.0", \
 		"After what time will the infected player be extinguished, works if cvar 'infected_fire_immunity' equal 3", \
 		_, true, 0.0, true, 999.0 \
 	);
-	
+
 	tank_extinguish_time = CreateConVar( \
 		"tank_extinguish_time", \
 		"1.0", \
 		"After what time will the tank player be extinguished, works if cvar 'tank_fire_immunity' equal 3", \
 		_, true, 0.0, true, 999.0 \
 	);
-	
+
 	HookEvent("player_hurt", Event_PlayerHurt, EventHookMode_Post);
 	HookEvent("round_start", EventReset, EventHookMode_PostNoCopy);
 	HookEvent("round_end", EventReset, EventHookMode_PostNoCopy);
@@ -89,24 +89,24 @@ public void EventReset(Event hEvent, const char[] eName, bool dontBroadcast)
 /* @A1m`:
  * "player_hurt"
  * {
- * 		"local"		"1"			// Not networked
- * 		"userid"	"short"   	// user ID who was hurt
- * 		"attacker"	"short"	 	// user id who attacked
- * 		"attackerentid"	"long"	// entity id who attacked, if attacker not a player, and userid therefore invalid
- * 		"health"	"short"		// remaining health points
- * 		"armor"		"byte"		// remaining armor points
- * 		"weapon"	"string"	// weapon name attacker used, if not the world
- * 		"dmg_health"	"short"	// damage done to health
- * 		"dmg_armor"	"byte"		// damage done to armor
- * 		"hitgroup"	"byte"		// hitgroup that was damaged
- * 		"type"		"long"		// damage type
+ * 		"local"			"1"			// Not networked
+ * 		"userid"		"short"		// user ID who was hurt
+ * 		"attacker"		"short"		// user id who attacked
+ * 		"attackerentid"	"long"		// entity id who attacked, if attacker not a player, and userid therefore invalid
+ * 		"health"		"short"		// remaining health points
+ * 		"armor"			"byte"		// remaining armor points
+ * 		"weapon"		"string"	// weapon name attacker used, if not the world
+ * 		"dmg_health"	"short"		// damage done to health
+ * 		"dmg_armor"		"byte"		// damage done to armor
+ * 		"hitgroup"		"byte"		// hitgroup that was damaged
+ * 		"type"			"long"		// damage type
  * }
  *
  * If the attacker is not a player but an entity, then the parameter 'weapon' in the event returns an empty string
  *
  * Incendiary ammo:
  * Event_PlayerHurt: Hunter, attacker: 2 (entityclassname player), attackerentid: 1 (entityclassname player)
- * Event string weapon: entityflame, type: 268435464 
+ * Event string weapon: entityflame, type: 268435464
  *
  * Static fire on the map:
  * Event_PlayerHurt: A1m`, attacker: 0 (entityclassname entityflame), attackerentid: 277 (entityclassname entityflame)
@@ -149,7 +149,7 @@ public void Event_PlayerHurt(Event hEvent, const char[] eName, bool dontBroadcas
 	if (!IsFireEntity(sEntityName)) {
 		return;
 	}
-	
+
 	int iUserID = hEvent.GetInt("userid");
 	int iClient = GetClientOfUserId(iUserID);
 
@@ -168,10 +168,10 @@ void ExtinguishType(int iClient, int iUserID, int iDamage)
 
 	if (iCvarValue == eExtinguishBurnsThroughTime) {
 		float fNow = GetGameTime();
-		
+
 		if (g_fWaitTime[iClient] - fNow <= 0.0) {
 			float fExtinguishTime = (bIsTank) ? tank_extinguish_time.FloatValue : infected_extinguish_time.FloatValue;
-			
+
 			/* @A1m`:
 			 * + 0.1 -> We already know that the timer has definitely expired so as to call another timer
 			 * Old code started many timers
@@ -182,7 +182,7 @@ void ExtinguishType(int iClient, int iUserID, int iDamage)
 		}
 	} else if (iCvarValue == eCompleteImmunity || iCvarValue == ePreventBurns) {
 		ExtinguishFire(iClient);
-		
+
 		if (iCvarValue == eCompleteImmunity) {
 			int iHealth = GetClientHealth(iClient) + iDamage;
 			SetEntityHealth(iClient, iHealth);

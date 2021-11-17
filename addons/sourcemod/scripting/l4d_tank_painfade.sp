@@ -118,7 +118,7 @@ public Action:OnTankDamaged(victim, &attacker, &inflictor, &Float:damage, &damag
 
 AttachEffect()
 {
-    for (new i = 1; i < MaxClients+1; i++) 
+    for (new i = 1; i <= MaxClients; i++) 
     {
         if (!IsClientConnected(i) || !IsClientInGame(i))
             continue;
@@ -129,7 +129,7 @@ AttachEffect()
 
 DetachEffect()
 {
-    for (new i = 1; i < MaxClients+1; i++) 
+    for (new i = 1; i <= MaxClients; i++) 
     {
         if (!IsClientConnected(i) || !IsClientInGame(i))
             continue;
