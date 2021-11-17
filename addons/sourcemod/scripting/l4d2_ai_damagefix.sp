@@ -1,226 +1,256 @@
+/*
+	Changelog
+	---------
+		1.0.9
+			- used CanadaRox's SDK method for detecting staggers (since it's less likely to have false positives).
+
+		1.0.8
+			- fixed bug where clients with maxclient index would be ignored
+
+		1.0.7
+			- reset original way of dealing extra skeet damage to reward killer.
+
+		1.0.6
+			- (dcx2) Removed ground-tracking timer for hunter skeet, switched to m_isAttemptingToPounce
+			- (dcx2) Removed handles from global variables, since they are unused after OnPluginStart
+			- (dcx2) Switched hunter skeeting to SetEntityHealth() for increased compatibility with damage tracking plugins (ie l4d2_assist)
+
+		1.0.5 
+			- (dcx2) Added enable cvar
+			- (dcx2) cached pounce interrupt cvar
+			- (dcx2) fixed charger debuff calculation
+			
+		1.0.4 
+			- Used dcx2's much better IN_ATTACK2 method of blocking stumble-scratching.
+			
+		1.0.3
+			- Added stumble-negation inflictor check so only SI scratches are affected.
+		
+		1.0.2
+			- Fixed incorrect bracketing that caused error spam. (Re-fixed because drunk)
+		
+		1.0.0
+			- Blocked AI scratches-while-stumbling from doing any damage.
+			- Replaced clunky charger tracking with simple netprop check.
+		
+		0.0.5 and older
+			- Small fix for chargers getting 1 damage for 0-damage events.
+			- simulates human-charger damage behavior while charging for AI chargers.
+			- simulates human-hunter skeet behavior for AI hunters.
+
+	-----------------------------------------------------------------------------------------------------------------------------------------------------
+*/
+
 #pragma semicolon 1
+#pragma newdecls required
 
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
+#include <l4d2util_constants>
 
-#define GAMEDATA_FILE           "staggersolver"
-
-#define TEAM_SURVIVOR           2
-#define TEAM_INFECTED           3
-
-#define ZC_SMOKER               1
-#define ZC_BOOMER               2
-#define ZC_HUNTER               3
-#define ZC_SPITTER              4
-#define ZC_JOCKEY               5
-#define ZC_CHARGER              6
+#define GAMEDATA_FILE			"staggersolver"
 
 // Bit flags to enable individual features of the plugin
-#define SKEET_POUNCING_AI       (0x01)
-#define DEBUFF_CHARGING_AI      (0x02)
-#define BLOCK_STUMBLE_SCRATCH   (0x04)
-#define ALL_FEATURES            (SKEET_POUNCING_AI | DEBUFF_CHARGING_AI | BLOCK_STUMBLE_SCRATCH)
+#define SKEET_POUNCING_AI		(0x01)
+#define DEBUFF_CHARGING_AI		(0x02)
+#define BLOCK_STUMBLE_SCRATCH	(0x04)
+#define ALL_FEATURES			(SKEET_POUNCING_AI | DEBUFF_CHARGING_AI | BLOCK_STUMBLE_SCRATCH)
 
 // Globals
-new     Handle:         hGameConf;
-new     Handle:         hIsStaggering;
-new     bool:           bLateLoad                                               = false;
+Handle
+	g_hIsStaggering = null;
 
-// CVars
-new                     fEnabled                                                = ALL_FEATURES;         // Enables individual features of the plugin
-new                     iPounceInterrupt                                        = 150;                  // Caches pounce interrupt cvar's value
-new                     iHunterSkeetDamage[MAXPLAYERS+1]                        = { 0, ... };           // How much damage done in a single hunter leap so far
+bool
+	g_bLateLoad = false;
 
+int
+	g_iEnabledFlags = ALL_FEATURES,							// Enables individual features of the plugin
+	g_iPounceInterrupt = 150,								// Caches pounce interrupt cvar's value
+	g_iHunterSkeetDamage[MAXPLAYERS + 1] = {0, ...};		// How much damage done in a single hunter leap so far
 
-/*
-    
-    Changelog
-    ---------
-        
-        1.0.9
-            - used CanadaRox's SDK method for detecting staggers (since it's less likely to have false positives).
-
-        1.0.8
-            - fixed bug where clients with maxclient index would be ignored
-
-        1.0.7
-            - reset original way of dealing extra skeet damage to reward killer.
-
-        1.0.6
-            - (dcx2) Removed ground-tracking timer for hunter skeet, switched to m_isAttemptingToPounce
-            - (dcx2) Removed handles from global variables, since they are unused after OnPluginStart
-            - (dcx2) Switched hunter skeeting to SetEntityHealth() for increased compatibility with damage tracking plugins (ie l4d2_assist)
-
-        1.0.5 
-            - (dcx2) Added enable cvar
-            - (dcx2) cached pounce interrupt cvar
-            - (dcx2) fixed charger debuff calculation
-            
-        1.0.4 
-            - Used dcx2's much better IN_ATTACK2 method of blocking stumble-scratching.
-            
-        1.0.3
-            - Added stumble-negation inflictor check so only SI scratches are affected.
-        
-        1.0.2
-            - Fixed incorrect bracketing that caused error spam. (Re-fixed because drunk)
-        
-        1.0.0
-            - Blocked AI scratches-while-stumbling from doing any damage.
-            - Replaced clunky charger tracking with simple netprop check.
-        
-        0.0.5 and older
-            - Small fix for chargers getting 1 damage for 0-damage events.
-            - simulates human-charger damage behavior while charging for AI chargers.
-            - simulates human-hunter skeet behavior for AI hunters.
-
-    -----------------------------------------------------------------------------------------------------------------------------------------------------
- */
+public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)
+{
+	g_bLateLoad = bLate;
+	
+	return APLRes_Success;
+}
 
 public Plugin myinfo =
 {
 	name = "Bot SI skeet/level damage fix",
-	author = "Tabun, dcx2",
+	author = "Tabun, dcx2, A1m`",
 	description = "Makes AI SI take (and do) damage like human SI.",
-	version = "1.0.9",
+	version = "1.1",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
-public APLRes:AskPluginLoad2( Handle:plugin, bool:late, String:error[], errMax)
+public void OnPluginStart()
 {
-    bLateLoad = late;
-    return APLRes_Success;
+	InitGameData();
+
+	// find/create cvars, hook changes, cache current values
+	ConVar hCvarEnabled = CreateConVar(
+		"sm_aidmgfix_enable", \
+		"7", \
+		"Bit flag: Enables plugin features (add together): 1=Skeet pouncing AI, 2=Debuff charging AI, 4=Block stumble scratches, 7=all, 0=off", \
+		_, true, 0.0, true, 7.0 \
+	);
+
+	ConVar hCvarPounceInterrupt = FindConVar("z_pounce_damage_interrupt");
+
+	hCvarEnabled.AddChangeHook(OnAIDamageFixEnableChanged);
+	hCvarPounceInterrupt.AddChangeHook(OnPounceInterruptChanged);
+
+	g_iEnabledFlags = hCvarEnabled.IntValue;
+	g_iPounceInterrupt = hCvarPounceInterrupt.IntValue;
+
+	// events
+	HookEvent("ability_use", Event_AbilityUse, EventHookMode_Post);
+
+	// hook when loading late
+	if (g_bLateLoad) {
+		for (int i = 1; i <= MaxClients; i++) {
+			if (IsClientInGame(i)) {
+				OnClientPutInServer(i);
+			}
+		}
+	}
 }
 
-
-public OnPluginStart()
+void InitGameData()
 {
-    // find/create cvars, hook changes, cache current values
-    new Handle:hCvarEnabled = CreateConVar("sm_aidmgfix_enable", "7", "Bit flag: Enables plugin features (add together): 1=Skeet pouncing AI, 2=Debuff charging AI, 4=Block stumble scratches, 7=all, 0=off", FCVAR_NONE|FCVAR_NOTIFY);
-    new Handle:hCvarPounceInterrupt = FindConVar("z_pounce_damage_interrupt");
+	// sdkhook
+	Handle hGameConf = LoadGameConfigFile(GAMEDATA_FILE);
+	if (hGameConf == null) {
+		SetFailState("[aidmgfix] Could not load game config file (staggersolver.txt).");
+	}
 
-    HookConVarChange(hCvarEnabled, OnAIDamageFixEnableChanged);
-    HookConVarChange(hCvarPounceInterrupt, OnPounceInterruptChanged);
+	StartPrepSDKCall(SDKCall_Player);
 
-    fEnabled = GetConVarInt(hCvarEnabled);
-    iPounceInterrupt = GetConVarInt(hCvarPounceInterrupt);
+	if (!PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "IsStaggering")) {
+		SetFailState("[aidmgfix] Could not find signature IsStaggering.");
+	}
 
-    // events
-    HookEvent("ability_use", Event_AbilityUse, EventHookMode_Post);
-    
-    // hook when loading late
-    if (bLateLoad) {
-        for (new i = 1; i < MaxClients + 1; i++) {
-            if (IsClientAndInGame(i)) {
-                OnClientPostAdminCheck(i);
-            }
-        }
-    }
-    
-    // sdkhook
-    hGameConf = LoadGameConfigFile(GAMEDATA_FILE);
-    if (hGameConf == INVALID_HANDLE)
-    SetFailState("[aidmgfix] Could not load game config file (staggersolver.txt).");
+	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
+	g_hIsStaggering = EndPrepSDKCall();
 
-    StartPrepSDKCall(SDKCall_Player);
+	if (g_hIsStaggering == null) {
+		SetFailState("[aidmgfix] Failed to load signature IsStaggering");
+	}
 
-    if (!PrepSDKCall_SetFromConf(hGameConf, SDKConf_Signature, "IsStaggering"))
-    SetFailState("[aidmgfix] Could not find signature IsStaggering.");
-    PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-    hIsStaggering = EndPrepSDKCall();
-    if (hIsStaggering == INVALID_HANDLE)
-    SetFailState("[aidmgfix] Failed to load signature IsStaggering");
-
-    CloseHandle(hGameConf);
+	delete hGameConf;
 }
 
-
-public OnAIDamageFixEnableChanged(Handle:cvar, const String:oldVal[], const String:newVal[])
+public void OnAIDamageFixEnableChanged(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
-    fEnabled = StringToInt(newVal);
+	g_iEnabledFlags = StringToInt(sNewValue);
 }
 
-public OnPounceInterruptChanged(Handle:cvar, const String:oldVal[], const String:newVal[])
+public void OnPounceInterruptChanged(ConVar hConVar, const char[] sOldValue, const char[] sNewValue)
 {
-    iPounceInterrupt = StringToInt(newVal);
+	g_iPounceInterrupt = StringToInt(sNewValue);
 }
 
-
-public OnClientPostAdminCheck(client)
+public void OnClientPutInServer(int iClient)
 {
-    // hook bots spawning
-    SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
-    iHunterSkeetDamage[client] = 0;
+	// hook bots spawning
+	SDKHook(iClient, SDKHook_OnTakeDamage, OnTakeDamage);
+
+	g_iHunterSkeetDamage[iClient] = 0;
 }
 
-public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
+public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &fDamage, int &iDamageType)
 {
-    // Must be enabled, victim and attacker must be ingame, damage must be greater than 0, victim must be AI infected
-    if (fEnabled && IsClientAndInGame(victim) && IsClientAndInGame(attacker) && damage > 0.0 && GetClientTeam(victim) == TEAM_INFECTED && IsFakeClient(victim))
-    {
-        new zombieClass = GetEntProp(victim, Prop_Send, "m_zombieClass");
+	// Must be enabled, victim and attacker must be ingame, damage must be greater than 0, victim must be AI infected
+	if (!g_iEnabledFlags || fDamage <= 0.0) {
+		return Plugin_Continue;
+	}
 
-        // Is this AI hunter attempting to pounce?
-        if (zombieClass == ZC_HUNTER && (fEnabled & SKEET_POUNCING_AI) && GetEntProp(victim, Prop_Send, "m_isAttemptingToPounce"))
-        {
-            iHunterSkeetDamage[victim] += RoundToFloor(damage);
-            
-            // have we skeeted it?
-            if (iHunterSkeetDamage[victim] >= iPounceInterrupt)
-            {
-                // Skeet the hunter
-                iHunterSkeetDamage[victim] = 0;
-                damage = float(GetClientHealth(victim));
-                return Plugin_Changed;
-            }
-        }
-        else if (zombieClass == ZC_CHARGER && (fEnabled & DEBUFF_CHARGING_AI))
-        {
-            // Is this AI charger charging?
-            new abilityEnt = GetEntPropEnt(victim, Prop_Send, "m_customAbility");
-            if (abilityEnt != -1 && IsValidEdict(abilityEnt) && GetEntProp(abilityEnt, Prop_Send, "m_isCharging", 1) > 0)
-            {
-                // Game does Floor(Floor(damage) / 3 - 1) to charging AI chargers, so multiply Floor(damage)+1 by 3
-                damage = (damage - FloatFraction(damage) + 1.0) * 3.0;
-                return Plugin_Changed;
-            }
-        }
-    }
-    
-    return Plugin_Continue;
+	if (!IsClientAndInGame(iVictim) || GetClientTeam(iVictim) != L4D2Team_Infected || !IsFakeClient(iVictim)) {
+		return Plugin_Continue;
+	}
+
+	if (!IsClientAndInGame(iAttacker)) {
+		return Plugin_Continue;
+	}
+
+	switch (GetEntProp(iVictim, Prop_Send, "m_zombieClass")) {
+		case L4D2Infected_Hunter: {
+			// Is this AI hunter attempting to pounce?
+			if (g_iEnabledFlags & SKEET_POUNCING_AI) {
+				if (GetEntProp(iVictim, Prop_Send, "m_isAttemptingToPounce", 1) < 1) {
+					return Plugin_Continue;
+				}
+				g_iHunterSkeetDamage[iVictim] += RoundToFloor(fDamage);
+				
+				// have we skeeted it?
+				if (g_iHunterSkeetDamage[iVictim] >= g_iPounceInterrupt) {
+					// Skeet the hunter
+					g_iHunterSkeetDamage[iVictim] = 0;
+					fDamage = float(GetClientHealth(iVictim));
+					return Plugin_Changed;
+				}
+			}
+		}
+		case L4D2Infected_Charger: {
+			// Is this AI charger charging?
+			if (g_iEnabledFlags & DEBUFF_CHARGING_AI) {
+				// Is this AI charger charging?
+				int iAbilityEnt = GetEntPropEnt(iVictim, Prop_Send, "m_customAbility");
+				if (iAbilityEnt == -1 || !IsValidEdict(iAbilityEnt)) {
+					return Plugin_Continue;
+				}
+
+				if (GetEntProp(iAbilityEnt, Prop_Send, "m_isCharging", 1) > 0) {
+					// Game does Floor(Floor(fDamage) / 3 - 1) to charging AI chargers, so multiply Floor(fDamage)+1 by 3
+					fDamage = (fDamage - FloatFraction(fDamage) + 1.0) * 3.0;
+					return Plugin_Changed;
+				}
+			}
+		}
+	}
+
+	return Plugin_Continue;
 }
 
-public Action:OnPlayerRunCmd(client, &buttons)
+public Action OnPlayerRunCmd(int iClient, int &iButtons)
 {
-    // If the AI Infected is staggering, block melee so they can't scratch
-    if ((fEnabled & BLOCK_STUMBLE_SCRATCH) && IsClientAndInGame(client) && GetClientTeam(client) == TEAM_INFECTED && IsFakeClient(client) && SDKCall(hIsStaggering, client))
-    {
-        buttons &= ~IN_ATTACK2;
-    }
-    
-    return Plugin_Continue;
+	// If the AI Infected is staggering, block melee so they can't scratch
+	if ((g_iEnabledFlags & BLOCK_STUMBLE_SCRATCH)
+		/*&& IsClientAndInGame(iClient)*/
+		&& GetClientTeam(iClient) == L4D2Team_Infected
+		&& IsFakeClient(iClient)
+		&& SDKCall(g_hIsStaggering, iClient)
+	) {
+		iButtons &= ~IN_ATTACK2;
+		return Plugin_Changed;
+	}
+
+	return Plugin_Continue;
 }
 
 // hunters pouncing / tracking
-public Event_AbilityUse(Handle:event, const String:name[], bool:dontBroadcast)
+public void Event_AbilityUse(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-    // track hunters pouncing
-    new client = GetClientOfUserId(GetEventInt(event, "userid"));
-    new String:abilityName[64];
-    
-    if (!IsClientAndInGame(client) || GetClientTeam(client) != TEAM_INFECTED) { return; }
-    
-    GetEventString(event, "ability", abilityName, sizeof(abilityName));
-    
-    if (strcmp(abilityName, "ability_lunge", false) == 0)
-    {
-        // Clear skeet tracking damage each time the hunter starts a pounce
-        iHunterSkeetDamage[client] = 0;
-    }
+	// track hunters pouncing
+	char sAbilityName[64];
+	hEvent.GetString("ability", sAbilityName, sizeof(sAbilityName));
+
+	if (strcmp(sAbilityName, "ability_lunge", false) != 0) {
+		return;
+	}
+
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+	if (iClient < 1 || GetClientTeam(iClient) != L4D2Team_Infected) {
+		return;
+	}
+
+	// Clear skeet tracking damage each time the hunter starts a pounce
+	g_iHunterSkeetDamage[iClient] = 0;
 }
 
-bool:IsClientAndInGame(index)
+bool IsClientAndInGame(int iClient)
 {
-    return (index > 0 && index <= MaxClients && IsClientInGame(index));
+	return (iClient > 0 && iClient <= MaxClients && IsClientInGame(iClient));
 }
