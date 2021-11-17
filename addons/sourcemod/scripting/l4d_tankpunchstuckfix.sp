@@ -6,10 +6,11 @@
 #include <sdkhooks>
 #include <colors>
 
-#define GAMEDATA_FILE "l4d_tankpunchstuckfix"
-#define SIGNATURE_NAME "CTerrorPlayer::WarpToValidPositionIfStuck"
-
 #define DEBUG_MODE				0
+
+#define MAX_ENTITY_NAME_SIZE	64
+#define GAMEDATA_FILE			"l4d_tankpunchstuckfix"
+#define SIGNATURE_NAME			"CTerrorPlayer::WarpToValidPositionIfStuck"
 
 #define TEAM_SPECTATOR			1
 #define TEAM_SURVIVOR			2
@@ -52,7 +53,7 @@ public Plugin myinfo =
 	name = "Tank Punch Ceiling Stuck Fix",
 	author = "Tabun, Visor, A1m`",
 	description = "Fixes the problem where tank-punches get a survivor stuck in the roof.",
-	version = "1.3",
+	version = "1.4",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -124,11 +125,11 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	if (damagetype != DMG_CLUB || !IsTankWeapon(inflictor)) {
 		return Plugin_Continue;
 	}
-	
-	if (!IsClientAndInGame(victim) || !IsSurvivor(victim)) {
+
+	if (!IsClientAndInGame(victim) || GetClientTeam(victim) != TEAM_SURVIVOR) {
 		return Plugin_Continue;
 	}
-	
+
 #if DEBUG_MODE
 	PrintToChatAll("IsTankWeapon - victim: (%N) %d, attacker: (%N) %d, inflictor: %d, damage: %f, damagetype: %d", victim, victim, attacker, attacker, inflictor, damage, damagetype);
 #endif
@@ -142,12 +143,12 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	return Plugin_Continue;
 }
 
-public Action Timer_CheckPunch(Handle hTimer, any userid)
+public Action Timer_CheckPunch(Handle hTimer, int userid)
 {
 	int client = GetClientOfUserId(userid);
 	// stop the timer when we no longer have a proper client
-	if (client < 1 || !IsSurvivor(client)) { 
-		return Plugin_Stop; 
+	if (client < 1 || GetClientTeam(client) != TEAM_SURVIVOR || !IsPlayerAlive(client)) {
+		return Plugin_Stop;
 	}
 
 	// stop the time if we're passed the time for checking
@@ -239,20 +240,15 @@ bool IsClientAndInGame(int client)
 	return (client > 0 && client <= MaxClients && IsClientInGame(client));
 }
 
-bool IsSurvivor(int client)
+bool IsTankWeapon(int iEntity)
 {
-	return (GetClientTeam(client) == TEAM_SURVIVOR);
-}
-
-bool IsTankWeapon(int entity)
-{
-	if (IsValidEntity(entity)) {
-		char eName[32];
-		GetEntityClassname(entity, eName, sizeof(eName));
-		return (strcmp("weapon_tank_claw", eName) == 0/* || strcmp("tank_rock", eName) == 0*/);
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
 	}
 
-	return false;
+	char eEntityName[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, eEntityName, sizeof(eEntityName));
+	return (strcmp("weapon_tank_claw", eEntityName) == 0/* || strcmp("tank_rock", eEntityName) == 0*/);
 }
 
 void fClearArrays()
@@ -294,7 +290,7 @@ stock void PrintDebug(const char[] Message, any ...)
 
 public Action Cmd_WarpMe(int client, int args)
 {
-	if (client == 0 || !IsSurvivor(client) || !IsPlayerAlive(client)) {
+	if (client == 0 || GetClientTeam(client) != TEAM_SURVIVOR || !IsPlayerAlive(client)) {
 		PrintToChat(client, "Only a living survivor can use this command!");
 		return Plugin_Handled;
 	}

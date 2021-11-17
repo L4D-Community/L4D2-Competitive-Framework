@@ -179,7 +179,7 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
         {
             // Is this AI charger charging?
             new abilityEnt = GetEntPropEnt(victim, Prop_Send, "m_customAbility");
-            if (IsValidEntity(abilityEnt) && GetEntProp(abilityEnt, Prop_Send, "m_isCharging") > 0)
+            if (abilityEnt != -1 && IsValidEdict(abilityEnt) && GetEntProp(abilityEnt, Prop_Send, "m_isCharging", 1) > 0)
             {
                 // Game does Floor(Floor(damage) / 3 - 1) to charging AI chargers, so multiply Floor(damage)+1 by 3
                 damage = (damage - FloatFraction(damage) + 1.0) * 3.0;

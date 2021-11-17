@@ -246,29 +246,30 @@ stock void GetWeaponModel(int wepid, char[] modelBuffer, const int length)
  * @param entity        Index of entity to identify
  * @return int for the entity if it is a weapon, WEPID_NONE otherwise
  */
-stock int IdentifyWeapon(int entity)
+stock int IdentifyWeapon(int iEntity)
 {
-	if (!entity || !IsValidEntity(entity) || !IsValidEdict(entity)) {
+	//if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+	if (!iEntity || !IsValidEdict(iEntity)) {
 		return WEPID_NONE;
 	}
 
-	char class[64];
-	if (!GetEdictClassname(entity, class, sizeof(class))) {
+	char sClassName[64];
+	if (!GetEdictClassname(iEntity, sClassName, sizeof(sClassName))) {
 		return WEPID_NONE;
 	}
 
-	if (strcmp(class, "weapon_spawn") == 0) {
-		return GetEntProp(entity, Prop_Send, "m_weaponID");
+	if (strcmp(sClassName, "weapon_spawn") == 0) {
+		return GetEntProp(iEntity, Prop_Send, "m_weaponID");
 	}
 
-	int len = strlen(class);
+	int len = strlen(sClassName);
 	int len2 = len - 6;
-	if (len2 > 0 && strcmp(class[len2], "_spawn") == 0) {
-		class[len2] = '\0';
-		return WeaponNameToId(class);
+	if (len2 > 0 && strcmp(sClassName[len2], "_spawn") == 0) {
+		sClassName[len2] = '\0';
+		return WeaponNameToId(sClassName);
 	}
 
-	return WeaponNameToId(class);
+	return WeaponNameToId(sClassName);
 }
 
 /**
@@ -333,7 +334,7 @@ stock int ConvertWeaponSpawn(int entity, int wepid, int count = 5, const char[] 
 	AcceptEntityInput(entity, "kill");
 
 	entity = CreateEntityByName("weapon_spawn");
-	if (!IsValidEntity(entity)) {
+	if (entity == -1) {
 		return -1;
 	}
 	

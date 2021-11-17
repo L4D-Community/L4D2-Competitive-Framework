@@ -98,7 +98,7 @@ void ModifyEntity(const char[] sClassName, const char[] sInputName)
 	int iEntity = -1;
 
 	while ((iEntity = FindEntityByClassname(iEntity, sClassName)) != -1) {
-		if (!IsValidEdict(iEntity) || !IsValidEntity(iEntity)) {
+		if (!IsValidEntity(iEntity)) {
 			continue;
 		}
 

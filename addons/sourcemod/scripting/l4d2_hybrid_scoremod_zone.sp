@@ -570,14 +570,14 @@ GetSurvivorPermanentHealth(client)
 	return GetEntProp(client, Prop_Send, "m_currentReviveCount") > 0 ? 0 : (GetEntProp(client, Prop_Send, "m_iHealth") > 0 ? GetEntProp(client, Prop_Send, "m_iHealth") : 0);
 }
 
-bool:HasPills(client)
+bool HasPills(int iClient)
 {
-	new item = GetPlayerWeaponSlot(client, 4);
-	if (IsValidEdict(item))
-	{
-		decl String:buffer[64];
-		GetEdictClassname(item, buffer, sizeof(buffer));
-		return StrEqual(buffer, "weapon_pain_pills");
+	int iItem = GetPlayerWeaponSlot(iClient, 4);
+	if (iItem == -1) {
+		return false;
 	}
-	return false;
+
+	char sBuffer[64];
+	GetEdictClassname(iItem, sBuffer, sizeof(sBuffer));
+	return (strcmp(sBuffer, "weapon_pain_pills") == 0);
 }

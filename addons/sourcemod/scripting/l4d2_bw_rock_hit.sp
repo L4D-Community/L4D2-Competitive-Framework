@@ -46,7 +46,7 @@ public Plugin myinfo =
 	name = "L4D2 Black&White Rock Hit",
 	author = "Visor, A1m`",
 	description = "Stops rocks from passing through soon-to-be-dead Survivors",
-	version = "1.3",
+	version = "1.4",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -184,13 +184,13 @@ bool IsSurvivor(int iClient)
 
 bool IsTankRock(int iEntity)
 {
-	if (iEntity > 0 && IsValidEntity(iEntity)) {
-		char sClassName[MAX_ENTITY_NAME_SIZE];
-		GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
-		return (strcmp(sClassName, "tank_rock") == 0);
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
 	}
 
-	return false;
+	char sClassname[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassname, sizeof(sClassname));
+	return (strcmp(sClassname, "tank_rock") == 0);
 }
 
 void CTankRock__Detonate(int iTankRock)

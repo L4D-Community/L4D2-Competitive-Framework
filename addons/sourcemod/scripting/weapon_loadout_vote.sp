@@ -71,7 +71,7 @@ public Plugin myinfo =
 	name = "Weapon Loadout",
 	author = "Sir, A1m`",
 	description = "Allows the Players to choose which weapons to play the mode in.",
-	version = "2.3",
+	version = "2.4",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -312,11 +312,11 @@ public Action Timer_ClearMap(Handle hTimer)
 
 	// Converted Weapons
 	while ((iEntity = FindEntityByClassname(iEntity, "weapon_*")) != INVALID_ENT_REFERENCE) {
-		if (iEntity <= MaxClients || !IsValidEntity(iEntity)) {
+		if (!IsValidEdict(iEntity)) {
 			continue;
 		}
 
-		GetEntityClassname(iEntity, sEntityName, sizeof(sEntityName));
+		GetEdictClassname(iEntity, sEntityName, sizeof(sEntityName));
 		for (int i = 0; i < sizeof(sRemoveWeaponNames); i++) {
 			// weapon_ - 7
 			if (strcmp(sEntityName[7], sRemoveWeaponNames[i]) == 0) {
@@ -329,6 +329,7 @@ public Action Timer_ClearMap(Handle hTimer)
 			}
 		}
 	}
+
 	return Plugin_Stop;
 }
 

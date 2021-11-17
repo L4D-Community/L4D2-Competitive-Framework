@@ -45,8 +45,9 @@ public Plugin myinfo =
 {
 	name = "L4D2 Tank Hittable Glow",
 	author = "Harry Potter, Sir, A1m`, Derpduck",
-	version = "2.4",
-	description = "Stop tank props from fading whilst the tank is alive + add Hittable Glow."
+	version = "2.5",
+	description = "Stop tank props from fading whilst the tank is alive + add Hittable Glow.",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()
@@ -430,7 +431,7 @@ void HookTankProps()
 {
 	int iEntCount = GetMaxEntities();
 	
-	for (int i = MaxClients; i < iEntCount; i++) {
+	for (int i = (MaxClients + 1); i <= iEntCount; i++) {
 		if (IsTankProp(i)) {
 			SDKHook(i, SDKHook_OnTakeDamagePost, PropDamaged);
 			g_hTankProps.Push(i);
@@ -481,7 +482,7 @@ public void PossibleTankPropCreated(int iEntity, const char[] sClassName)
 
 public void Hook_PropSpawned(int iEntity)
 {
-	if (iEntity < MaxClients || !IsValidEntity(iEntity)) {
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
 		return;
 	}
 	
@@ -561,9 +562,9 @@ bool IsTank(int iClient)
 
 void KillEntity(int iEntity)
 {
-	#if SOURCEMOD_V_MINOR > 8
-		RemoveEntity(iEntity);
-	#else
-		AcceptEntityInput(iEntity, "Kill");
-	#endif
+#if SOURCEMOD_V_MINOR > 8
+	RemoveEntity(iEntity);
+#else
+	AcceptEntityInput(iEntity, "Kill");
+#endif
 }

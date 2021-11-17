@@ -29,7 +29,7 @@ public Action CH_PassFilter(int entity1, int entity2, bool &result)
 
 bool IsLadder(int entity)
 {
-	if (entity > 0 && IsValidEntity(entity) && IsValidEdict(entity)) {
+	if (entity > MaxClients && IsValidEdict(entity)) {
 		char strClassName[64];
 		GetEdictClassname(entity, strClassName, sizeof(strClassName));
 		return (StrContains(strClassName, "ladder") > 0);

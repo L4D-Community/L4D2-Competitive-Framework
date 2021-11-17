@@ -31,7 +31,7 @@ public Plugin myinfo =
 	name = "L4D2 Lag Compensation Manager",
 	author = "ProdigySim, A1m`",
 	description = "Provides lag compensation for entities in left 4 dead 2 (required enable sv_unlag).",
-	version = "1.1.1",
+	version = "1.1.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -41,7 +41,7 @@ public void OnPluginStart()
 	if (!hGameConf) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	g_aLagCompensation = GameConfGetAddress(hGameConf, "lagcompensation");
 
 	StartPrepSDKCall(SDKCall_Raw);
@@ -57,7 +57,7 @@ public void OnPluginStart()
 	if (g_aLagCompensation == Address_Null || g_hLagCompAddEntity == null || g_hLagCompRemoveEntity == null) {
 		SetFailState("Failed to find LagComp addresses: 0x%08x, %08x, %08x", g_aLagCompensation, g_hLagCompAddEntity, g_hLagCompRemoveEntity);
 	}
-	
+
 	#if DEBUG
 		RegConsoleCmd("sm_show_lagcomp_list", Cmd_ShowLagCompList, "Basically this lagcomp array is always empty, so don't be surprised you won't see anything in the console");
 	#endif
@@ -86,13 +86,9 @@ void CheckCvar()
 
 public void OnEntityCreated(int iEntity, const char[] sClassName)
 {
-	if (sClassName[0] != 't') {
-		return;
-	}
-	
 	if (strcmp(sClassName, "tank_rock") == 0) {
 		SDKCall(g_hLagCompAddEntity, g_aLagCompensation, iEntity);
-		
+
 		#if DEBUG
 			if (IsFindEntity(iEntity)) {
 				PrintToChatAll("[Successfully] The entity '%s (%d)' was successfully added to the array for lag compensation!", sClassName, iEntity);
@@ -105,17 +101,17 @@ public void OnEntityCreated(int iEntity, const char[] sClassName)
 
 public void OnEntityDestroyed(int iEntity)
 {
-	if (IsRock(iEntity)) {
+	if (IsTankRock(iEntity)) {
 		#if DEBUG
 			bool IsFind = IsFindEntity(iEntity);
 		#endif
-		
+
 		SDKCall(g_hLagCompRemoveEntity, g_aLagCompensation, iEntity);
-		
+
 		#if DEBUG
 			char sClassName[MAX_ENTITY_NAME_SIZE];
-			GetEntityClassname(iEntity, sClassName, sizeof(sClassName));
-			
+			GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
+
 			if (IsFind) {
 				if (IsFindEntity(iEntity)) {
 					PrintToChatAll("[Error] The entity '%s (%d)' is not removed after being destroyed from the array for lag compensation!", sClassName, iEntity);
@@ -129,15 +125,15 @@ public void OnEntityDestroyed(int iEntity)
 	}
 }
 
-bool IsRock(int iEntity)
+bool IsTankRock(int iEntity)
 {
-	if (IsValidEntity(iEntity)) {
-		char sClassName[MAX_ENTITY_NAME_SIZE];
-		GetEntityClassname(iEntity, sClassName, sizeof(sClassName));
-		return (strcmp(sClassName, "tank_rock") == 0);
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
 	}
-
-	return false;
+	
+	char sClassname[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassname, sizeof(sClassname));
+	return (strcmp(sClassname, "tank_rock") == 0);
 }
 
 #if DEBUG

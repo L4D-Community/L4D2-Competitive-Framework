@@ -42,10 +42,10 @@ public void JockeyRideEnd(Event hEvent, const char[] name, bool dontBroadcast)
 		int jockeyAttacker = GetClientOfUserId(hEvent.GetInt("userid"));
 		if (jockeyAttacker > 0) {
 			int ability = GetEntPropEnt(jockeyAttacker, Prop_Send, "m_customAbility");
-			if (ability != -1 && IsValidEntity(ability)) {
-				char abName[32];
-				GetEntityClassname(ability, abName, sizeof(abName));
-				if (strcmp(abName, "ability_leap") == 0) {
+			if (ability != -1 && IsValidEdict(ability)) {
+				char sAbilityName[32];
+				GetEdictClassname(ability, sAbilityName, sizeof(sAbilityName));
+				if (strcmp(sAbilityName, "ability_leap") == 0) {
 					/*
 					 * Table: m_nextActivationTimer (offset 1104) (type DT_CountdownTimer)
 					 *	Member: m_duration (offset 4) (type float) (bits 0) (NoScale)

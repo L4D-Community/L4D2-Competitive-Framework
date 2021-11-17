@@ -246,10 +246,12 @@ static stock Float:FindStartPointHeuristic(Float:result[3])
 	new Float:kitOrigin[4][3];
 	new Float:averageOrigin[3];
 	new entcount = GetEntityCount();
+
 	decl String:entclass[128];
-	for(new iEntity = 1;iEntity<=entcount && kits <4;iEntity++)
+	for(new iEntity = (MaxClients + 1);iEntity<=entcount && kits <4;iEntity++)
 	{
-		if(!IsValidEdict(iEntity) || !IsValidEntity(iEntity)){continue;}
+		if(!IsValidEdict(iEntity)){continue;}
+
 		GetEdictClassname(iEntity,entclass,sizeof(entclass));
 		if(StrEqual(entclass, "weapon_first_aid_kit_spawn"))
 		{
@@ -258,6 +260,7 @@ static stock Float:FindStartPointHeuristic(Float:result[3])
 			kits++;
 		}
 	}
+
 	if(kits < 4) return -1.0;
 	ScaleVector(averageOrigin, 0.25);
 	

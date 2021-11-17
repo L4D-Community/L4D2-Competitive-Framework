@@ -1,3 +1,17 @@
+/*
+	Changelog
+	---------
+		0.2
+			- removed unnecessary checks
+		0.1f
+			- fixed more error spam in error logs
+		0.1e
+			- fixed error spam in error logs
+		0.1d
+			- melee accuracy now hidden by default
+			- built in some better safeguards against client index out of bounds probs
+ */
+
 #pragma semicolon 1
 
 #include <sourcemod>
@@ -23,7 +37,6 @@
 
 #define BREV_MELEE              32
 #define BREV_DMG                64
-
 
 // zombie classes
 #define ZC_SMOKER               1
@@ -76,25 +89,12 @@
 #define WP_ADRENALINE           23
 #define WP_MACHINEGUN           45
 
-/*
-        Changelog
-        ---------
-        
-            0.1f
-                - fixed more error spam in error logs
-            0.1e
-                - fixed error spam in error logs
-            0.1d
-                - melee accuracy now hidden by default
-                - built in some better safeguards against client index out of bounds probs
- */
-
 public Plugin myinfo =
 {
 	name = "1v1 SkeetStats",
 	author = "Tabun",
 	description = "Shows 1v1-relevant info at end of round.",
-	version = "0.1f",
+	version = "0.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -961,22 +961,24 @@ stock bool:IsInfected(client) {
     return IsClientAndInGame(client) && GetClientTeam(client) == TEAM_INFECTED;
 }
 
-stock bool:IsWitch(iEntity) {
-    if(iEntity > 0 && IsValidEntity(iEntity) && IsValidEdict(iEntity))
-    {
-        decl String:strClassName[64];
-        GetEdictClassname(iEntity, strClassName, sizeof(strClassName));
-        return StrEqual(strClassName, "witch");
-    }
-    return false;
-}  
+bool IsWitch(int iEntity)
+{
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
+	}
 
-stock bool:IsCommonInfected(iEntity) {
-    if(iEntity > 0 && IsValidEntity(iEntity) && IsValidEdict(iEntity))
-    {
-        decl String:strClassName[64];
-        GetEdictClassname(iEntity, strClassName, sizeof(strClassName));
-        return StrEqual(strClassName, "infected");
-    }
-    return false;
+	char sClassName[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
+	return (strncmp(sClassName, "witch", 5) == 0); //witch and witch_bride
+}
+
+bool IsCommonInfected(int iEntity)
+{
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
+	}
+
+	char sClassName[MAX_ENTITY_NAME_SIZE];
+	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
+	return (strcmp(sClassName, "infected") == 0);
 }

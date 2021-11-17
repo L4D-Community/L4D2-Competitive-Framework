@@ -55,12 +55,21 @@ ConVar hOverHitInterval;
 ConVar hOverHitDebug;
 ConVar hUnbreakableForklifts;
 
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
+	bLateLoad = late;
+	CreateNative("AreForkliftsUnbreakable", Native_UnbreakableForklifts);
+	RegPluginLibrary("l4d2_hittable_control");
+	return APLRes_Success;
+}
+
 public Plugin myinfo = 
 {
-    name = "L4D2 Hittable Control",
-    author = "Stabby, Visor, Sir, Derpduck",
-    version = "0.6.3",
-    description = "Allows for customisation of hittable damage values (and debugging)"
+	name = "L4D2 Hittable Control",
+	author = "Stabby, Visor, Sir, Derpduck",
+	version = "0.6.3",
+	description = "Allows for customisation of hittable damage values (and debugging)",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()
@@ -128,34 +137,25 @@ public void OnPluginStart()
 	hOverHitInterval		= CreateConVar( "hc_overhit_time",				"1.2",
 											"The amount of time to wait before allowing consecutive hits from the same hittable to register. Recommended values: 0.0-0.5: instant kill; 0.5-0.7: sizeable overhit; 0.7-1.0: standard overhit; 1.0-1.2: reduced overhit; 1.2+: no overhit unless the car rolls back on top. Set to tank's punch interval (default 1.5) to fully remove all possibility of overhit.",
 											FCVAR_NONE, true, 0.0, false );
-	hOverHitDebug		    = CreateConVar( "hc_debug",				"0",
+	hOverHitDebug			= CreateConVar( "hc_debug",				"0",
 											"0: Disable Debug - 1: Enable Debug",
 											FCVAR_NONE, true, 0.0, false );
 	hUnbreakableForklifts	= CreateConVar( "hc_unbreakable_forklifts",	"0",
 											"Prevents forklifts breaking into pieces when hit by a tank.",
 											FCVAR_NONE, true, 0.0, false );
 
-	if (bLateLoad)
-	{
-		for (int i = 1; i <= MaxClients; i++)
-		{
-			if(IsClientInGame(i))
-			  SDKHook(i, SDKHook_OnTakeDamage, OnTakeDamage);
-		}
-	}
-
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("finale_radio_start", Event_FinaleStart, EventHookMode_PostNoCopy);
 	
 	hUnbreakableForklifts.AddChangeHook(ConVarChanged_UnbreakableForklifts);
-}
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
-{
-	bLateLoad = late;
-	CreateNative("AreForkliftsUnbreakable", Native_UnbreakableForklifts);
-	RegPluginLibrary("l4d2_hittable_control");
-	return APLRes_Success;
+	if (bLateLoad) {
+		for (int i = 1; i <= MaxClients; i++) {
+			if (IsClientInGame(i)) {
+				SDKHook(i, SDKHook_OnTakeDamage, OnTakeDamage);
+			}
+		}
+	}
 }
 
 public void OnClientPutInServer(int client)
@@ -266,11 +266,10 @@ public void Event_FinaleStart(Event event, const char[] name, bool dontBroadcast
 public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype)
 {
 	// Hey, we don't care.
-	if (!IsValidEdict(attacker) || 
-	!IsValidEdict(victim) || 
-	!IsValidEdict(inflictor))
-	  return Plugin_Continue;
-	
+	if (!IsValidEdict(attacker) || !IsValidEdict(victim) || !IsValidEdict(inflictor)) {
+		return Plugin_Continue;
+	}
+
 	char sClass[64];
 	GetEdictClassname(inflictor, sClass, sizeof(sClass));
 

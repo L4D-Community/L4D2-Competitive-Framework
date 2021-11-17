@@ -60,7 +60,7 @@
 #include <colors>
 #include <left4dhooks>
 
-#define PLUGIN_VERSION "0.9.20"
+#define PLUGIN_VERSION "1.0"
 
 #define IS_VALID_CLIENT(%1)     (%1 > 0 && %1 <= MaxClients)
 #define IS_SURVIVOR(%1)         (GetClientTeam(%1) == 2)
@@ -506,7 +506,7 @@ public OnPluginStart()
     
     
     // version cvar
-    CreateConVar( "sm_skill_detect_version", PLUGIN_VERSION, "Skill detect plugin version.", FCVAR_NONE|FCVAR_NOTIFY|FCVAR_REPLICATED|FCVAR_DONTRECORD );
+    //CreateConVar( "sm_skill_detect_version", PLUGIN_VERSION, "Skill detect plugin version.", FCVAR_NONE|FCVAR_NOTIFY|FCVAR_REPLICATED|FCVAR_DONTRECORD );
     
     // cvars: config
     
@@ -787,7 +787,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                     {
                         new iChargeHealth = GetConVarInt(g_hCvarChargerHealth);
                         new abilityEnt = GetEntPropEnt( victim, Prop_Send, "m_customAbility" );
-                        if ( IsValidEntity(abilityEnt) && GetEntProp(abilityEnt, Prop_Send, "m_isCharging") )
+                        if ( abilityEnt != -1 && IsValidEdict(abilityEnt) && GetEntProp(abilityEnt, Prop_Send, "m_isCharging", 1) > 0 )
                         {
                             // fix fake damage?
                             if ( GetConVarBool(g_hCvarHideFakeDamage) )
@@ -1581,7 +1581,7 @@ public Action: Timer_ChargeCheck( Handle:timer, any:client )
 
 public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
 {
-    if ( !IS_VALID_INGAME(client) ) { return; }
+    if ( !IS_VALID_INGAME(client) ) { return Plugin_Stop }
     
     // check conditions.. if flags match up, it's a DC
     PrintDebug( 3, "Checking charge victim: %i - %i - flags: %i (alive? %i)", g_iVictimCharger[client], client, g_iVictimFlags[client], IsPlayerAlive(client) );
@@ -1624,6 +1624,8 @@ public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
         
         CreateTimer( CHARGE_END_RECHECK, Timer_DeathChargeCheck, client, TIMER_FLAG_NO_MAPCHANGE );
     }
+
+	return Plugin_Stop;
 }
 
 stock ResetHunter(client)
@@ -1638,60 +1640,59 @@ stock ResetHunter(client)
     g_iHunterOverkill[client] = 0;
 }
 
-
 // entity creation
 public OnEntityCreated ( entity, const String:classname[] )
 {
-    if ( entity < 1 || !IsValidEntity(entity) || !IsValidEdict(entity) ) { return; }
-    
-    // track infected / witches, so damage on them counts as hits
-    
-    new strOEC: classnameOEC;
-    if (!GetTrieValue(g_hTrieEntityCreated, classname, classnameOEC)) { return; }
-    
-    switch ( classnameOEC )
-    {
-        case OEC_TANKROCK:
-        {
-            decl String:rock_key[10];
-            FormatEx(rock_key, sizeof(rock_key), "%x", entity);
-            new rock_array[3];
-            
-            // store which tank is throwing what rock
-            new tank = ShiftTankThrower();
-            
-            if ( IS_VALID_INGAME(tank) )
-            {
-                g_iTankRock[tank] = entity;
-                rock_array[rckTank] = tank;
-            }
-            SetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array), true);
-            
-            SDKHook(entity, SDKHook_OnTakeDamageAlivePost, OnTakeDamageAlivePost_Rock);
-            SDKHook(entity, SDKHook_Touch, OnTouch_Rock);
-        }
-        
-        
-        case OEC_CARALARM:
-        {
-            decl String:car_key[10];
-            FormatEx(car_key, sizeof(car_key), "%x", entity);
-            
-            SDKHook(entity, SDKHook_OnTakeDamage, OnTakeDamage_Car);
-            SDKHook(entity, SDKHook_Touch, OnTouch_Car);
-            
-            SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarm); 
-        }
-        
-        case OEC_CARGLASS:
-        {
-            SDKHook(entity, SDKHook_OnTakeDamage, OnTakeDamage_CarGlass);
-            SDKHook(entity, SDKHook_Touch, OnTouch_CarGlass);
-            
-            //SetTrieValue(g_hCarTrie, car_key, );
-            SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarmGlass); 
-        }
-    }
+	// track infected / witches, so damage on them counts as hits
+	strOEC classnameOEC;
+	if (!GetTrieValue(g_hTrieEntityCreated, classname, classnameOEC)) { return; }
+
+	switch ( classnameOEC )
+	{
+		case OEC_TANKROCK:
+		{
+			if ( entity <= MaxClients || !IsValidEdict(entity) ) { return; }
+
+			decl String:rock_key[10];
+			FormatEx(rock_key, sizeof(rock_key), "%x", entity);
+			new rock_array[3];
+			
+			// store which tank is throwing what rock
+			new tank = ShiftTankThrower();
+			
+			if ( IS_VALID_INGAME(tank) )
+			{
+				g_iTankRock[tank] = entity;
+				rock_array[rckTank] = tank;
+			}
+			SetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array), true);
+			
+			SDKHook(entity, SDKHook_OnTakeDamageAlivePost, OnTakeDamageAlivePost_Rock);
+			SDKHook(entity, SDKHook_Touch, OnTouch_Rock);
+		}
+		case OEC_CARALARM:
+		{
+			if ( entity <= MaxClients || !IsValidEdict(entity) ) { return; }
+
+			decl String:car_key[10];
+			FormatEx(car_key, sizeof(car_key), "%x", entity);
+			
+			SDKHook(entity, SDKHook_OnTakeDamage, OnTakeDamage_Car);
+			SDKHook(entity, SDKHook_Touch, OnTouch_Car);
+			
+			SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarm); 
+		}
+		case OEC_CARGLASS:
+		{
+			if ( entity <= MaxClients || !IsValidEdict(entity) ) { return; }
+
+			SDKHook(entity, SDKHook_OnTakeDamage, OnTakeDamage_CarGlass);
+			SDKHook(entity, SDKHook_Touch, OnTouch_CarGlass);
+			
+			//SetTrieValue(g_hCarTrie, car_key, );
+			SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarmGlass); 
+		}
+	}
 }
 
 public OnEntitySpawned_CarAlarm ( entity )
@@ -1769,7 +1770,6 @@ public Action: Timer_WitchKeyDelete (Handle:timer, any:witch)
     FormatEx(witch_key, sizeof(witch_key), "%x", witch);
     RemoveFromTrie(g_hWitchTrie, witch_key);
 }
-
 
 public Action: Timer_CheckRockSkeet (Handle:timer, any:rock)
 {
