@@ -18,79 +18,74 @@
 	You should have received a copy of the GNU General Public License along
 	with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <sourcemod>
 
-public Plugin:myinfo =
+#pragma semicolon 1
+#pragma newdecls required
+
+#include <sourcemod>
+#include <l4d2util_constants>
+
+bool
+	g_bBlockCallvote = false;
+
+int
+	g_iLoadedPlayers = 0;
+
+public Plugin myinfo =
 {
 	name = "Block Trolls",
 	description = "Prevents calling votes while others are loading",
 	author = "ProdigySim, CanadaRox, darkid",
-	version = "2.0.1.0",
+	version = "2.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
-new bool:g_bBlockCallvote;
-new loadedPlayers = 0;
 
-enum L4D2Team
-{
-	L4D2Team_None = 0,
-	L4D2Team_Spectator,
-	L4D2Team_Survivor,
-	L4D2Team_Infected
-}
-
-public OnPluginStart()
+public void OnPluginStart()
 {
 	AddCommandListener(Vote_Listener, "callvote");
 	AddCommandListener(Vote_Listener, "vote");
+
 	HookEvent("player_team", OnPlayerJoin);
 }
 
-public OnMapStart()
+public void OnMapStart()
 {
 	g_bBlockCallvote = true;
-	loadedPlayers = 0;
-	CreateTimer(40.0, EnableCallvoteTimer);
+	g_iLoadedPlayers = 0;
+
+	CreateTimer(40.0, Timer_EnableCallvote, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public OnPlayerJoin(Handle:event, String:name[], bool:dontBroadcast)
+public void OnPlayerJoin(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	if (GetEventInt(event, "oldteam") == 0) {
-		loadedPlayers++;
-		if (loadedPlayers == 6) g_bBlockCallvote = false;
+	if (hEvent.GetInt("oldteam") == 0) {
+		g_iLoadedPlayers++;
+
+		if (g_iLoadedPlayers == 6) {
+			g_bBlockCallvote = false;
+		}
 	}
 }
 
-public Action:Vote_Listener(client, const String:command[], argc)
+public Action Vote_Listener(int iClient, const char[] sCommand, int iArgc)
 {
-	if (g_bBlockCallvote)
-	{
-		ReplyToCommand(client,
-				"[SM] Voting is not enabled until 60s into the round");
+	if (g_bBlockCallvote) {
+		ReplyToCommand(iClient, "[SM] Voting is not enabled until 60s into the round");
 		return Plugin_Handled;
 	}
-	new L4D2Team:team = L4D2Team:GetClientTeam(client);
-	if (client && IsClientInGame(client) &&
-			(team == L4D2Team_Survivor || team == L4D2Team_Infected))
-	{
+
+	int iTeam = GetClientTeam(iClient);
+	if (iClient && IsClientInGame(iClient) && (iTeam == L4D2Team_Survivor || iTeam == L4D2Team_Infected)) {
 		return Plugin_Continue;
 	}
-	ReplyToCommand(client,
-			"[SM] You must be ingame and not a spectator to vote");
+
+	ReplyToCommand(iClient, "[SM] You must be ingame and not a spectator to vote");
 	return Plugin_Handled;
 }
 
-public Action:CallvoteCallback(client, args)
-{
-	if (g_bBlockCallvote)
-	{
-		return Plugin_Handled;
-	}
-	return Plugin_Continue;
-}
-
-public Action:EnableCallvoteTimer(Handle:timer)
+public Action Timer_EnableCallvote(Handle hTimer)
 {
 	g_bBlockCallvote = false;
+
 	return Plugin_Stop;
 }
