@@ -1581,7 +1581,7 @@ public Action: Timer_ChargeCheck( Handle:timer, any:client )
 
 public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
 {
-    if ( !IS_VALID_INGAME(client) ) { return Plugin_Stop }
+    if ( !IS_VALID_INGAME(client) ) { return Plugin_Stop; }
     
     // check conditions.. if flags match up, it's a DC
     PrintDebug( 3, "Checking charge victim: %i - %i - flags: %i (alive? %i)", g_iVictimCharger[client], client, g_iVictimFlags[client], IsPlayerAlive(client) );
@@ -1625,7 +1625,7 @@ public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
         CreateTimer( CHARGE_END_RECHECK, Timer_DeathChargeCheck, client, TIMER_FLAG_NO_MAPCHANGE );
     }
 
-	return Plugin_Stop;
+    return Plugin_Stop;
 }
 
 stock ResetHunter(client)

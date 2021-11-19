@@ -56,6 +56,8 @@
 #include <sdkhooks>
 #include <colors>
 
+#define MAX_ENTITY_NAME_SIZE 64
+
 new const TEAM_SURVIVOR = 2;
 
 new bool: bRoundOver;                //Did Round End?

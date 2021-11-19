@@ -35,6 +35,8 @@
 #include <l4d2util> //#include <weapons>
 #include <colors>
 
+#define MAX_ENTITY_NAME_SIZE              64
+
 #define FLAGS_SWITCH_MELEE                1
 #define FLAGS_SWITCH_PILLS                2
 

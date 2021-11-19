@@ -19,6 +19,8 @@
 #include <sdktools>
 #include <left4dhooks>
 
+#define MAX_ENTITY_NAME_SIZE    64
+
 #define STR_MAX_WEAPON_LEN      32
 
 #define SHOTGUN_TIME            0.25
