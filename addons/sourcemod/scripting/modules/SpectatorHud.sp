@@ -205,10 +205,10 @@ SH_SpecHUD_Draw() {
 	// blank line
 	DrawPanelText(g_hSH_SpecHUD, " ");
 
-        //infected team
-        for(new infected = 0; infected < SH_INFECTED; infected++) {
-                //this is required
-                if(SH_InfectedIndex[infected] == 0) break;
+		//infected team
+		for(new infected = 0; infected < SH_INFECTED; infected++) {
+				//this is required
+				if(SH_InfectedIndex[infected] == 0) break;
 
 		if(!IsFakeClient(SH_InfectedIndex[infected])) {
 			GetClientName(SH_InfectedIndex[infected],sNameString,sizeof(sNameString));
@@ -252,8 +252,8 @@ SH_SpecHUD_Draw() {
 			}
 		}
 
-                DrawPanelText(g_hSH_SpecHUD, sTempString);
-        }
+			DrawPanelText(g_hSH_SpecHUD, sTempString);
+	}
 }
 
 public SH_SpecHUD_MenuHandler(Handle:menu, MenuAction:action, param1, param2) {

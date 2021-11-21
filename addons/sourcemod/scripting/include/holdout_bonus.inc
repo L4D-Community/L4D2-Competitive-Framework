@@ -1,8 +1,7 @@
-#if defined  _holdoutbonus_included_
-        #endinput
+#if defined _holdoutbonus_included_
+	#endinput
 #endif
 #define _holdoutbonus_included_
-
 
 /**
  *  Called when a holdout bonus is set up for the round. This will be
@@ -31,16 +30,14 @@ forward OnHoldOutBonusStart( time );
  *  @param  int     time                the time the survivors managed to survive
  */
 forward OnHoldOutBonusEnd( bonus, time );
-  
 
-
-public SharedPlugin:__pl_holdoutbonus =
+public SharedPlugin __pl_holdoutbonus =
 {
 	name = "holdout_bonus",
 	file = "holdout_bonus.smx",
 #if defined REQUIRE_PLUGIN
-    required = 1,
+	required = 1,
 #else
-    required = 0,
+	required = 0,
 #endif
 };

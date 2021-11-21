@@ -4,7 +4,8 @@
 #include <sourcemod>
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework>
 
 // The z_gun_swing_vs_amt_penalty cvar is the amount of cooldown time you get
 // when you are on your maximum m2 penalty. However, whilst testing I found that

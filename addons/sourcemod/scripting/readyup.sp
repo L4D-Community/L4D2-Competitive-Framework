@@ -3,7 +3,9 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #include <builtinvotes>
 #include <colors>
 #undef REQUIRE_PLUGIN
@@ -42,8 +44,6 @@ public Plugin myinfo =
 #define TRANSLATION_READYUP "readyup.phrases"
 
 #define GAMEDATA_READYUP "l4d2_cdirector"
-//#define GAMEDATA_L4DH "left4downtown.l4d2"
-#define GAMEDATA_L4DH "left4dhooks.l4d2"
 
 #define READY_MODE_MANUAL 1
 #define READY_MODE_AUTOSTART 2
@@ -265,7 +265,7 @@ public void OnPluginEnd()
 
 void LoadSDK(bool optional)
 {
-	Handle conf = LoadGameConfigFile(GAMEDATA_L4DH);
+	Handle conf = LoadGameConfigFile(LEFT4FRAMEWORK_GAMEDATA);
 	if (conf != null)
 	{
 		g_pDirector = GameConfGetAddress(conf, "CDirector");
@@ -278,8 +278,8 @@ void LoadSDK(bool optional)
 	}
 	else
 	{
-		if (optional) LogError("Missing gamedata \""... GAMEDATA_L4DH ... "\"");
-		else SetFailState("Missing gamedata \""... GAMEDATA_L4DH ... "\"");
+		if (optional) LogError("Missing gamedata \""... LEFT4FRAMEWORK_GAMEDATA ... "\"");
+		else SetFailState("Missing gamedata \""... LEFT4FRAMEWORK_GAMEDATA ... "\"");
 	}
 
 	conf = LoadGameConfigFile(GAMEDATA_READYUP);

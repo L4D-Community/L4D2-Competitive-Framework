@@ -3,6 +3,8 @@
 
 #include <sourcemod>
 #include <sdktools>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #undef REQUIRE_PLUGIN
 #include <readyup>
 

@@ -9,7 +9,8 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-#include <left4dhooks> //#include <l4d2_direct>
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework> //#include <l4d2_direct>
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util>
 

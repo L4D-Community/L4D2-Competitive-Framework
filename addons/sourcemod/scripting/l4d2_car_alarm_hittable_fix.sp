@@ -63,8 +63,8 @@ public Action DisableAlarm(Handle timer, any car)
 
 stock bool IsValidTank(int client) 
 { 
-    if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false;
-    return (IsClientInGame(client) && GetClientTeam(client) == 3 && GetEntProp(client, Prop_Send, "m_zombieClass") == 8); 
+	if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false;
+	return (IsClientInGame(client) && GetClientTeam(client) == 3 && GetEntProp(client, Prop_Send, "m_zombieClass") == 8); 
 }
 
 stock bool IsTankHittable(int iEntity)

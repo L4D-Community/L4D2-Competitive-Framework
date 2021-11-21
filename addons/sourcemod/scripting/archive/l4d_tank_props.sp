@@ -163,6 +163,8 @@ public Action FadeTankProps(Handle timer)
 	}
 
 	ClearArray(hTankPropsHit);
+
+	return Plugin_Stop;
 }
 
 bool IsTankProp(int iEntity)

@@ -54,7 +54,7 @@ stock bool IsSurvivor(int client)
  */
 stock bool IsValidSurvivor(int client)
 {
-	return (L4D2Util_IsValidClient(client) && IsSurvivor(client));
+	return (IsValidClientIndex(client) && IsSurvivor(client));
 }
 
 /**

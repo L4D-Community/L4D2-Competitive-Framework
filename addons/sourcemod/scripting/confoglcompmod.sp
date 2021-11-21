@@ -13,7 +13,8 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #include <colors>
 #include "includes/constants.sp"
 #include "includes/functions.sp"

@@ -17,10 +17,8 @@
 #include <sourcemod>
 #include <sdkhooks>
 #include <sdktools>
-#include <left4dhooks>
 
 #define MAX_ENTITY_NAME_SIZE    64
-
 #define STR_MAX_WEAPON_LEN      32
 
 #define SHOTGUN_TIME            0.25
@@ -941,10 +939,10 @@ bool:IsSurvivor(client)
 	return IsClientAndInGame(client) && GetClientTeam(client) == TEAM_SURVIVOR;
 }
 
-bool:IsInfected(client)
+/*bool:IsInfected(client)
 {
 	return IsClientAndInGame(client) && GetClientTeam(client) == TEAM_INFECTED;
-}
+}*/
 
 bool IsWitch(int iEntity)
 {

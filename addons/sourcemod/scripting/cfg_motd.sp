@@ -17,19 +17,19 @@ public Plugin:myinfo =
 
 public OnPluginStart()
 {
-    hCvarMotdTitle = CreateConVar("sm_cfgmotd_title", "ZoneMod", "Custom MOTD title");
-    hCvarMotdUrl = CreateConVar("sm_cfgmotd_url", "https://github.com/SirPlease/ZoneMod/blob/master/README.md", "Custom MOTD url");
+	hCvarMotdTitle = CreateConVar("sm_cfgmotd_title", "ZoneMod", "Custom MOTD title");
+	hCvarMotdUrl = CreateConVar("sm_cfgmotd_url", "https://github.com/SirPlease/ZoneMod/blob/master/README.md", "Custom MOTD url");
 
-    RegConsoleCmd("sm_changelog", ShowMOTD, "Show a MOTD describing the current config");
-    RegConsoleCmd("sm_cfg", ShowMOTD, "Show a MOTD describing the current config");
+	RegConsoleCmd("sm_changelog", ShowMOTD, "Show a MOTD describing the current config");
+	RegConsoleCmd("sm_cfg", ShowMOTD, "Show a MOTD describing the current config");
 }
 
 public Action:ShowMOTD(client, args) 
 {
-    decl String:title[64], String:url[192];
-    
-    GetConVarString(hCvarMotdTitle, title, sizeof(title));
-    GetConVarString(hCvarMotdUrl, url, sizeof(url));
-    
-    ShowMOTDPanel(client, title, url, MOTDPANEL_TYPE_URL);
+	decl String:title[64], String:url[192];
+
+	GetConVarString(hCvarMotdTitle, title, sizeof(title));
+	GetConVarString(hCvarMotdUrl, url, sizeof(url));
+
+	ShowMOTDPanel(client, title, url, MOTDPANEL_TYPE_URL);
 }

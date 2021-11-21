@@ -1,10 +1,12 @@
+#pragma semicolon 1
+#pragma newdecls required
+
 #include <sourcemod>
 #include <sdktools_client>
 #include <builtinvotes>
 #include <colors>
-
-#pragma semicolon 1
-#pragma newdecls required
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 
 #define PLUGIN_VERSION "1.0"
 

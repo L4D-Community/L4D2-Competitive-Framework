@@ -21,7 +21,9 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #include <sdkhooks>
 #include <colors>
 #define L4D2UTIL_STOCKS_ONLY 1
@@ -34,11 +36,12 @@
 
 #define CDIRECTOR_GAMEDATA "l4d2_cdirector" //m_PostMobDelayTimer offset
 
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
-#define CDIRECTORSCRIPTEDEVENTMANAGER "ScriptedEventManagerPtr" //left4dhooks gamedata
+#if defined _l4d2_direct_included
+	#define CDIRECTORSCRIPTEDEVENTMANAGER "CDirectorScriptedEventManager" //l4d2_direct gamedata
+#else
+	#define CDIRECTORSCRIPTEDEVENTMANAGER "ScriptedEventManagerPtr" //left4dhooks gamedata
+#endif
 
-//#define LEFT4FRAMEWORK_GAMEDATA "l4d2_direct"
-//#define CDIRECTORSCRIPTEDEVENTMANAGER "CDirectorScriptedEventManager" //l4d2_direct gamedata
 
 Address
 	pScriptedEventManager = Address_Null;
@@ -95,9 +98,9 @@ public void OnPluginStart()
 
 void InitGameData()
 {
-	Handle hGamedata = LoadGameConfigFile(LEFT4FRAMEWORK_GAMEDATA);
+	Handle hGamedata = LoadGameConfigFile(LEFT4DIRECT_GAMEDATA);
 	if (!hGamedata) {
-		SetFailState("Gamedata '%s' missing or corrupt", LEFT4FRAMEWORK_GAMEDATA);
+		SetFailState("Gamedata '%s' missing or corrupt", LEFT4DIRECT_GAMEDATA);
 	}
 
 	Address TheDirector = GameConfGetAddress(hGamedata, "CDirector");

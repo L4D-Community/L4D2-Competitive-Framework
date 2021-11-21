@@ -1,11 +1,10 @@
 /*
-    to do:
-        - make it work with confogl (lgofnoc?)
+	to do:
+		- make it work with confogl (lgofnoc?)
 
-    0.1b
-        - works properly with config dir changes on the fly
-        - unloads properly now (resets values)
-
+	0.1b
+		- works properly with config dir changes on the fly
+		- unloads properly now (resets values)
 */
 
 #pragma semicolon 1
@@ -13,8 +12,6 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
-//#include <confogl>
 
 #define KV_MAPCVAR			"/mapcvars.txt"
 #define MAX_CONFIG_LEN		128
@@ -174,7 +171,7 @@ int GetThisMapPrefs()
 				//iConVarFlags = GetConVarFlags(hConVar);
 
 				// types?
-				//      FCVAR_CHEAT
+				//	FCVAR_CHEAT
 
 				KvGetString(hKv, NULL_STRING, tmpValueNew, sizeof(tmpValueNew), "[:none:]");
 				#if DEBUG

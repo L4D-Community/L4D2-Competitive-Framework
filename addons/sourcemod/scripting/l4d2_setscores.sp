@@ -19,15 +19,15 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework>
 #include <builtinvotes>
 
 #define L4D_TEAM_SPECTATE 1
 
 #define PLUGIN_VERSION "1.4"
 
-//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
 #define SECTION_NAME "CTerrorGameRules::SetCampaignScores"
 
 ConVar

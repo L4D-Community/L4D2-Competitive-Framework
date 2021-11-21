@@ -2,7 +2,8 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework>
 #include <sdktools>
 
 public Plugin myinfo =

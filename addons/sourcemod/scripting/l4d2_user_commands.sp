@@ -14,8 +14,8 @@
 
 public Plugin myinfo =
 {
-    name = "[L4D2] Usercommands Check",
-    author = "BHaType"
+	name = "[L4D2] Usercommands Check",
+	author = "BHaType"
 };
 
 enum CUserCmd

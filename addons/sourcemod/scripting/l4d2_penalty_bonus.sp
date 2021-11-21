@@ -34,9 +34,8 @@
 #include <sdktools>
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util> //IsTank
-
-//L4D2_OnEndVersusModeRound
-#include <left4dhooks> //#include <left4downtown>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework> //L4D2_OnEndVersusModeRound
 
 #define DEBUG_MODE 0
 

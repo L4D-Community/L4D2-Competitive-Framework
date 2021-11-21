@@ -24,8 +24,9 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
-#include <l4d2util_stocks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
+#include <l4d2util>
 
 #define SURVIVOR_RUNSPEED 220.0
 #define TEAM_SURVIVORS 2
@@ -267,7 +268,7 @@ public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 				return Plugin_Continue;
 			}
 			
-			float fHealth = L4D_GetTempHealth(client) + GetClientHealth(client);
+			float fHealth = GetSurvivorTemporaryHealthFloat(client) + GetClientHealth(client);
 			
 			// Jockey victim gets slowdown by water, while we're not slowing down them.
 			if (GetEntPropEnt(client, Prop_Send, "m_jockeyAttacker") != -1) {

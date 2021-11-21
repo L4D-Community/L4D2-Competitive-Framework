@@ -11,12 +11,12 @@
 
 public Plugin myinfo =
 {
-    name = "Special Infected Class Announce",
-    author = "Tabun, Forgetest",
-    description = "Report what SI classes are up when the round starts.",
-    version = PLUGIN_VERSION,
-    url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
-}
+	name = "Special Infected Class Announce",
+	author = "Tabun, Forgetest",
+	description = "Report what SI classes are up when the round starts.",
+	version = PLUGIN_VERSION,
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
 
 #define ZC_SMOKER               1
 #define ZC_BOOMER               2

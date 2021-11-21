@@ -1,10 +1,9 @@
 /*    
 		Teamflip
 
-   by purpletreefactory
-   Credit for the idea goes to Fig
-   This version was made out of convenience
-   
+	by purpletreefactory
+	Credit for the idea goes to Fig
+	This version was made out of convenience
  */
  
 #include <sourcemod>

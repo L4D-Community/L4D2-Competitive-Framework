@@ -2,7 +2,8 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <left4dhooks> //#include <left4downtown>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 
 int iCommonLimit;
 

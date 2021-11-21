@@ -13,17 +13,17 @@ public Plugin:myinfo =
 
 public OnPluginStart()
 {
-    HookEvent("player_hurt", OnPlayerHurt);
+	HookEvent("player_hurt", OnPlayerHurt);
 }
 
 // public OnConfigsExecuted()
 // {
-    // SetConVarFloat(FindConVar("tank_swing_miss_interval"), 0.5);
+	// SetConVarFloat(FindConVar("tank_swing_miss_interval"), 0.5);
 // }
 
 // public OnPluginEnd()
 // {
-    // ResetConVar(FindConVar("tank_swing_miss_interval"));
+	// ResetConVar(FindConVar("tank_swing_miss_interval"));
 // }
 
 public Action:OnPlayerHurt(Handle:event, String:event_name[], bool:dontBroadcast)

@@ -172,7 +172,7 @@ void FindServerNamer()
 
 public void OnCedapugStarted(int regionArg)
 {
-    isCedapug = true;
+	isCedapug = true;
 }
 
 public void OnClientPutInServer(int client)

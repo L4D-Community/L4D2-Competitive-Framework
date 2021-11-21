@@ -321,8 +321,8 @@ PrintTankDamage()
 		last_percent = percent_damage;
 		for (new i = 1; i <= MaxClients; i++)
 		{
-    		if (IsClientInGame(i))
-    		{
+			if (IsClientInGame(i))
+			{
 				CPrintToChat(i, "{blue}[{default}%d{blue}] ({default}%i%%{blue}) {olive}%N", damage, percent_damage, client);
 			}
 		}

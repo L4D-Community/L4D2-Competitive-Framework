@@ -30,7 +30,7 @@ public void OnMapStart()
 	PrecacheSound(SOUND_NAME);
 }
 
-public Action Event_PlayerSpawn(Event hEvent, const char[] name, bool dontBroadcast)
+public void Event_PlayerSpawn(Event hEvent, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (client > 0 && !IsFakeClient(client) && GetClientTeam(client) == TEAM_INFECTED) {

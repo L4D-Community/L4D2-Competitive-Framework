@@ -1,6 +1,5 @@
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
 
 public Action:L4D_OnSpawnTank(const Float:vector[3], const Float:qangle[3])
 {
@@ -53,6 +52,7 @@ public Action:OFSLA_ForceMobSpawnTimer(Handle:timer)
 	}
 	L4D2_CTimerStart(L4D2CT_MobSpawnTimer, GetRandomFloat(GetConVarFloat(MobSpawnTimeMin), GetConVarFloat(MobSpawnTimeMax)));
 }
+
 public Action:L4D_OnFirstSurvivorLeftSafeArea(client)
 {
 	if(IsPluginEnabled())

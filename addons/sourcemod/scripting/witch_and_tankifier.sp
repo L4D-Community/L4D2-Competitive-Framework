@@ -5,9 +5,11 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework>
 #include <l4d2lib>
-#define L4D2UTIL_STOCKS_ONLY
+#define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util_rounds>
 
 #if DEBUG

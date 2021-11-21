@@ -2,7 +2,8 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #undef REQUIRE_PLUGIN
 #include <l4d2lib>
 #include <colors>
@@ -315,7 +316,7 @@ public Action:SM_Cmd_Health(client, args)
 	new iScore = RoundToFloor(fAvgHealth * SM_fMapMulti * SM_fHBRatio) * iAliveCount ;
 	
 	if (SM_bIsSecondRoundStarted)
-    {
+	{
 		iDifference = SM_iFirstScore - iScore;
 		if (iScore > SM_iFirstScore) iDifference = (~iDifference) + 1;
 		CPrintToChat(client, "{blue}[{default}!{blue}] {default}Round {blue}1 {default}Bonus: {olive}%d {default}({green}Difference: {olive}%d{default})", SM_iFirstScore, iDifference);
@@ -459,7 +460,7 @@ stock bool:IsSurvivor(client)
 
 stock GetSurvivorPermanentHealth(client)
 {
-    return GetEntProp(client, Prop_Send, "m_iHealth");
+	return GetEntProp(client, Prop_Send, "m_iHealth");
 }
 
 stock GetSurvivorTempHealth(client)
@@ -470,7 +471,7 @@ stock GetSurvivorTempHealth(client)
 
 stock GetSurvivorIncapCount(client)
 {
-    return GetEntProp(client, Prop_Send, "m_currentReviveCount");
+	return GetEntProp(client, Prop_Send, "m_currentReviveCount");
 }
 
 stock GetCustomMapMaxScore()

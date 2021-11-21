@@ -2,7 +2,8 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 
 #define TEAM_INFECTED 3
 #define Z_TANK 8

@@ -139,6 +139,6 @@ public MRESReturn CLunge_OnTouch(int pThis, Handle hParams)
  */
 stock bool Entity_IsSolid(int entity)
 {
-    return (GetEntProp(entity, Prop_Send, "m_nSolidType", 1) != SOLID_NONE &&
-            !(GetEntProp(entity, Prop_Send, "m_usSolidFlags", 2) & FSOLID_NOT_SOLID));
+	return (GetEntProp(entity, Prop_Send, "m_nSolidType", 1) != SOLID_NONE &&
+			!(GetEntProp(entity, Prop_Send, "m_usSolidFlags", 2) & FSOLID_NOT_SOLID));
 }

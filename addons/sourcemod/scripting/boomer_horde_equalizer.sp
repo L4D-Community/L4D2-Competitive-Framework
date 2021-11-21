@@ -3,7 +3,8 @@
 
 #include <sourcemod>
 #include <sourcescramble>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 
 #define GAMEDATA "boomer_horde_equalizer"
 #define KEY_WANDERERSCONDITION "WanderersCondition"

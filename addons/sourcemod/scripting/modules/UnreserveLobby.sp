@@ -2,7 +2,6 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
 
 new Handle:UL_hEnable;
 

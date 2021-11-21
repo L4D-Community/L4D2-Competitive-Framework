@@ -4,7 +4,8 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-#include <left4dhooks> //#include <l4d2d_timers>
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework> //#include <l4d2d_timers>
 
 #define GAMEDATA "l4d2_si_ability"
 
@@ -145,10 +146,6 @@ public void OnClientDisconnect(int iClient)
 
 public void OnEntityCreated(int iEntity, const char[] sClassName)
 {
-	if (sClassName[0] != 'i') {
-		return;
-	}
-	
 	if (strcmp(sClassName, "insect_swarm") == 0) {
 		char sTrieKey[MAX_INT_STRING_SIZE];
 		IntToString(iEntity, sTrieKey, sizeof(sTrieKey));

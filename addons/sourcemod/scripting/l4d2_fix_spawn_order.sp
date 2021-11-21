@@ -1,7 +1,9 @@
 #pragma semicolon 1
 
 #include <sourcemod>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #include <colors>
 
 #undef REQUIRE_PLUGIN
@@ -429,10 +431,14 @@ stock FillArray(Handle:array)
 	while (chargers > 0) { chargers--; PushArrayCell(array, _:SI_Charger); }
 }
 
-bool:IsTank(client) { return GetEntProp(client, Prop_Send, "m_zombieClass") == _:SI_Tank; }
+bool:IsTank(client)
+{
+	return GetEntProp(client, Prop_Send, "m_zombieClass") == _:SI_Tank;
+}
 
-bool:IsValidClient(client) { 
-    if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false;
-    return (IsClientInGame(client)); 
+bool:IsValidClient(client)
+{
+	if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false;
+	return (IsClientInGame(client)); 
 }
 

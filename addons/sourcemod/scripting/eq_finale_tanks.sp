@@ -3,7 +3,9 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks> //#include <l4d2_direct>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 
 #define MAP_NAME_MAX_LENGTH 64
 

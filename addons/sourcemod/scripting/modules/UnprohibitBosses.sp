@@ -1,6 +1,5 @@
 #include <sourcemod>
 #include <sdktools>
-#include <left4dhooks>
 
 new Handle:UB_hEnable;
 new bool:UB_bEnabled = true;

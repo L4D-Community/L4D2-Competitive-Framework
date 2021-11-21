@@ -2,7 +2,7 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <left4dhooks>
+#include <left4framework>
 #undef REQUIRE_PLUGIN
 #include <confogl>
 #define REQUIRE_PLUGIN

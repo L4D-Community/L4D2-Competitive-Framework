@@ -1,5 +1,3 @@
-
-
 #if defined __CLIENTSETTINGS_MODULE__
 #endinput
 #endif

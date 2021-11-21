@@ -2,7 +2,9 @@
 #pragma newdecls required
 
 #include <sourcemod>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #include <l4d2lib>
 #include <sdktools>
 #include <colors>
@@ -11,8 +13,6 @@
 #define TEAM_INFECTED 3
 
 #define ZOMBIEMANAGER_GAMEDATA "l4d2_zombiemanager"
-//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
 
 #define HORDE_MIN_SIZE_AUDIAL_FEEDBACK 120
 #define MAX_CHECKPOINTS 4

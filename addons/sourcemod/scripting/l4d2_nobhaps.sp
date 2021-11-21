@@ -1,12 +1,12 @@
 #include <sourcemod>
 #include <sdktools>
+#define LEFT4FRAMEWORK_GAMEDATA_ONLY 1
+#include <left4framework>
 
 #define DEBUG 0
 #define L4DBUILD 1
 
-//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2" // left4dhooks
-#define SECTION_NAME "CTerrorPlayer::GetRunTopSpeed" // left4dhooks
+#define SECTION_NAME "CTerrorPlayer::GetRunTopSpeed"
 
 public Plugin myinfo =
 {

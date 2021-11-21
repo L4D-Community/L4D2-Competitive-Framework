@@ -4,9 +4,9 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-//#include <l4d2_direct>
-//#include <left4downtown>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util>
 #include <colors>
@@ -15,9 +15,6 @@
 
 #define MAP_NAME_MAX_LENGTH 64
 #define SECTION_NAME "CTerrorGameRules::SetCampaignScores"
-
-//#define LEFT4FRAMEWORK_GAMEDATA "left4downtown.l4d2"
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
 
 StringMap
 	g_hMapTransitionPair = null;

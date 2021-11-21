@@ -5,7 +5,8 @@
 #include <sdktools>
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util>
-#include <left4dhooks> //#include <l4d2_direct>
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework>
 
 #define ANIM_HUNTER_LENGTH 2.2					// frames: 64, fps: 30, length: 2.133
 #define ANIM_CHARGER_STANDARD_LENGTH 2.9		// frames: 85, fps 30, length: 2.833

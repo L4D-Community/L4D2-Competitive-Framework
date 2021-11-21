@@ -2,7 +2,9 @@
 
 #include <sourcemod>
 #include <sdkhooks>
-#include <left4dhooks>
+#define L4D2_DIRECT_INCLUDE 1
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #include <sdktools>
 #include <l4d2lib>
 #include <l4d2util_stocks>
@@ -60,15 +62,15 @@ public Plugin:myinfo =
 
 public APLRes:AskPluginLoad2(Handle:plugin, bool:late, String:error[], errMax)
 {
-    CreateNative("SMPlus_GetHealthBonus", Native_GetHealthBonus);
-    CreateNative("SMPlus_GetDamageBonus", Native_GetDamageBonus);
-    CreateNative("SMPlus_GetPillsBonus", Native_GetPillsBonus);
-    CreateNative("SMPlus_GetMaxHealthBonus", Native_GetMaxHealthBonus);
-    CreateNative("SMPlus_GetMaxDamageBonus", Native_GetMaxDamageBonus);
-    CreateNative("SMPlus_GetMaxPillsBonus", Native_GetMaxPillsBonus);
-    RegPluginLibrary("l4d2_hybrid_scoremod");
-    bLateLoad = late;
-    return APLRes_Success;
+	CreateNative("SMPlus_GetHealthBonus", Native_GetHealthBonus);
+	CreateNative("SMPlus_GetDamageBonus", Native_GetDamageBonus);
+	CreateNative("SMPlus_GetPillsBonus", Native_GetPillsBonus);
+	CreateNative("SMPlus_GetMaxHealthBonus", Native_GetMaxHealthBonus);
+	CreateNative("SMPlus_GetMaxDamageBonus", Native_GetMaxDamageBonus);
+	CreateNative("SMPlus_GetMaxPillsBonus", Native_GetMaxPillsBonus);
+	RegPluginLibrary("l4d2_hybrid_scoremod");
+	bLateLoad = late;
+	return APLRes_Success;
 }
 
 public OnPluginStart()
@@ -176,32 +178,32 @@ public void RoundStartEvent(Event hEvent, const char[] sEventName, bool bDontBro
 
 public Native_GetHealthBonus(Handle:plugin, numParams)
 {
-    return RoundToFloor(GetSurvivorHealthBonus());
+	return RoundToFloor(GetSurvivorHealthBonus());
 }
  
 public Native_GetMaxHealthBonus(Handle:plugin, numParams)
 {
-    return RoundToFloor(fMapHealthBonus);
+	return RoundToFloor(fMapHealthBonus);
 }
- 
+
 public Native_GetDamageBonus(Handle:plugin, numParams)
 {
-    return RoundToFloor(GetSurvivorDamageBonus());
+	return RoundToFloor(GetSurvivorDamageBonus());
 }
  
 public Native_GetMaxDamageBonus(Handle:plugin, numParams)
 {
-    return RoundToFloor(fMapDamageBonus);
+	return RoundToFloor(fMapDamageBonus);
 }
  
 public Native_GetPillsBonus(Handle:plugin, numParams)
 {
-    return RoundToFloor(GetSurvivorPillBonus());
+	return RoundToFloor(GetSurvivorPillBonus());
 }
  
 public Native_GetMaxPillsBonus(Handle:plugin, numParams)
 {
-    return iPillWorth * iTeamSize;
+	return iPillWorth * iTeamSize;
 }
 
 public Action:CmdBonus(client, args)
