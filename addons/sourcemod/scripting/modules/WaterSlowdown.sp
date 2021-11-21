@@ -14,7 +14,7 @@ WS_OnModuleStart()
 {
 	WS_hEnable = CreateConVarEx("waterslowdown","1", "Enables additional water slowdown");
 	WS_hFactor = CreateConVarEx("slowdown_factor", "0.90", "Sets how much water will slow down survivors. 1.00 = Vanilla");
-	
+
 	HookConVarChange(WS_hEnable,WS_ConVarChange);
 	HookEvent("round_start", WS_RoundStart);
 	HookEvent("jockey_ride", WS_JockeyRide);
@@ -30,14 +30,14 @@ WS_OnGameFrame()
 {
 	if(!IsServerProcessing() || !IsPluginEnabled() || !WS_bEnabled){return;}
 	decl client, flags;
-	
+
 	for(new i=0;i<NUM_OF_SURVIVORS;i++)
 	{
 		client = GetSurvivorIndex(i);
 		if(client != 0 && IsValidEntity(client))
 		{
 			flags = GetEntityFlags(client);
-			
+
 			if(!(flags & IN_JUMP && WS_bPlayerInWater[client]))
 			{
 				if(flags & FL_INWATER)
@@ -80,7 +80,7 @@ public Action:WS_JockeyRide(Handle:event, const String:name[], bool:dontBroadcas
 {
 	new victim = GetClientOfUserId(GetEventInt(event, "victim"));
 	new jockey = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+
 	if(WS_bPlayerInWater[victim] && !WS_bJockeyInWater)
 	{
 		WS_bJockeyInWater = true;
@@ -96,7 +96,7 @@ public Action:WS_JockeyRide(Handle:event, const String:name[], bool:dontBroadcas
 public Action:WS_JockeyRideEnd(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new jockey = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+
 	WS_bJockeyInWater = false;
 	if(jockey && IsValidEntity(jockey))
 	{

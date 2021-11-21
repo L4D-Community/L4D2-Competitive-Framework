@@ -28,7 +28,7 @@
 		- fixed for scavenge, now shows stats for every scavenge round
 		- fixed damage/kills getting recorded for infected players, skewing MVP stats
 		- added rank display for non-MVP clients
-	
+
 	Brevity flags:
 	---------
 		1       leave out SI stats

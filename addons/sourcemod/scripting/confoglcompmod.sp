@@ -44,7 +44,7 @@
 #include "modules/ItemTracking.sp"
 //#include "modules/SpectatorHud.sp"
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "Confogl's Competitive Mod",
 	author = "Confogl Team",
@@ -60,21 +60,21 @@ public OnPluginStart()
 	MI_OnModuleStart();
 	SI_OnModuleStart();
 	WI_OnModuleStart();
-	
+
 	RM_OnModuleStart();
-	
+
 	CVS_OnModuleStart();
 	PS_OnModuleStart();
 	UL_OnModuleStart();
-	
+
 	//ER_OnModuleStart();
 	GW_OnModuleStart();
 	WS_OnModuleStart();
 	GT_OnModuleStart();
 	UB_OnModuleStart();
-	
+
 	BK_OnModuleStart();
-	
+
 	SM_OnModuleStart();
 	FS_OnModuleStart();
 	BS_OnModuleStart();
@@ -82,7 +82,7 @@ public OnPluginStart()
 	CLS_OnModuleStart();
 	IT_OnModuleStart();
 	//SH_OnModuleStart();
-	
+
 	AddCustomServerTag("confogl", true);
 }
 
@@ -100,7 +100,7 @@ public OnPluginEnd()
 	PS_OnModuleEnd();
 	//ER_OnModuleEnd();
 	SM_OnModuleEnd();
-	
+
 	WS_OnModuleEnd();
 	RemoveCustomServerTag("confogl");
 }
@@ -114,7 +114,7 @@ public OnMapStart()
 {
 	MI_OnMapStart();
 	RM_OnMapStart();
-	
+
 	SM_OnMapStart();
 	BS_OnMapStart();
 	IT_OnMapStart();
@@ -153,6 +153,6 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 	{
 		return Plugin_Handled;
 	}
-	
+
 	return Plugin_Continue;
 }

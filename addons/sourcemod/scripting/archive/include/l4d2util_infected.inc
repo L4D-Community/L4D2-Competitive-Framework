@@ -129,7 +129,7 @@ stock bool GetInfectedAbilityTimer(int client, float &timestamp, float &duration
 	if (ability == -1 || !IsValidEntity(ability)) {
 		return false;
 	}
-	
+
 	/*
 	 * Table: m_nextActivationTimer (offset 1104) (type DT_CountdownTimer)
 	 *	Member: m_duration (offset 4) (type float) (bits 0) (NoScale)
@@ -161,7 +161,7 @@ stock bool SetInfectedAbilityTimer(int client, float &timestamp, float &duration
 	if (ability == -1 || !IsValidEntity(ability)) {
 		return false;
 	}
-	
+
 	/*
 	 * Table: m_nextActivationTimer (offset 1104) (type DT_CountdownTimer)
 	 *	Member: m_duration (offset 4) (type float) (bits 0) (NoScale)

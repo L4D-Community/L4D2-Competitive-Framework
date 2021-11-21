@@ -41,7 +41,7 @@ public Action:OnPlayerHurt(Handle:event, String:event_name[], bool:dontBroadcast
 	{
 		return;
 	}
-	
+
 	new tankClaw = GetActiveWeapon(tank);
 	new Float:swingTime = GetConVarFloat(FindConVar("tank_swing_interval")) + GetConVarFloat(FindConVar("tank_windup_time"));
 	SetEntPropFloat(tankClaw, Prop_Send, "m_flNextPrimaryAttack", GetEntPropFloat(tankClaw, Prop_Send, "m_flNextPrimaryAttack") - swingTime);

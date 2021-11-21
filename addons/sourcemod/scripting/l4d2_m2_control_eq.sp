@@ -16,7 +16,7 @@
 // stagger time. Use an epsilon to set it slightly before the stagger is over.
 #define STAGGER_TIME_EPS 0.1
 
-ConVar 
+ConVar
 	hMaxShovePenaltyCvar,
 	hShovePenaltyAmtCvar,
 	hPounceCrouchDelayCvar,
@@ -41,7 +41,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	HookEvent("player_shoved", OutSkilled);
-	
+
 	hMaxShovePenaltyCvar = FindConVar("z_gun_swing_vs_max_penalty");
 	hShovePenaltyAmtCvar = FindConVar("z_gun_swing_vs_amt_penalty");
 	hPounceCrouchDelayCvar = FindConVar("z_pounce_crouch_delay");
@@ -64,13 +64,13 @@ public void OutSkilled(Event hEvent, const char[] eName, bool dontBroadcast)
 	if (!IsSurvivor(shover)) {
 		return;
 	}
-	
+
 	int shovee_userid = hEvent.GetInt("userid");
 	int shovee = GetClientOfUserId(shovee_userid);
 	if (!IsInfected(shovee)) {
 		return;
 	}
-	
+
 	int penaltyIncrease, zClass = GetInfectedClass(shovee);
 	switch (zClass) {
 		case L4D2Infected_Hunter: {
@@ -101,7 +101,7 @@ public void OutSkilled(Event hEvent, const char[] eName, bool dontBroadcast)
 	if (zClass == L4D2Infected_Smoker || (zClass == L4D2Infected_Hunter && g_NoHunterM2)) {
 		return;
 	}
-	
+
 	float staggerTime = hMaxStaggerDurationCvar.FloatValue - STAGGER_TIME_EPS;
 	CreateTimer(staggerTime, ResetAbilityTimer, shovee_userid, TIMER_FLAG_NO_MAPCHANGE);
 }
@@ -111,7 +111,7 @@ public Action ResetAbilityTimer(Handle hTimer, any shovee_userid)
 	int shovee = GetClientOfUserId(shovee_userid);
 	if (shovee > 0) {
 		float recharge = (GetInfectedClass(shovee) == L4D2Infected_Hunter) ? hPounceCrouchDelayCvar.FloatValue : hLeapIntervalCvar.FloatValue;
-		
+
 		float timestamp, duration;
 		if (!GetInfectedAbilityTimer(shovee, timestamp, duration)) {
 			return Plugin_Stop;

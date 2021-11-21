@@ -86,7 +86,7 @@ public void OnPluginStart()
 	bProhibitFakePing = hCvarProhibitFakePing.BoolValue;
 	iActionUponExceed = hCvarProhibitedAction.IntValue;
 	bPublic = hCvarPublicNotice.BoolValue;
-	
+
 	hCvarAllowedRateChanges.AddChangeHook(cvarChanged_AllowedRateChanges);
 	hCvarMinRate.AddChangeHook(cvarChanged_MinRate);
 	hCvarMinCmd.AddChangeHook(cvarChanged_MinCmd);
@@ -95,12 +95,12 @@ public void OnPluginStart()
 	hCvarPublicNotice.AddChangeHook(cvarChanged_PublicNotice);
 
 	RegConsoleCmd("sm_rates", ListRates, "List netsettings of all players in game");
-	
+
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("round_end", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("player_left_start_area", Event_RoundGoesLive, EventHookMode_PostNoCopy);
 	HookEvent("player_team", OnTeamChange);
-	
+
 #if SOURCEMOD_V_MINOR > 9
 	hClientSettingsArray = new ArrayList(sizeof(NetsettingsStruct));
 #else
@@ -184,7 +184,7 @@ public void OnClientSettingsChanged(int client)
 public Action ListRates(int client, int args)
 {
 	ReplyToCommand(client, "\x01[RateMonitor] List of player netsettings(\x03cmd\x01/\x04upd\x01/\x05rate\x01):");
-	
+
 	int iSize = hClientSettingsArray.Length;
 
 #if SOURCEMOD_V_MINOR > 9
@@ -217,8 +217,8 @@ void RegisterSettings(int client)
 	if (GetClientTeam(client) < L4D2Team_Survivor) {
 		return;
 	}
-	
-	char 
+
+	char
 		sCmdRate[32],
 		sUpdateRate[32],
 		sRate[32],
@@ -241,7 +241,7 @@ void RegisterSettings(int client)
 	// Punish for fake ping or other unallowed symbols in rate settings
 	if (bProhibitFakePing) {
 		bool bIsCmdRateClean, bIsUpdateRateClean;
-		
+
 		bIsCmdRateClean = IsNatural(sCmdRate);
 		bIsUpdateRateClean = IsNatural(sUpdateRate);
 
@@ -250,7 +250,7 @@ void RegisterSettings(int client)
 			Format(sCmdRate, sizeof(sCmdRate), "%s", sCmdRate);
 			Format(sUpdateRate, sizeof(sUpdateRate), "%s", sUpdateRate);
 			Format(sRate, sizeof(sRate), "%d", iRate);
-			
+
 			PunishPlayer(client, sCmdRate, sUpdateRate, sRate, sCounter, iIndex);
 			return;
 		}
@@ -262,44 +262,44 @@ void RegisterSettings(int client)
 		Format(sCmdRate, sizeof(sCmdRate), "%s%d%s", iCmdRate < iMinCmd ? ">" : "", iCmdRate, iCmdRate < iMinCmd ? "<" : "");
 		Format(sUpdateRate, sizeof(sCmdRate), "%s%d%s", iUpdateRate < iMinUpd ? ">" : "", iUpdateRate, iUpdateRate < iMinUpd ? "<" : "");
 		Format(sRate, sizeof(sRate), "%s%d%s", iRate < iMinRate ? ">" : "", iRate, iRate < iMinRate ? "<" : "");
-		
+
 		PunishPlayer(client, sCmdRate, sUpdateRate, sRate, sCounter, iIndex);
 		return;
 	}
-	
+
 #if SOURCEMOD_V_MINOR > 9
 	NetsettingsStruct player;
 	if (iIndex > -1) {
 		hClientSettingsArray.GetArray(iIndex, player, sizeof(NetsettingsStruct));
-		
+
 		if (iRate == player.Client_Rate && iCmdRate == player.Client_Cmdrate && iUpdateRate == player.Client_Updaterate) {
 			return; // No change
 		}
-		
+
 		if (bIsMatchLive && iAllowedRateChanges > -1) {
 			player.Client_Changes += 1;
 			Format(sCounter, sizeof(sCounter), "[%d/%d]", player.Client_Changes, iAllowedRateChanges);
-			
+
 			// If not punished for bad rate settings yet, punish for overlimit rate change(if any)
 			if (player.Client_Changes > iAllowedRateChanges) {
 				Format(sCmdRate, sizeof(sCmdRate), "%s%d", iCmdRate != player.Client_Cmdrate ? "*" : "", iCmdRate);
 				Format(sUpdateRate, sizeof(sUpdateRate), "%s%d\x01", iUpdateRate != player.Client_Updaterate ? "*" : "", iUpdateRate);
 				Format(sRate, sizeof(sRate), "%s%d\x01", iRate != player.Client_Rate ? "*" : "", iRate);
-			
+
 				PunishPlayer(client, sCmdRate, sUpdateRate, sRate, sCounter, iIndex);
 				return;
 			}
 		}
-		
+
 		if (bPublic) {
 			CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N{default}'s netsettings changed from {teamcolor}%d/%d/%d {default}to {teamcolor}%d/%d/%d {olive}%s", \
 						client, player.Client_Cmdrate, player.Client_Updaterate, player.Client_Rate, iCmdRate, iUpdateRate, iRate, sCounter);
 		}
-		
+
 		player.Client_Cmdrate = iCmdRate;
 		player.Client_Updaterate = iUpdateRate;
 		player.Client_Rate = iRate;
-		
+
 		hClientSettingsArray.SetArray(iIndex, player, sizeof(NetsettingsStruct));
 	} else {
 		strcopy(player.Client_SteamId, STEAMID_SIZE, sSteamId);
@@ -307,7 +307,7 @@ void RegisterSettings(int client)
 		player.Client_Updaterate = iUpdateRate;
 		player.Client_Rate = iRate;
 		player.Client_Changes = 0;
-		
+
 		hClientSettingsArray.PushArray(player, sizeof(NetsettingsStruct));
 		if (bPublic) {
 			CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N{default}'s netsettings set to {teamcolor}%d/%d/%d", \
@@ -318,35 +318,35 @@ void RegisterSettings(int client)
 	NetsettingsStruct player[NetsettingsStruct];
 	if (iIndex > -1) {
 		hClientSettingsArray.GetArray(iIndex, player[0], view_as<int>(NetsettingsStruct));
-		
+
 		if (iRate == player[Client_Rate] && iCmdRate == player[Client_Cmdrate] && iUpdateRate == player[Client_Updaterate]) {
 			return; // No change
 		}
-		
+
 		if (bIsMatchLive && iAllowedRateChanges > -1) {
 			player[Client_Changes] += 1;
 			Format(sCounter, sizeof(sCounter), "[%d/%d]", player[Client_Changes], iAllowedRateChanges);
-			
+
 			// If not punished for bad rate settings yet, punish for overlimit rate change(if any)
 			if (player[Client_Changes] > iAllowedRateChanges) {
 				Format(sCmdRate, sizeof(sCmdRate), "%s%d", iCmdRate != player[Client_Cmdrate] ? "*" : "", iCmdRate);
 				Format(sUpdateRate, sizeof(sUpdateRate), "%s%d\x01", iUpdateRate != player[Client_Updaterate] ? "*" : "", iUpdateRate);
 				Format(sRate, sizeof(sRate), "%s%d\x01", iRate != player[Client_Rate] ? "*" : "", iRate);
-			
+
 				PunishPlayer(client, sCmdRate, sUpdateRate, sRate, sCounter, iIndex);
 				return;
 			}
 		}
-		
+
 		if (bPublic) {
 			CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N{default}'s netsettings changed from {teamcolor}%d/%d/%d {default}to {teamcolor}%d/%d/%d {olive}%s", \
 						client, player[Client_Cmdrate], player[Client_Updaterate], player[Client_Rate], iCmdRate, iUpdateRate, iRate, sCounter);
 		}
-		
+
 		player[Client_Cmdrate] = iCmdRate;
 		player[Client_Updaterate] = iUpdateRate;
 		player[Client_Rate] = iRate;
-		
+
 		hClientSettingsArray.SetArray(iIndex, player[0], view_as<int>(NetsettingsStruct));
 	} else {
 		strcopy(player[Client_SteamId], STEAMID_SIZE, sSteamId);
@@ -354,7 +354,7 @@ void RegisterSettings(int client)
 		player[Client_Updaterate] = iUpdateRate;
 		player[Client_Rate] = iRate;
 		player[Client_Changes] = 0;
-		
+
 		hClientSettingsArray.PushArray(player[0], view_as<int>(NetsettingsStruct));
 		if (bPublic) {
 			CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N{default}'s netsettings set to {teamcolor}%d/%d/%d", \
@@ -381,7 +381,7 @@ void PunishPlayer(int client, const char[] sCmdRate, const char[] sUpdateRate, c
 		}
 		case 2: {// Move to spec
 			ChangeClientTeam(client, L4D2Team_Spectator);
-			
+
 			if (bInitialRegister) {
 				if (bPublic) {
 					CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N {default}was moved to spectators for illegal netsettings: {teamcolor}%s/%s/%s {olive}%s", \
@@ -394,7 +394,7 @@ void PunishPlayer(int client, const char[] sCmdRate, const char[] sUpdateRate, c
 				#if SOURCEMOD_V_MINOR > 9
 					NetsettingsStruct player;
 					hClientSettingsArray.GetArray(iIndex, player, sizeof(NetsettingsStruct));
-		
+
 					if (bPublic) {
 						CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N {default}was moved to spectators for illegal netsettings: {teamcolor}%s/%s/%s {olive}%s", \
 									client, sCmdRate, sUpdateRate, sRate, sCounter);
@@ -404,7 +404,7 @@ void PunishPlayer(int client, const char[] sCmdRate, const char[] sUpdateRate, c
 				#else
 					NetsettingsStruct player[NetsettingsStruct];
 					hClientSettingsArray.GetArray(iIndex, player[0], view_as<int>(NetsettingsStruct));
-		
+
 					if (bPublic) {
 						CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N {default}was moved to spectators for illegal netsettings: {teamcolor}%s/%s/%s {olive}%s", \
 									client, sCmdRate, sUpdateRate, sRate, sCounter);
@@ -435,7 +435,7 @@ void PunishPlayer(int client, const char[] sCmdRate, const char[] sUpdateRate, c
 					KickClient(client, "Change your rates to previous values and remove non-digits: %d/%d/%d", \
 									player[Client_Cmdrate], player[Client_Updaterate], player[Client_Rate]);
 				#endif
-				
+
 				CPrintToChatAllEx(client, "{default}<{olive}Rates{default}> {teamcolor}%N {default}was kicked due to illegal netsettings change: {teamcolor}%s/%s/%s {olive}%s", \
 									client, sCmdRate, sUpdateRate, sRate, sCounter);
 			}
@@ -463,12 +463,12 @@ int GetClientBySteamId(const char[] steamID)
 bool IsNatural(const char[] str)
 {
 	int x = 0;
-	while (str[x] != '\0') 
+	while (str[x] != '\0')
 	{
 		if (!IsCharNumeric(str[x])) {
 			return false;
 		}
-	
+
 		x++;
 	}
 

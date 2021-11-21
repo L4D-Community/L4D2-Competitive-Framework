@@ -109,7 +109,7 @@ public Action:TimerAdjustRates(Handle:timer, any:client)
 	return Plugin_Handled;
 }
 
-public OnClientSettingsChanged(client) 
+public OnClientSettingsChanged(client)
 {
 	AdjustRates(client);
 }

@@ -4,7 +4,7 @@
 #define LEFT4FRAMEWORK_INCLUDE 1
 #include <left4framework>
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 No M2 Reg on Hunters and Pulled Survivors",
 	author = "Visor, Sir",
@@ -17,7 +17,7 @@ public Action:L4D_OnShovedBySurvivor(shover, shovee, const Float:vector[3])
 {
 	if (!IsSurvivor(shover) || !IsHunter(shovee))
 		return Plugin_Continue;
-	
+
 	return Plugin_Handled;
 }
 
@@ -38,11 +38,11 @@ stock bool:IsInfected(client)
 	return client > 0 && client <= MaxClients && IsClientInGame(client) && GetClientTeam(client) == 3;
 }
 
-stock bool:IsHunter(client)  
+stock bool:IsHunter(client)
 {
 	if (!IsInfected(client))
 		return false;
-		
+
 	if (!IsPlayerAlive(client))
 		return false;
 

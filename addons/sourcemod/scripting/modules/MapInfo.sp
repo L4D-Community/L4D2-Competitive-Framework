@@ -21,11 +21,11 @@ static Float:fLocTemp[MAXPLAYERS+1][3];
 public MI_OnModuleStart()
 {
 	MI_KV_Load();
-	
+
 	// RegAdminCmd("confogl_midata_reload", MI_KV_CmdReload, ADMFLAG_CONFIG);
 	RegAdminCmd("confogl_midata_save", MI_KV_CmdSave, ADMFLAG_CONFIG);
 	RegAdminCmd("confogl_save_location", MI_KV_CmdSaveLoc, ADMFLAG_CONFIG);
-	
+
 	HookEvent("player_disconnect", PlayerDisconnect_Event);
 }
 
@@ -66,20 +66,20 @@ public Action:MI_KV_CmdSave(client, args)
 {
 	decl String:sCurMap[128];
 	GetCurrentMap(sCurMap, sizeof(sCurMap));
-	
+
 	if (KvJumpToKey(kMIData, sCurMap, true))
 	{
 		KvSetVector(kMIData, "start_point", Start_Point);
 		KvSetFloat(kMIData, "start_dist", Start_Dist);
 		KvSetFloat(kMIData, "start_extra_dist", Start_Extra_Dist);
-		
+
 		decl String:sNameBuff[PLATFORM_MAX_PATH];
 		BuildConfigPath(sNameBuff, sizeof(sNameBuff), "mapinfo.txt");
-		
+
 		KvRewind(kMIData);
-		
+
 		KeyValuesToFile(kMIData, sNameBuff);
-		
+
 		ReplyToCommand(client, "%s has been added to %s.", sCurMap, sNameBuff);
 	}
 }
@@ -89,7 +89,7 @@ public Action:MI_KV_CmdSaveLoc(client, args)
 	new bool:updateinfo;
 	decl String:sCurMap[128];
 	GetCurrentMap(sCurMap, sizeof(sCurMap));
-	
+
 	if (!iIsInEditMode[client])
 	{
 		if (!args)
@@ -97,10 +97,10 @@ public Action:MI_KV_CmdSaveLoc(client, args)
 			ReplyToCommand(client, "Move to the location of the medkits, then enter the point type (start_point or end_point)");
 			return Plugin_Handled;
 		}
-		
+
 		decl String:sBuffer[16];
 		GetCmdArg(1, sBuffer, sizeof(sBuffer));
-		
+
 		if (StrEqual(sBuffer, "start_point", true))
 		{
 			iIsInEditMode[client] = 1;
@@ -116,7 +116,7 @@ public Action:MI_KV_CmdSaveLoc(client, args)
 			ReplyToCommand(client, "Please enter the location type: start_point, end_point");
 			return Plugin_Handled;
 		}
-		
+
 		if (KvJumpToKey(kMIData, sCurMap, true))
 		{
 			GetClientAbsOrigin(client, fLocTemp[client]);
@@ -131,9 +131,9 @@ public Action:MI_KV_CmdSaveLoc(client, args)
 		GetClientAbsOrigin(client, fDistLoc);
 		fDistance = GetVectorDistance(fDistLoc, fLocTemp[client]);
 		if (KvJumpToKey(kMIData, sCurMap, true)) KvSetFloat(kMIData, "start_dist", fDistance);
-		
+
 		ReplyToCommand(client, "Move to the farthest point in the saferoom and enter this command again to set start_extra_dist for this point");
-		
+
 		updateinfo = true;
 	}
 	else if (iIsInEditMode[client] == 2)
@@ -143,7 +143,7 @@ public Action:MI_KV_CmdSaveLoc(client, args)
 		GetClientAbsOrigin(client, fDistLoc);
 		fDistance = GetVectorDistance(fDistLoc, fLocTemp[client]);
 		if (KvJumpToKey(kMIData, sCurMap, true)) KvSetFloat(kMIData, "end_dist", fDistance);
-		
+
 		updateinfo = true;
 	}
 	else if (iIsInEditMode[client] == 3)
@@ -153,21 +153,21 @@ public Action:MI_KV_CmdSaveLoc(client, args)
 		GetClientAbsOrigin(client, fDistLoc);
 		fDistance = GetVectorDistance(fDistLoc, fLocTemp[client]);
 		if (KvJumpToKey(kMIData, sCurMap, true)) KvSetFloat(kMIData, "start_extra_dist", fDistance);
-		
+
 		updateinfo = true;
 	}
-	
+
 	if (updateinfo)
 	{
 		decl String:sNameBuff[PLATFORM_MAX_PATH];
 		BuildConfigPath(sNameBuff, sizeof(sNameBuff), "mapinfo.txt");
-		
+
 		KvRewind(kMIData);
 		KeyValuesToFile(kMIData, sNameBuff);
-		
+
 		ReplyToCommand(client, "mapinfo.txt has been updated!");
 	}
-	
+
 	return Plugin_Handled;
 }
 
@@ -181,7 +181,7 @@ MI_KV_Close()
 MI_KV_Load()
 {
 	decl String:sNameBuff[PLATFORM_MAX_PATH];
-	
+
 	if(DEBUG_MI || IsDebugEnabled())
 		LogMessage("[MI] Loading MapInfo KeyValues");
 
@@ -199,7 +199,7 @@ MI_KV_UpdateMapInfo()
 {
 	decl String:sCurMap[128];
 	GetCurrentMap(sCurMap, sizeof(sCurMap));
-	
+
 	if (KvJumpToKey(kMIData, sCurMap))
 	{
 		KvGetVector(kMIData, "start_point", Start_Point);
@@ -208,7 +208,7 @@ MI_KV_UpdateMapInfo()
 		Start_Extra_Dist = KvGetFloat(kMIData, "start_extra_dist");
 		End_Dist = KvGetFloat(kMIData, "end_dist");
 		iMapMaxDistance = KvGetNum(kMIData, "max_distance", -1);
-		
+
 		// KvRewind(kMIData);
 		MapDataAvailable = true;
 	}
@@ -228,13 +228,13 @@ MI_KV_UpdateMapInfo()
 			Start_Dist = -1.0;
 			Start_Extra_Dist = -1.0;
 		}
-		
+
 		ZeroVector(End_Point);
 		End_Dist = -1.0;
 		iMapMaxDistance = -1;
 		LogMessage("[MI] MapInfo for %s is missing.", sCurMap);
 	}
-	
+
 	// Let's leave MIData on the current map
 	//KvRewind(kMIData);
 }
@@ -262,7 +262,7 @@ static stock Float:FindStartPointHeuristic(Float:result[3])
 
 	if(kits < 4) return -1.0;
 	ScaleVector(averageOrigin, 0.25);
-	
+
 	new Float:greatestDist, Float:tempDist;
 	for(new i; i < 4; i++)
 	{
@@ -330,23 +330,23 @@ stock bool:IsEntityInSaferoom(ent, saferoom = 3)
 {
 	decl Float:origins[3];
 	GetEntPropVector(ent, Prop_Send, "m_vecOrigin", origins);
-	
+
 	if ((saferoom & START_SAFEROOM) && (GetVectorDistance(origins, Start_Point) <= (Start_Extra_Dist > Start_Dist ? Start_Extra_Dist : Start_Dist))) return true;
 	else if ((saferoom & END_SAFEROOM) && (GetVectorDistance(origins, End_Point) <= End_Dist)) return true;
 	else return false;
-//	return ((GetVectorDistance(origins, Start_Point) <= (Start_Extra_Dist > Start_Dist ? Start_Extra_Dist : Start_Dist)) 
+//	return ((GetVectorDistance(origins, Start_Point) <= (Start_Extra_Dist > Start_Dist ? Start_Extra_Dist : Start_Dist))
 //		|| (GetVectorDistance(origins, End_Point) <= End_Dist));
 }
 
-stock GetMapValueInt(const String:key[], defvalue=0) 
+stock GetMapValueInt(const String:key[], defvalue=0)
 {
-	return KvGetNum(kMIData, key, defvalue); 
+	return KvGetNum(kMIData, key, defvalue);
 }
-stock Float:GetMapValueFloat(const String:key[], Float:defvalue=0.0) 
+stock Float:GetMapValueFloat(const String:key[], Float:defvalue=0.0)
 {
-	return KvGetFloat(kMIData, key, defvalue); 
+	return KvGetFloat(kMIData, key, defvalue);
 }
-stock GetMapValueVector(const String:key[], Float:vector[3], Float:defvalue[3]=NULL_VECTOR) 
+stock GetMapValueVector(const String:key[], Float:vector[3], Float:defvalue[3]=NULL_VECTOR)
 {
 	KvGetVector(kMIData, key, vector, defvalue);
 }
@@ -401,41 +401,41 @@ public _native_IsMapDataAvailable(Handle:plugin, numParams)
 public _native_GetMapValueInt(Handle:plugin, numParams)
 {
 	decl len, defval;
-	
+
 	GetNativeStringLength(1, len);
 	new String:key[len+1];
 	GetNativeString(1, key, len+1);
-	
+
 	defval = GetNativeCell(2);
-	
+
 	return GetMapValueInt(key, defval);
 }
 
 public _native_GetMapValueFloat(Handle:plugin, numParams)
 {
 	decl len, Float:defval;
-	
+
 	GetNativeStringLength(1, len);
 	new String:key[len+1];
 	GetNativeString(1, key, len+1);
-	
+
 	defval = GetNativeCell(2);
-	
+
 	return _:GetMapValueFloat(key, defval);
 }
 
 public _native_GetMapValueVector(Handle:plugin, numParams)
 {
 	decl len, Float:defval[3], Float:value[3];
-	
+
 	GetNativeStringLength(1, len);
 	new String:key[len+1];
 	GetNativeString(1, key, len+1);
-	
+
 	GetNativeArray(3, defval, 3);
-	
+
 	GetMapValueVector(key, value, defval);
-	
+
 	SetNativeArray(2, value, 3);
 }
 
@@ -445,16 +445,16 @@ public _native_GetMapValueString(Handle:plugin, numParams)
 	GetNativeStringLength(1, len);
 	new String:key[len+1];
 	GetNativeString(1, key, len+1);
-	
+
 	GetNativeStringLength(4, len);
 	new String:defval[len+1];
 	GetNativeString(4, defval, len+1);
-	
+
 	len = GetNativeCell(3);
 	new String:buf[len+1];
-	
+
 	GetMapValueString(key, buf, len, defval);
-	
+
 	SetNativeString(2, buf, len);
 }
 
@@ -464,8 +464,8 @@ public _native_CopyMapSubsection(Handle:plugin, numParams)
 	GetNativeStringLength(2, len);
 	new String:key[len+1];
 	GetNativeString(2, key, len+1);
-	
+
 	kv = GetNativeCell(1);
-	
+
 	CopyMapSubsection(kv, key);
 }

@@ -13,7 +13,7 @@ public Action:L4D_OnSpawnMob(&amount)
 {
 	if(GT_OnSpawnMob_Forward(amount) == Plugin_Handled)
 		return Plugin_Handled;
-	
+
 	return Plugin_Continue;
 }
 

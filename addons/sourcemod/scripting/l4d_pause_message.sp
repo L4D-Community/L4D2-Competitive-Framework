@@ -25,7 +25,7 @@ public void OnPluginStart()
 	AddCommandListener(pauseCmd, "unpause");
 }
 
-public Action pauseCmd(int client, const char[] command, int argc) 
+public Action pauseCmd(int client, const char[] command, int argc)
 {
 	if (!bPausable) return Plugin_Handled;
 	return Plugin_Continue;

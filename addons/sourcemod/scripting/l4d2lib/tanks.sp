@@ -54,10 +54,10 @@ void Tanks_ItemPickup(Event hEvent)
 	if (!g_bIsTankActive) {
 		return;
 	}
-	
+
 	char sItem[64];
 	hEvent.GetString("item", sItem, sizeof(sItem));
-	
+
 	if (strcmp(sItem, "tank_claw") == 0) {
 		int iPrevTank = g_iTankClient;
 		g_iTankClient = GetClientOfUserId(hEvent.GetInt("userid"));

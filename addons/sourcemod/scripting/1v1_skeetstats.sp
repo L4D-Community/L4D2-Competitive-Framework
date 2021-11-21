@@ -25,7 +25,7 @@
 #define MELEE_TIME              0.25
 #define POUNCE_TIMER            0.1
 
-#define TEAM_SURVIVOR           2 
+#define TEAM_SURVIVOR           2
 #define TEAM_INFECTED           3
 
 #define HITGROUP_HEAD           1
@@ -244,7 +244,7 @@ public OnClientPutInServer(client)
 	if (strcmp(tmpBuffer, sClientName[client], true) != 0)
 	{
 		ClearClientSkeetStats(client);
-		
+
 		// store name for later reference
 		strcopy(sClientName[client], 64, tmpBuffer);
 	}
@@ -321,12 +321,12 @@ public RoundEnd_Event(Handle:event, const String:name[], bool:dontBroadcast)
 public Action:Say_Cmd(client, args)
 {
 	if (!client) { return Plugin_Continue; }
-	
+
 	decl String:sMessage[MAX_NAME_LENGTH];
 	GetCmdArg(1, sMessage, sizeof(sMessage));
-	
+
 	if (StrEqual(sMessage, "!skeets")) { return Plugin_Handled; }
-	
+
 	return Plugin_Continue;
 }
 
@@ -371,8 +371,8 @@ public PlayerHurt_Event(Handle:event, const String:name[], bool:dontBroadcast)
 
 		// this is still part of the (previous) shotgun blast
 		iCurrentShotDmg[iClientPlaying] += damage;
-		
-		
+
+
 		// are we skeeting hunters?
 		if (bIsPouncing[victim]) {
 			iDmgDuringPounce[victim] += damage;
@@ -381,14 +381,14 @@ public PlayerHurt_Event(Handle:event, const String:name[], bool:dontBroadcast)
 		if (!bCurrentShotHit[iClientPlaying]) {
 			if (hitgroup == HITGROUP_HEAD) { iHuntHeadShots[iClientPlaying]++; }              // only count headshot once for shotgun blast (not that it matters, but this might miss some hs's)
 		}
-		
+
 		bCurrentShotHit[iClientPlaying] = true;
 	}
 	else if (damagetype & DMG_BULLET) {
 		// for bullets, simply count all hits
 		iShotsHit[iClientPlaying]++;
 		if (hitgroup == HITGROUP_HEAD) { iHuntHeadShots[iClientPlaying]++; }
-		
+
 		// are we skeeting hunters?
 		if (bIsPouncing[victim]) {
 			iDmgDuringPounce[victim] += damage;
@@ -466,10 +466,10 @@ public InfectedHurt_Event(Handle:event, const String:name[], bool:dontBroadcast)
 					case WP_AUTOSHOTGUN:    { damage = RoundFloat(float(damage) * 2.29); }       // max 113 on common (253)
 					case WP_SHOTGUN_SPAS:   { damage = RoundFloat(float(damage) * 1.84); }       // max 137 on common (252)
 				}
-		}        
-		else if (IsWitch(victimEntId)) { 
+		}
+		else if (IsWitch(victimEntId)) {
 			new damageDone = damage;
-			
+
 			// event called per pellet
 			switch (iPreviousShotType[iClientPlaying]) {
 				case WP_PUMPSHOTGUN:    { damage = 25; }
@@ -498,7 +498,7 @@ public InfectedHurt_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	if (IsWitch(victimEntId))
 	{
 		new damageDone = GetEventInt(event, "amount");
-		
+
 		// no world damage or flukes or whatevs, no bot attackers
 		if (bCountWitchDamage)
 		{
@@ -527,15 +527,15 @@ public PlayerDeath_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	// skeet check
 	if (damagetype & DMG_BUCKSHOT || damagetype & DMG_BULLET) {
 		// shotgun
-		
+
 		//PrintToChatAll("[test] death: (pounce: %d, abort: %d, ishurt: %d, total dmg: %d / duringpounce: %d)", bIsPouncing[victim], GetEventBool(event, "abort"), bIsHurt[victim], iCurrentShotDmg[iClientPlaying], iDmgDuringPounce[victim]);
-		
+
 		// did we skeet a hunter?
 		if (bIsPouncing[victim]) {
 			if (bIsHurt[victim]) {              // inj. skeet
 				iHuntSkeetsInj[iClientPlaying]++;
 			} else {                            // normal/full skeet
-				
+
 				iHuntSkeets[iClientPlaying]++;
 			}
 			bIsPouncing[victim] = false;
@@ -551,7 +551,7 @@ public PlayerDeath_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	{
 		// store kill to count for attacker id
 		iGotKills[attacker]++;
-		
+
 		if (zombieClass == ZC_HUNTER) {
 			// check if we just skeeted this
 		}
@@ -581,7 +581,7 @@ public PlayerShoved_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	// get hunter player
 	new victimId = GetEventInt(event, "userId");
 	new victim = GetClientOfUserId(victimId);
-	
+
 	if(bIsPouncing[victim])
 	{
 		iDeadStops[user]++;
@@ -602,7 +602,7 @@ public AbilityUse_Event(Handle:event, const String:name[], bool:dontBroadcast)
 
 	if(IsClientAndInGame(user) && strcmp(abilityName,"ability_lunge",false) == 0 && !bIsPouncing[user])
 	{
-		
+
 		// Hunter pounce
 		bIsPouncing[user] = true;
 		iDmgDuringPounce[user] = 0;                                     // use this to track skeet-damage
@@ -610,7 +610,7 @@ public AbilityUse_Event(Handle:event, const String:name[], bool:dontBroadcast)
 		CreateTimer(POUNCE_TIMER,groundTouchTimer,user,TIMER_REPEAT);   // check every TIMER whether the pounce has ended
 																		// If the hunter lands on another player's head, they're technically grounded.
 																		// Instead of using isGrounded, this uses the bIsPouncing[] array with less precise timer
-		
+
 		//PrintToChatAll("[test] pounce starts: (ishurt: %d / h: %d)", bIsHurt[user], GetClientHealth(user));
 	}
 }
@@ -661,7 +661,7 @@ public WeaponFire_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	{
 		// handle previous shot, if any open
 		ResolveOpenShots();
-		
+
 		// open new shot
 		iShotsFired[iClientPlaying]++;
 		iPelletsFired[iClientPlaying] += count;
@@ -677,7 +677,7 @@ public WeaponFire_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	{
 		// handle previous shot, if any open
 		ResolveOpenShots();
-		
+
 		iMeleesFired[iClientPlaying]++;
 		fPreviousShot[iClientPlaying] = GetEngineTime();        // track shot from this time
 		bCurrentShotHit[iClientPlaying] = false;                // so we can check just 1 hit for the swing
@@ -704,7 +704,7 @@ public WeaponFire_Event(Handle:event, const String:name[], bool:dontBroadcast)
 void PrintSkeetStats(int toClient)
 {
 	if (iClientPlaying <= 0) { return; }
-	
+
 	char printBuffer[512], tmpBuffer[256];
 	/*
 	//decl String:tmpName[64];
@@ -745,7 +745,7 @@ void PrintSkeetStats(int toClient)
 			}
 		}
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
-		
+
 		if (!toClient) {
 			PrintToChatAll("\x01%s", printBuffer);
 		} else if (IsClientAndInGame(toClient)) {
@@ -758,7 +758,7 @@ void PrintSkeetStats(int toClient)
 	{
 		Format(tmpBuffer, sizeof(tmpBuffer), "1v1Stat - Skeet: (\x05%4d \x01normal,\x05 %3d \x01hurt)   (\x05%3d \x01deadstops)\n", iHuntSkeets[iClientPlaying], iHuntSkeetsInj[iClientPlaying], iDeadStops[iClientPlaying]);
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
-		
+
 		if (!toClient) {
 			PrintToChatAll("\x01%s", printBuffer);
 		} else if (IsClientAndInGame(toClient)) {
@@ -789,7 +789,7 @@ void PrintSkeetStats(int toClient)
 			Format(tmpBuffer, sizeof(tmpBuffer), "1v1Stat - Acc. : (no shots fired)\n");
 		}
 		StrCat(printBuffer, sizeof(printBuffer), tmpBuffer);
-		
+
 		if (!toClient) {
 			PrintToChatAll("\x01%s", printBuffer);
 		} else if (IsClientAndInGame(toClient)) {
@@ -818,11 +818,11 @@ void ResolveOpenShots()
 			if (iPreviousShotType[iClientPlaying] == WP_MELEE) {
 				// melee hit
 				iMeleesHit[iClientPlaying]++;
-			
+
 			} else {
 				// shotgun hit
 				iShotsHit[iClientPlaying]++;
-				
+
 				// base hit pellets on amount of damage done
 				// based on weaponId differences aswell since shotties do different amounts of damage
 				// what to do about damage dropoff? ignore?
@@ -866,7 +866,7 @@ int GetWeaponType(weaponId)
 
 	// 3. rifles / snipers / pistols (per shot accuracy)
 	if (weaponId == WP_PISTOL           ||
-		weaponId == WP_PISTOL_MAGNUM    ||        
+		weaponId == WP_PISTOL_MAGNUM    ||
 		weaponId == WP_SMG              ||
 		weaponId == WP_SMG_SILENCED     ||
 		weaponId == WP_SMG_MP5          ||

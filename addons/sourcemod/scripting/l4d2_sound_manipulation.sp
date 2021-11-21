@@ -12,7 +12,7 @@ int SOUNDFLAGS[3] =
 	1 << 2, // Incapacitated screams (Commmon/FF/Bleeding out)
 };
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Sound Manipulation: REWORK",
 	author = "Sir",
@@ -26,7 +26,7 @@ public void OnPluginStart()
 	cvarSoundFlags = CreateConVar("sound_flags", "0", "Prevent Sounds from playing - Bitmask: 0-Nothing | 1-Heartbeat | 2-Heavy Hittable Sounds | 4- Incapacitated Injury");
 	iSoundFlags = cvarSoundFlags.IntValue;
 	HookConVarChange(cvarSoundFlags, FlagsChanged);
-	
+
 	// Sound Hook
 	AddNormalSoundHook(SoundHook);
 }

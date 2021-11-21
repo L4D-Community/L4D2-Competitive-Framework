@@ -24,7 +24,7 @@ enum /*L4D2_Team*/
 	L4D2Team_Spectator,
 	L4D2Team_Survivor,
 	L4D2Team_Infected,
-	
+
 	L4D2Team_Size //4 size
 };
 
@@ -41,7 +41,7 @@ enum /*L4D2_Infected*/
 	L4D2Infected_Witch,
 	L4D2Infected_Tank,
 	L4D2Infected_Survivor,
-	
+
 	L4D2Infected_Size //10 size
 };
 
@@ -92,7 +92,7 @@ enum /*L4D2_Gender*/
 	L4D2Gender_Police			= 20, //l4d1 RiotCop (was removed from the game)
 	L4D2Gender_Male_L4D1		= 21,
 	L4D2Gender_Female_L4D1		= 22,
-	
+
 	L4D2Gender_MaxSize //23 size
 };
 
@@ -103,12 +103,12 @@ enum /*L4D2WeaponSlot*/
 	L4D2WeaponSlot_Throwable,
 	L4D2WeaponSlot_HeavyHealthItem,
 	L4D2WeaponSlot_LightHealthItem,
-	
+
 	L4D2WeaponSlot_Size //5 size
 };
 
 // Weapon ID enumerations.
-// These values are *NOT* arbitrary! 
+// These values are *NOT* arbitrary!
 // They are used in game as the weaponid for weapon_spawn entities
 enum /*WeaponId*/
 {
@@ -192,7 +192,7 @@ enum /*MeleeWeaponId*/
 	WEPID_TONFA,
 	WEPID_SHOVEL,
 	WEPID_PITCHFORK,
-	
+
 	WEPID_MELEES_SIZE //15 size
 };
 
@@ -221,7 +221,7 @@ stock const char WeaponNames[WEPID_SIZE][] =
 };
 
 // Long weapon names
-stock const char LongWeaponNames[WEPID_SIZE][] = 
+stock const char LongWeaponNames[WEPID_SIZE][] =
 {
 	"None", "Pistol", "Uzi", // 0
 	"Pump", "Autoshotgun", "M-16", // 3
@@ -540,6 +540,6 @@ enum /*Animation*/
 	ANIM_TANK_CLIMB = 94, // Secondary value: Height (1-6)
 	ANIM_TANK_PUNCH_GETUP = 96,
 	ANIM_IDLE = 98,
-	
+
 	ANIMATION_SIZE //99 size
 };

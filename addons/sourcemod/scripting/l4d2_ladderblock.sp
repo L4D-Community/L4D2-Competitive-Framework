@@ -116,13 +116,13 @@ public Action SDKHook_cb_Touch(int iEntity, int iOther)
 
 	if (IsGuyTroll(iEntity, iOther)) {
 		int iClass = GetEntProp(iEntity, Prop_Send, "m_zombieClass");
-		
+
 		if (iClass != 5 && g_iCvarFlags & (1 << iClass)) {
 			// Tank AI and Witch have this skill but Valve method is sucks because ppl get STUCKS!
 			if (iClass == 8 && IsFakeClient(iEntity)) {
 				return Plugin_Continue;
 			}
-			
+
 			iClass = GetEntProp(iOther, Prop_Send, "m_zombieClass");
 
 			/* @A1m`:
@@ -131,7 +131,7 @@ public Action SDKHook_cb_Touch(int iEntity, int iOther)
 			if (g_iCvarImmune & (1 << iClass) || g_iInCharge[iOther]) {
 				return Plugin_Continue;
 			}
-			
+
 			if (GetEntityMoveType(iOther) == MOVETYPE_LADDER) {
 				float fOrigin[3];
 				GetClientAbsOrigin(iOther, fOrigin);

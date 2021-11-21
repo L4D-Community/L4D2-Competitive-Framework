@@ -50,7 +50,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	if (!(damagetype & DMG_BLAST)) {
 		return Plugin_Continue;
 	}
-	
+
 	// If the victim an infected taken explosive damage from the entity
 	// env_explosion, trigger_hurt, point_hurt etc...
 	if (attacker > MaxClients && IsValidEntity(attacker) && IsInfected(victim)) {

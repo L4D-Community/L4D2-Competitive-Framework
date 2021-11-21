@@ -28,20 +28,20 @@ public void OnPluginStart()
 	Handle conf = LoadGameConfigFile(GAMEDATA_FILE);
 	if (conf == null)
 		SetFailState("Missing gamedata \"" ... GAMEDATA_FILE ... "\"");
-	
+
 	int iCLungeOnTouch = GameConfGetOffset(conf, KEY_ONTOUCH);
 	if (iCLungeOnTouch == -1)
 		SetFailState("Failed to get offset \"" ... KEY_ONTOUCH ... "\"");
-	
+
 	hCLunge_OnTouch = DHookCreate(iCLungeOnTouch, HookType_Entity, ReturnType_Void, ThisPointer_CBaseEntity, CLunge_OnTouch);
 	DHookAddParam(hCLunge_OnTouch, HookParamType_CBaseEntity);
-	
+
 	iCLunge_BlockMidPounce = GameConfGetOffset(conf, KEY_BLOCKMIDPOUNCE);
 	if (iCLunge_BlockMidPounce == -1)
 		SetFailState("Failed to get offset \"" ... KEY_BLOCKMIDPOUNCE ... "\"");
-	
+
 	delete conf;
-	
+
 	HookEvent("player_spawn", Event_PlayerSpawn);
 }
 
@@ -50,7 +50,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (!client || GetClientTeam(client) != 3 || GetEntProp(client, Prop_Send, "m_zombieClass") != 3)
 		return;
-		
+
 	int ability = GetEntPropEnt(client, Prop_Send, "m_customAbility");
 	if (ability != -1)
 	{
@@ -62,10 +62,10 @@ public MRESReturn CLunge_OnTouch(int pThis, Handle hParams)
 {
 	int other = DHookGetParam(hParams, 1);
 	if (other <= 0) return MRES_Ignored;
-	
+
 	int hunter = GetEntPropEnt(pThis, Prop_Send, "m_owner");
 	if (hunter == -1) return MRES_Ignored;
-	
+
 #if DEBUG
 	static int iLast = -1;
 	if (other != iLast)
@@ -76,7 +76,7 @@ public MRESReturn CLunge_OnTouch(int pThis, Handle hParams)
 		iLast = other;
 	}
 #endif
-	
+
 	// NOTE:
 	//
 	// Weapons (guns, melees, etc) are solid as well, so they'd be blocked.
@@ -90,10 +90,10 @@ public MRESReturn CLunge_OnTouch(int pThis, Handle hParams)
 	// a dropped weapon, as well as my belief in that single `HasEntProp`
 	// has better efficiency,
 	// I decided to make a spawner-only check here.
-	
+
 	//static char clsname[64];
 	//if (!GetEdictClassname(other, clsname, sizeof clsname)) return MRES_Ignored;
-	
+
 	if (/*strncmp(clsname, "weapon", 6) == 0*/
 		HasEntProp(other, Prop_Send, "m_weaponID") || GetEntPropEnt(hunter, Prop_Send, "m_hGroundEntity") != -1
 	) {
@@ -107,10 +107,10 @@ public MRESReturn CLunge_OnTouch(int pThis, Handle hParams)
 		if (Entity_IsSolid(other))
 		{
 			float now = GetGameTime();
-			
+
 			float duration = GetEntPropFloat(pThis, Prop_Send, "m_lungeAgainTimer", 0);
 			float timestamp = GetEntPropFloat(pThis, Prop_Send, "m_lungeAgainTimer", 1);
-			
+
 			if (duration != 0.5)
 			{
 				// Supposed to be a CountdownTimer::NetworkStateChanged(void *)

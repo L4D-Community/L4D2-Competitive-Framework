@@ -57,7 +57,7 @@ public void OnPluginStart()
 	g_hSurvivorMaxIncapCount = FindConVar("survivor_max_incapacitated_count");
 	g_hVsTankDamage = FindConVar("vs_tank_damage");
 	g_hPainPillsDecayRate = FindConVar("pain_pills_decay_rate");
-	
+
 	CvarsToType();
 
 	g_hSurvivorMaxIncapCount.AddChangeHook(CvarsChanged);
@@ -83,13 +83,13 @@ void InitGameData()
 	}
 
 	StartPrepSDKCall(SDKCall_Entity);
-	
+
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, SIGNATURE_NAME)) {
 		SetFailState("Function '%s' not found", SIGNATURE_NAME);
 	}
-	
+
 	g_hTankRockDetonateCall = EndPrepSDKCall();
-	
+
 	if (g_hTankRockDetonateCall == null) {
 		SetFailState("Function '%s' found, but something went wrong", SIGNATURE_NAME);
 	}
@@ -119,24 +119,24 @@ public void OnClientDisconnect(int iClient)
 	SDKUnhook(iClient, SDKHook_OnTakeDamage, OnTakeDamage);
 }
 
-public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &fDamage, int &iDamagetype, 
+public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &fDamage, int &iDamagetype,
 								int &iWeapon, float fDamageForce[3], float fDamagePosition[3])
 {
 	if (iDamagetype != DMG_CLUB || !IsTankRock(iInflictor)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsSurvivor(iVictim)/* || !IsTank(iAttacker)*/) {
 		return Plugin_Continue;
 	}
-	
+
 #if DEBUG
 	char sClassName[MAX_ENTITY_NAME_SIZE];
 	GetEdictClassname(iInflictor, sClassName, sizeof(sClassName));
-	PrintToChatAll("Victim %d attacker %d inflictor %d damageType %d weapon %d", 
+	PrintToChatAll("Victim %d attacker %d inflictor %d damageType %d weapon %d",
 								iVictim, iAttacker, iInflictor, iDamagetype, iWeapon);
-			
-	PrintToChatAll("Victim %N(%i/%i) attacker %N classname %s", 
+
+	PrintToChatAll("Victim %N(%i/%i) attacker %N classname %s",
 								iVictim, GetSurvivorPermanentHealth(iVictim), GetSurvivorTemporaryHealth(iVictim), iAttacker, sClassName);
 #endif
 
@@ -144,7 +144,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 	if (!IsOnCriticalStrike(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	// Gotcha
 	if (GetSurvivorTemporaryHealth(iVictim) <= g_iVsTankDamage) {
 		CTankRock__Detonate(iInflictor);
@@ -177,7 +177,7 @@ bool IsSurvivor(int iClient)
 	return (iClient > 0
 		&& iClient <= MaxClients
 		&& IsClientInGame(iClient)
-		&& GetClientTeam(iClient) == TEAM_INFECTED 
+		&& GetClientTeam(iClient) == TEAM_INFECTED
 		&& GetEntProp(iClient, Prop_Send, "m_zombieClass") == Z_TANK
 		&& IsPlayerAlive(iClient));
 }*/
@@ -210,7 +210,7 @@ public Action Cmd_DetonateRock(int iClient, int iArgs)
 		int iOwner = GetEntPropEnt(iEntity, Prop_Send, "m_hOwnerEntity");
 
 		CTankRock__Detonate(iEntity);
-		
+
 		if (iOwner > 0 && IsClientInGame(iOwner)) {
 			PrintToChatAll("Owner: %N (%d). Tank rock %d detonate)", iOwner, iOwner, iEntity);
 		} else {
@@ -226,7 +226,7 @@ int GetSurvivorPermanentHealth(int iClient)
 	if (GetEntProp(iClient, Prop_Send, "m_currentReviveCount") > 0) {
 		return 0;
 	}
-	
+
 	int iHealth = GetEntProp(iClient, Prop_Send, "m_iHealth");
 	return (iHealth > 0) ? iHealth : 0;
 }

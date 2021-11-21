@@ -19,7 +19,7 @@ CV_OnModuleStart()
 {
 	CV_hNotify = CreateConVarEx("match_checkversion","0","Check the current running version of Confogl to Confogl's homepage. Will notify players if the server is running an outdated version of Confogl");
 	HookConVarChange(CV_hNotify,CV_ConVarChange);
-	
+
 	CV_bNotify = GetConVarBool(CV_hNotify);
 }
 
@@ -35,7 +35,7 @@ CV_OnClientPutInServer()
 	if(bIsAMatchActive && CV_IsNewMatch)
 	{
 		CV_IsNewMatch = false;
-		
+
 		if (CV_bNotify && !CV_bHaveNotified && StrContains(CV_VERSION, "BETA", false) > -1)
 		{
 			CV_bHaveNotified=true;
@@ -66,26 +66,26 @@ public CV_OnSocketReceive(Handle:socket, String:receiveData[], const dataSize, a
 	new ver_offset, ver_count, itemp;
 	if(CV_DEBUG || IsDebugEnabled())
 		LogMessage("Recived data: %s", receiveData);
-	
-	while((itemp = FindPatternInString(receiveData[ver_offset], "\r\n\r\n")) != -1) 
+
+	while((itemp = FindPatternInString(receiveData[ver_offset], "\r\n\r\n")) != -1)
 		ver_offset += itemp + 4;
 	if(CV_DEBUG || IsDebugEnabled())
 		LogMessage("Header end found at %d", ver_offset);
 	ver_count = CountCharsInString(receiveData[ver_offset], '\n')+1;
 	if(CV_DEBUG || IsDebugEnabled())
 		LogMessage("Counted %d current versions", ver_count);
-	
+
 	new String:ver_buf[ver_count][CV_VERSION_MAXLEN];
 	ExplodeString(receiveData[ver_offset], "\n", ver_buf, ver_count, CV_VERSION_MAXLEN);
-	
+
 	for (new i; i < ver_count; i++)
 	{
 		TrimString(ver_buf[i]);
 		if(StrEqual(ver_buf[i], CV_VERSION)) return;
 	}
-	
+
 	//LogMessage("CONFOGL IS OUTDATED! Update @ http://confogl.googlecode.com/");  //took this out to stop spamming logs -epi
-	
+
 	if(CV_bNotify && !CV_bHaveNotified)
 	{
 		CV_bHaveNotified = true;

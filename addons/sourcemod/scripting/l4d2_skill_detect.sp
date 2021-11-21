@@ -105,11 +105,11 @@
 #define ZC_TANK         8
 #define HITGROUP_HEAD   1
 
-#define DMG_CRUSH               (1 << 0)        // crushed by falling or moving object. 
+#define DMG_CRUSH               (1 << 0)        // crushed by falling or moving object.
 #define DMG_BULLET              (1 << 1)        // shot
 #define DMG_SLASH               (1 << 2)        // cut, clawed, stabbed
 #define DMG_CLUB                (1 << 7)        // crowbar, punch, headbutt
-#define DMG_BUCKSHOT            (1 << 29)       // not quite a bullet. Little, rounder, different. 
+#define DMG_BUCKSHOT            (1 << 29)       // not quite a bullet. Little, rounder, different.
 
 #define DMGARRAYEXT     7                       // MAXPLAYERS+# -- extra indices in witch_dmg_array + 1
 
@@ -283,7 +283,7 @@ new     Float:          g_fChargeTime           [MAXPLAYERS + 1];               
 new                     g_iChargeVictim         [MAXPLAYERS + 1];                               // who got charged
 new     Float:          g_fChargeVictimPos      [MAXPLAYERS + 1][3];                            // location of each survivor when it got hit by the charger
 new                     g_iVictimCharger        [MAXPLAYERS + 1];                               // for a victim, by whom they got charge(impacted)
-new                     g_iVictimFlags          [MAXPLAYERS + 1];                               // flags stored per charge victim: VICFLAGS_ 
+new                     g_iVictimFlags          [MAXPLAYERS + 1];                               // flags stored per charge victim: VICFLAGS_
 new                     g_iVictimMapDmg         [MAXPLAYERS + 1];                               // for a victim, how much the cumulative map damage is so far (trigger hurt / drowning)
 
 // pops
@@ -348,17 +348,17 @@ new     Handle:         g_hCvarMaxPounceDamage                              = IN
     --------
     Damage shown is damage done in the last shot/slash. So for crowns, this means
     that the 'damage' value is one shotgun blast
-    
+
 
     Quirks:
     -------
     Does not report people cutting smoker tongues that target players other
     than themselves. Could be done, but would require (too much) tracking.
-    
+
     Actual damage done, on Hunter DPs, is low when the survivor gets incapped
     by (a fraction of) the total pounce damage.
-    
-    
+
+
     Fake Damage
     -----------
     Hiding of fake damage has the following consequences:
@@ -373,13 +373,13 @@ new     Handle:         g_hCvarMaxPounceDamage                              = IN
     I strongly recommend leaving fakedamage visible: it will offer more feedback on
     the survivor's action and reward survivors doing (what would be) full crowns and
     levels on chipped targets.
-    
-    
+
+
     To Do
     -----
-    
+
     - fix:  tank rock owner is not reliable for the RockEaten forward
-    
+
     - fix:  apparently some HR4 cars generate car alarm messages when shot, even when no alarm goes off
             (combination with car equalize plugin?)
             - see below: the single hook might also fix this.. -- if not, hook for sound
@@ -393,31 +393,31 @@ new     Handle:         g_hCvarMaxPounceDamage                              = IN
 
     - make forwards fire for every potential action,
         - include the relevant values, so other plugins can decide for themselves what to consider it
-    
+
     - test chargers getting dislodged with boomer pops?
-    
+
     - add commonhop check
     - add deathcharge assist check
         - smoker
         - jockey
-        
+
     - add deathcharge coordinates for some areas
         - DT4 next to saferoom
         - DA1 near the lower roof, on sidewalk next to fence (no hurttrigger there)
         - DA2 next to crane roof to the right of window
             DA2 charge down into start area, after everyone's jumped the fence
-            
-    - count rock hits even if they do no damage [epi request]    
+
+    - count rock hits even if they do no damage [epi request]
     - sir
         - make separate teamskeet forward, with (for now, up to) 4 skeeters + the damage each did
     - xan
         - add detection/display of unsuccesful witch crowns (witch death + info)
-        
+
     detect...
         - ? add jockey deadstops (and change forward to reflect type)
         - ? speedcrown detection?
         - ? spit-on-cap detection
-    
+
     ---
     done:
         - applied sanity bounds to calculated damage for hunter dps
@@ -425,7 +425,7 @@ new     Handle:         g_hCvarMaxPounceDamage                              = IN
         - 300+ speed hops are considered hops even if no increase
 */
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Skill Detection (skeets, crowns, levels)",
 	author = "Tabun",
@@ -437,7 +437,7 @@ public Plugin myinfo =
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
     RegPluginLibrary("skill_detect");
-    
+
     g_hForwardSkeet =           CreateGlobalForward("OnSkeet", ET_Ignore, Param_Cell, Param_Cell );
     g_hForwardSkeetHurt =       CreateGlobalForward("OnSkeetHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
     g_hForwardSkeetMelee =      CreateGlobalForward("OnSkeetMelee", ET_Ignore, Param_Cell, Param_Cell );
@@ -464,7 +464,7 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
     g_hForwardBHopStreak =      CreateGlobalForward("OnBunnyHopStreak", ET_Ignore, Param_Cell, Param_Cell, Param_Float );
     g_hForwardAlarmTriggered =  CreateGlobalForward("OnCarAlarmTriggered", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
     g_bLateLoad = late;
-    
+
     return APLRes_Success;
 }
 
@@ -474,7 +474,7 @@ public OnPluginStart()
     HookEvent("round_start",                Event_RoundStart,               EventHookMode_PostNoCopy);
     HookEvent("scavenge_round_start",       Event_RoundStart,               EventHookMode_PostNoCopy);
     HookEvent("round_end",                  Event_RoundEnd,                 EventHookMode_PostNoCopy);
-    
+
     HookEvent("player_spawn",               Event_PlayerSpawn,              EventHookMode_Post);
     HookEvent("player_hurt",                Event_PlayerHurt,               EventHookMode_Pre);
     HookEvent("player_death",               Event_PlayerDeath,              EventHookMode_Pre);
@@ -483,15 +483,15 @@ public OnPluginStart()
     HookEvent("player_shoved",              Event_PlayerShoved,             EventHookMode_Post);
     HookEvent("player_jump",                Event_PlayerJumped,             EventHookMode_Post);
     HookEvent("player_jump_apex",           Event_PlayerJumpApex,           EventHookMode_Post);
-    
+
     HookEvent("player_now_it",              Event_PlayerBoomed,             EventHookMode_Post);
     HookEvent("boomer_exploded",            Event_BoomerExploded,           EventHookMode_Post);
-    
+
     //HookEvent("infected_hurt",              Event_InfectedHurt,             EventHookMode_Post);
     HookEvent("witch_spawn",                Event_WitchSpawned,             EventHookMode_Post);
     HookEvent("witch_killed",               Event_WitchKilled,              EventHookMode_Post);
     HookEvent("witch_harasser_set",         Event_WitchHarasserSet,         EventHookMode_Post);
-    
+
     HookEvent("tongue_grab",                Event_TongueGrab,               EventHookMode_Post);
     HookEvent("tongue_pull_stopped",        Event_TonguePullStopped,        EventHookMode_Post);
     HookEvent("choke_start",                Event_ChokeStart,               EventHookMode_Post);
@@ -501,18 +501,18 @@ public OnPluginStart()
     HookEvent("charger_carry_end",          Event_ChargeCarryEnd,           EventHookMode_Post);
     HookEvent("charger_impact",             Event_ChargeImpact,             EventHookMode_Post);
     HookEvent("charger_pummel_start",       Event_ChargePummelStart,        EventHookMode_Post);
-    
+
     HookEvent("player_incapacitated_start", Event_IncapStart,               EventHookMode_Post);
     HookEvent("triggered_car_alarm",        Event_CarAlarmGoesOff,          EventHookMode_Post);
-    
-    
+
+
     // version cvar
     //CreateConVar( "sm_skill_detect_version", PLUGIN_VERSION, "Skill detect plugin version.", FCVAR_NONE|FCVAR_NOTIFY|FCVAR_REPLICATED|FCVAR_DONTRECORD );
-    
+
     // cvars: config
-    
+
     g_hCvarReport = CreateConVar(           "sm_skill_report_enable" ,      "0", "Whether to report in chat (see sm_skill_report_flags).", FCVAR_NONE, true, 0.0, true, 1.0 );
-    
+
     g_hCvarAllowMelee = CreateConVar(       "sm_skill_skeet_allowmelee",    "1", "Whether to count/forward melee skeets.", FCVAR_NONE, true, 0.0, true, 1.0 );
     g_hCvarAllowSniper = CreateConVar(      "sm_skill_skeet_allowsniper",   "1", "Whether to count/forward sniper/magnum headshots as skeets.", FCVAR_NONE, true, 0.0, true, 1.0 );
     g_hCvarAllowGLSkeet = CreateConVar(     "sm_skill_skeet_allowgl",       "1", "Whether to count/forward direct GL hits as skeets.", FCVAR_NONE, true, 0.0, true, 1.0 );
@@ -526,23 +526,23 @@ public OnPluginStart()
     g_hCvarBHopMinStreak = CreateConVar(    "sm_skill_bhopstreak",          "3", "The lowest bunnyhop streak that will be reported.", FCVAR_NONE, true, 0.0, false );
     g_hCvarBHopMinInitSpeed = CreateConVar( "sm_skill_bhopinitspeed",     "150", "The minimal speed of the first jump of a bunnyhopstreak (0 to allow 'hops' from standstill).", FCVAR_NONE, true, 0.0, false );
     g_hCvarBHopContSpeed = CreateConVar(    "sm_skill_bhopkeepspeed",     "300", "The minimal speed at which hops are considered succesful even if not speed increase is made.", FCVAR_NONE, true, 0.0, false );
-    
+
     // cvars: built in
     g_hCvarPounceInterrupt = FindConVar("z_pounce_damage_interrupt");
     HookConVarChange(g_hCvarPounceInterrupt, CvarChange_PounceInterrupt);
     g_iPounceInterrupt = GetConVarInt(g_hCvarPounceInterrupt);
-    
+
     g_hCvarChargerHealth = FindConVar("z_charger_health");
     g_hCvarWitchHealth = FindConVar("z_witch_health");
-    
+
     g_hCvarMaxPounceDistance = FindConVar("z_pounce_damage_range_max");
     g_hCvarMinPounceDistance = FindConVar("z_pounce_damage_range_min");
     g_hCvarMaxPounceDamage = FindConVar("z_hunter_max_pounce_bonus_damage");
     if ( g_hCvarMaxPounceDistance == INVALID_HANDLE ) { g_hCvarMaxPounceDistance = CreateConVar( "z_pounce_damage_range_max",  "1000.0", "Not available on this server, added by l4d2_skill_detect.", FCVAR_NONE, true, 0.0, false ); }
     if ( g_hCvarMinPounceDistance == INVALID_HANDLE ) { g_hCvarMinPounceDistance = CreateConVar( "z_pounce_damage_range_min",  "300.0", "Not available on this server, added by l4d2_skill_detect.", FCVAR_NONE, true, 0.0, false ); }
     if ( g_hCvarMaxPounceDamage == INVALID_HANDLE ) { g_hCvarMaxPounceDamage = CreateConVar( "z_hunter_max_pounce_bonus_damage",  "49", "Not available on this server, added by l4d2_skill_detect.", FCVAR_NONE, true, 0.0, false ); }
-    
-    
+
+
     // tries
     g_hTrieWeapons = CreateTrie();
     SetTrieValue(g_hTrieWeapons, "hunting_rifle",               WPTYPE_SNIPER);
@@ -551,22 +551,22 @@ public OnPluginStart()
     SetTrieValue(g_hTrieWeapons, "sniper_scout",                WPTYPE_SNIPER);
     SetTrieValue(g_hTrieWeapons, "pistol_magnum",               WPTYPE_MAGNUM);
     SetTrieValue(g_hTrieWeapons, "grenade_launcher_projectile", WPTYPE_GL);
-    
+
     g_hTrieEntityCreated = CreateTrie();
     SetTrieValue(g_hTrieEntityCreated, "tank_rock",             OEC_TANKROCK);
     SetTrieValue(g_hTrieEntityCreated, "witch",                 OEC_WITCH);
     SetTrieValue(g_hTrieEntityCreated, "trigger_hurt",          OEC_TRIGGER);
     SetTrieValue(g_hTrieEntityCreated, "prop_car_alarm",        OEC_CARALARM);
     SetTrieValue(g_hTrieEntityCreated, "prop_car_glass",        OEC_CARGLASS);
-    
+
     g_hTrieAbility = CreateTrie();
     SetTrieValue(g_hTrieAbility, "ability_lunge",               ABL_HUNTERLUNGE);
     SetTrieValue(g_hTrieAbility, "ability_throw",               ABL_ROCKTHROW);
-    
+
     g_hWitchTrie = CreateTrie();
     g_hRockTrie = CreateTrie();
     g_hCarTrie = CreateTrie();
-    
+
     if ( g_bLateLoad )
     {
         for ( new client = 1; client <= MaxClients; client++ )
@@ -604,11 +604,11 @@ public OnClientDisconnect(client)
 public Action: Event_RoundStart( Handle:event, const String:name[], bool:dontBroadcast )
 {
     g_iRocksBeingThrownCount = 0;
-    
+
     for ( new i = 1; i <= MaxClients; i++ )
     {
         g_bIsHopping[i] = false;
-        
+
         for ( new j = 1; j <= MaxClients; j++ )
         {
             g_fVictimLastShove[i][j] = 0.0;
@@ -627,18 +627,18 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
     new victim = GetClientOfUserId(GetEventInt(event, "userid"));
     new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
     new zClass;
-    
+
     new damage = GetEventInt(event, "dmg_health");
     new damagetype = GetEventInt(event, "type");
-    
+
     if ( IS_VALID_INFECTED(victim) )
     {
         zClass = GetEntProp(victim, Prop_Send, "m_zombieClass");
         new health = GetEventInt(event, "health");
         new hitgroup = GetEventInt(event, "hitgroup");
-        
+
         if ( damage < 1 ) { return Plugin_Continue; }
-        
+
         switch ( zClass )
         {
             case ZC_HUNTER:
@@ -649,7 +649,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                     g_iHunterLastHealth[victim] = health;
                     return Plugin_Continue;
                 }
-                
+
                 // if the damage done is greater than the health we know the hunter to have remaining, reduce the damage done
                 if ( g_iHunterLastHealth[victim] > 0 && damage > g_iHunterLastHealth[victim] )
                 {
@@ -657,15 +657,15 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                     g_iHunterOverkill[victim] = g_iHunterLastHealth[victim] - damage;
                     g_iHunterLastHealth[victim] = 0;
                 }
-                
-                /*  
+
+                /*
                     handle old shotgun blast: too long ago? not the same blast
                 */
                 if ( g_iHunterShotDmg[victim][attacker] > 0 && (GetGameTime() - g_fHunterShotStart[victim][attacker]) > SHOTGUN_BLAST_TIME )
                 {
                     g_fHunterShotStart[victim][attacker] = 0.0;
                 }
-                
+
                 /*
                     m_isAttemptingToPounce is set to 0 here if the hunter is actually skeeted
                     so the g_fHunterTracePouncing[victim] value indicates when the hunter was last seen pouncing in traceattack
@@ -675,7 +675,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                         GetEntProp(victim, Prop_Send, "m_isAttemptingToPounce")     ||
                         g_fHunterTracePouncing[victim] != 0.0 && (GetGameTime() - g_fHunterTracePouncing[victim]) < 0.001
                     );
-                
+
                 if ( isPouncing )
                 {
                     if ( damagetype & DMG_BUCKSHOT )
@@ -689,7 +689,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                         }
                         g_iHunterShotDmg[victim][attacker] += damage;
                         g_iHunterShotDmgTeam[victim] += damage;
-                        
+
                         if ( health == 0 ) {
                             g_bHunterKilledPouncing[victim] = true;
                         }
@@ -701,11 +701,11 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                             direct hit is DMG_BLAST | DMG_PLASMA
                             indirect hit is DMG_AIRBOAT
                         */
-                        
+
                         decl String: weaponB[32];
                         new strWeaponType: weaponTypeB;
                         GetEventString(event, "weapon", weaponB, sizeof(weaponB));
-                        
+
                         if ( GetTrieValue(g_hTrieWeapons, weaponB, weaponTypeB) && weaponTypeB == WPTYPE_GL )
                         {
                             if ( GetConVarBool(g_hCvarAllowGLSkeet) ) {
@@ -721,7 +721,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                         decl String: weaponA[32];
                         new strWeaponType: weaponTypeA;
                         GetEventString(event, "weapon", weaponA, sizeof(weaponA));
-                        
+
                         if (    GetTrieValue(g_hTrieWeapons, weaponA, weaponTypeA) &&
                                 (   weaponTypeA == WPTYPE_SNIPER ||
                                     weaponTypeA == WPTYPE_MAGNUM )
@@ -743,7 +743,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                                 ResetHunter(victim);
                             }
                         }
-                        
+
                         // already handled hurt skeet above
                         //g_bHunterKilledPouncing[victim] = true;
                     }
@@ -774,15 +774,15 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                     // make sure we don't mistake non-pouncing hunters as 'not skeeted'-warnable
                     g_bHunterKilledPouncing[victim] = false;
                 }
-                
+
                 // store last health seen for next damage event
                 g_iHunterLastHealth[victim] = health;
             }
-            
+
             case ZC_CHARGER:
             {
                 if ( IS_VALID_SURVIVOR(attacker) )
-                {                
+                {
                     // check for levels
                     if ( health == 0 && ( damagetype & DMG_CLUB || damagetype & DMG_SLASH ) )
                     {
@@ -795,7 +795,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                             {
                                 damage = iChargeHealth - g_iChargerHealth[victim];
                             }
-                            
+
                             // charger was killed, was it a full level?
                             if ( damage > (iChargeHealth * 0.65) ) {
                                 HandleLevel( attacker, victim );
@@ -806,27 +806,27 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                         }
                     }
                 }
-                
+
                 // store health for next damage it takes
                 if ( health > 0 )
                 {
                     g_iChargerHealth[victim] = health;
                 }
             }
-            
+
             case ZC_SMOKER:
             {
                 if ( !IS_VALID_SURVIVOR(attacker) ) { return Plugin_Continue; }
-                
+
                 g_iSmokerVictimDamage[victim] += damage;
             }
-            
+
         }
     }
     else if ( IS_VALID_INFECTED(attacker) )
     {
         zClass = GetEntProp(attacker, Prop_Send, "m_zombieClass");
-        
+
         switch ( zClass )
         {
             case ZC_HUNTER:
@@ -836,12 +836,12 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                     g_iPounceDamage[attacker] = damage;
                 }
             }
-            
+
             case ZC_TANK:
             {
                 new String: weapon[10];
                 GetEventString(event, "weapon", weapon, sizeof(weapon));
-                
+
                 if ( StrEqual(weapon, "tank_rock") )
                 {
                     // find rock entity through tank
@@ -854,18 +854,18 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
                         rock_array[rckDamage] = -1;
                         SetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array), true);
                     }
-                    
+
                     if ( IS_VALID_SURVIVOR(victim) )
                     {
                         HandleRockEaten( attacker, victim );
                     }
                 }
-                
+
                 return Plugin_Continue;
             }
         }
     }
-    
+
     // check for deathcharge flags
     if ( IS_VALID_SURVIVOR(victim) )
     {
@@ -873,7 +873,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
         if ( damagetype & DMG_DROWN || damagetype & DMG_FALL ) {
             g_iVictimMapDmg[victim] += damage;
         }
-        
+
         if ( damagetype & DMG_DROWN && damage >= MIN_DC_TRIGGER_DMG )
         {
             g_iVictimFlags[victim] = g_iVictimFlags[victim] | VICFLG_HURTLOTS;
@@ -883,7 +883,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
             g_iVictimFlags[victim] = g_iVictimFlags[victim] | VICFLG_HURTLOTS;
         }
     }
-    
+
     return Plugin_Continue;
 }
 
@@ -891,13 +891,13 @@ public Action: Event_PlayerSpawn( Handle:event, const String:name[], bool:dontBr
 {
     new client = GetClientOfUserId(GetEventInt(event, "userid"));
     if ( !IS_VALID_INFECTED(client) ) { return Plugin_Continue; }
-    
+
     new zClass = GetEntProp(client, Prop_Send, "m_zombieClass");
-    
+
     g_fSpawnTime[client] = GetGameTime();
     g_fPinTime[client][0] = 0.0;
     g_fPinTime[client][1] = 0.0;
-    
+
     switch ( zClass )
     {
         case ZC_BOOMER:
@@ -914,7 +914,7 @@ public Action: Event_PlayerSpawn( Handle:event, const String:name[], bool:dontBr
         case ZC_HUNTER:
         {
             SDKHook(client, SDKHook_TraceAttack, TraceAttack_Hunter);
-    
+
             g_fPouncePosition[client][0] = 0.0;
             g_fPouncePosition[client][1] = 0.0;
             g_fPouncePosition[client][2] = 0.0;
@@ -922,7 +922,7 @@ public Action: Event_PlayerSpawn( Handle:event, const String:name[], bool:dontBr
         case ZC_JOCKEY:
         {
             SDKHook(client, SDKHook_TraceAttack, TraceAttack_Jockey);
-            
+
             g_fPouncePosition[client][0] = 0.0;
             g_fPouncePosition[client][1] = 0.0;
             g_fPouncePosition[client][2] = 0.0;
@@ -930,11 +930,11 @@ public Action: Event_PlayerSpawn( Handle:event, const String:name[], bool:dontBr
         case ZC_CHARGER:
         {
             SDKHook(client, SDKHook_TraceAttack, TraceAttack_Charger);
-            
+
             g_iChargerHealth[client] = GetConVarInt(g_hCvarChargerHealth);
         }
     }
-    
+
     return Plugin_Continue;
 }
 
@@ -942,12 +942,12 @@ public Action: Event_PlayerSpawn( Handle:event, const String:name[], bool:dontBr
 public Action: Event_IncapStart( Handle:event, const String:name[], bool:dontBroadcast )
 {
     // test for deathcharges
-    
+
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
     //new attacker = GetClientOfUserId( GetEventInt(event, "attacker") );
     new attackent = GetEventInt(event, "attackerentid");
     new dmgtype = GetEventInt(event, "type");
-    
+
     new String: classname[24];
     new strOEC: classnameOEC;
     if ( IsValidEntity(attackent) ) {
@@ -956,11 +956,11 @@ public Action: Event_IncapStart( Handle:event, const String:name[], bool:dontBro
             g_iVictimFlags[client] = g_iVictimFlags[client] | VICFLG_TRIGGER;
         }
     }
-    
+
     new Float: flow = GetSurvivorDistance(client);
-    
+
     //PrintDebug( 3, "Incap Pre on [%N]: attk: %i / %i (%s) - dmgtype: %i - flow: %.1f", client, attacker, attackent, classname, dmgtype, flow );
-    
+
     // drown is damage type
     if ( dmgtype & DMG_DROWN )
     {
@@ -977,9 +977,9 @@ public Action: TraceAttack_Hunter (victim, &attacker, &inflictor, &Float:damage,
 {
     // track pinning
     g_iSpecialVictim[victim] = GetEntPropEnt(victim, Prop_Send, "m_pounceVictim");
-    
+
     if ( !IS_VALID_SURVIVOR(attacker) || !IsValidEdict(inflictor) ) { return; }
-    
+
     // track flight
     if ( GetEntProp(victim, Prop_Send, "m_isAttemptingToPounce") )
     {
@@ -988,7 +988,7 @@ public Action: TraceAttack_Hunter (victim, &attacker, &inflictor, &Float:damage,
     else
     {
         g_fHunterTracePouncing[victim] = 0.0;
-    }   
+    }
 }
 public Action: TraceAttack_Charger (victim, &attacker, &inflictor, &Float:damage, &damagetype, &ammotype, hitbox, hitgroup)
 {
@@ -999,7 +999,7 @@ public Action: TraceAttack_Charger (victim, &attacker, &inflictor, &Float:damage
     } else {
         g_iSpecialVictim[victim] = GetEntPropEnt(victim, Prop_Send, "m_pummelVictim");
     }
-    
+
 }
 public Action: TraceAttack_Jockey (victim, &attacker, &inflictor, &Float:damage, &damagetype, &ammotype, hitbox, hitgroup)
 {
@@ -1010,18 +1010,18 @@ public Action: TraceAttack_Jockey (victim, &attacker, &inflictor, &Float:damage,
 public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontBroadcast )
 {
     new victim = GetClientOfUserId( GetEventInt(hEvent, "userid") );
-    new attacker = GetClientOfUserId( GetEventInt(hEvent, "attacker") ); 
-    
+    new attacker = GetClientOfUserId( GetEventInt(hEvent, "attacker") );
+
     if ( IS_VALID_INFECTED(victim) )
     {
         new zClass = GetEntProp(victim, Prop_Send, "m_zombieClass");
-        
+
         switch ( zClass )
         {
             case ZC_HUNTER:
             {
                 if ( !IS_VALID_SURVIVOR(attacker) ) { return Plugin_Continue; }
-                
+
                 if ( g_iHunterShotDmgTeam[victim] > 0 && g_bHunterKilledPouncing[victim] )
                 {
                     // skeet?
@@ -1058,14 +1058,14 @@ public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontB
                             );
                     }
                 }
-                
+
                 ResetHunter(victim);
             }
-            
+
             case ZC_SMOKER:
             {
                 if ( !IS_VALID_SURVIVOR(attacker) ) { return Plugin_Continue; }
-                
+
                 if (    g_bSmokerClearCheck[victim] &&
                         g_iSmokerVictim[victim] == attacker &&
                         g_iSmokerVictimDamage[victim] >= GetConVarInt(g_hCvarSelfClearThresh)
@@ -1078,7 +1078,7 @@ public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontB
                     g_iSmokerVictim[victim] = 0;
                 }
             }
-            
+
             case ZC_JOCKEY:
             {
                 // check whether it was a clear
@@ -1091,7 +1091,7 @@ public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontB
                         );
                 }
             }
-            
+
             case ZC_CHARGER:
             {
                 // is it someone carrying a survivor (that might be DC'd)?
@@ -1099,7 +1099,7 @@ public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontB
                 if ( IS_VALID_INGAME(g_iChargeVictim[victim]) ) {
                     g_fChargeTime[ g_iChargeVictim[victim] ] = GetGameTime();
                 }
-                
+
                 // check whether it was a clear
                 if ( g_iSpecialVictim[victim] > 0 )
                 {
@@ -1115,11 +1115,11 @@ public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontB
     else if ( IS_VALID_SURVIVOR(victim) )
     {
         // check for deathcharges
-        //new atkent = GetEventInt(hEvent, "attackerentid"); 
-        new dmgtype = GetEventInt(hEvent, "type"); 
-        
+        //new atkent = GetEventInt(hEvent, "attackerentid");
+        new dmgtype = GetEventInt(hEvent, "type");
+
         //PrintDebug( 3, "Died [%N]: attk: %i / %i - dmgtype: %i", victim, attacker, atkent, dmgtype );
-        
+
         if ( dmgtype & DMG_FALL)
         {
             g_iVictimFlags[victim] = g_iVictimFlags[victim] | VICFLG_FALL;
@@ -1130,7 +1130,7 @@ public Action: Event_PlayerDeath( Handle:hEvent, const String:name[], bool:dontB
             g_iVictimFlags[victim] = g_iVictimFlags[victim] | VICFLG_KILLEDBYOTHER;
         }
     }
-    
+
     return Plugin_Continue;
 }
 
@@ -1138,15 +1138,15 @@ public Action: Event_PlayerShoved( Handle:event, const String:name[], bool:dontB
 {
     new victim = GetClientOfUserId(GetEventInt(event, "userid"));
     new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-    
+
     //PrintDebug(1, "Shove from %i on %i", attacker, victim);
-    
+
     if ( !IS_VALID_SURVIVOR(attacker) || !IS_VALID_INFECTED(victim) ) { return Plugin_Continue; }
-    
+
     new zClass = GetEntProp(victim, Prop_Send, "m_zombieClass");
-    
+
     //PrintDebug(1, " --> Shove from %N on %N (class: %i) -- (last shove time: %.2f / %.2f)", attacker, victim, zClass, g_fVictimLastShove[victim][attacker], GetGameTime() - g_fVictimLastShove[victim][attacker]);
-    
+
     // track on boomers
     if ( zClass == ZC_BOOMER )
     {
@@ -1180,25 +1180,25 @@ public Action: Event_PlayerShoved( Handle:event, const String:name[], bool:dontB
             }
         }
     }
-    
+
     if ( g_fVictimLastShove[victim][attacker] == 0.0 || (GetGameTime() - g_fVictimLastShove[victim][attacker]) >= SHOVE_TIME )
     {
         if ( GetEntProp(victim, Prop_Send, "m_isAttemptingToPounce") )
         {
             HandleDeadstop( attacker, victim );
         }
-        
+
         HandleShove( attacker, victim, zClass );
-        
+
         g_fVictimLastShove[victim][attacker] = GetGameTime();
     }
-    
+
     // check for shove on smoker by pull victim
     if ( g_iSmokerVictim[victim] == attacker )
     {
         g_bSmokerShoved[victim] = true;
     }
-    
+
     //PrintDebug(0, "shove by %i on %i", attacker, victim );
     return Plugin_Continue;
 }
@@ -1207,13 +1207,13 @@ public Action: Event_LungePounce( Handle:event, const String:name[], bool:dontBr
 {
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
     new victim = GetClientOfUserId( GetEventInt(event, "victim") );
-    
+
     g_fPinTime[client][0] = GetGameTime();
-    
+
     // clear hunter-hit stats (not skeeted)
     ResetHunter(client);
-    
-    // check if it was a DP    
+
+    // check if it was a DP
     // ignore if no real pounce start pos
     if (    g_fPouncePosition[client][0] == 0.0
         &&  g_fPouncePosition[client][1] == 0.0
@@ -1221,22 +1221,22 @@ public Action: Event_LungePounce( Handle:event, const String:name[], bool:dontBr
     ) {
         return Plugin_Continue;
     }
-        
+
     new Float: endPos[3];
     GetClientAbsOrigin( client, endPos );
     new Float: fHeight = g_fPouncePosition[client][2] - endPos[2];
-    
+
     // from pounceannounce:
     // distance supplied isn't the actual 2d vector distance needed for damage calculation. See more about it at
     // http://forums.alliedmods.net/showthread.php?t=93207
-    
+
     new Float: fMin = GetConVarFloat(g_hCvarMinPounceDistance);
     new Float: fMax = GetConVarFloat(g_hCvarMaxPounceDistance);
     new Float: fMaxDmg = GetConVarFloat(g_hCvarMaxPounceDamage);
-    
+
     // calculate 2d distance between previous position and pounce position
     new distance = RoundToNearest( GetVectorDistance(g_fPouncePosition[client], endPos) );
-    
+
     // get damage using hunter damage formula
     // check if this is accurate, seems to differ from actual damage done!
     new Float: fDamage = ( ( (float(distance) - fMin) / (fMax - fMin) ) * fMaxDmg ) + 1.0;
@@ -1247,14 +1247,14 @@ public Action: Event_LungePounce( Handle:event, const String:name[], bool:dontBr
     } else if (fDamage > fMaxDmg + 1.0) {
         fDamage = fMaxDmg + 1.0;
     }
-    
+
     new Handle: pack = CreateDataPack();
     WritePackCell( pack, client );
     WritePackCell( pack, victim );
     WritePackFloat( pack, fDamage );
     WritePackFloat( pack, fHeight );
     CreateTimer( 0.05, Timer_HunterDP, pack );
-    
+
     return Plugin_Continue;
 }
 
@@ -1266,37 +1266,37 @@ public Action: Timer_HunterDP( Handle:timer, Handle:pack )
     new Float: fDamage = ReadPackFloat( pack );
     new Float: fHeight = ReadPackFloat( pack );
     CloseHandle( pack );
-    
+
     HandleHunterDP( client, victim, g_iPounceDamage[client], fDamage, fHeight );
 }
 
 public Action: Event_PlayerJumped( Handle:event, const String:name[], bool:dontBroadcast )
 {
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
-    
+
     if ( IS_VALID_INFECTED(client) )
     {
         new zClass = GetEntProp(client, Prop_Send, "m_zombieClass");
         if ( zClass != ZC_JOCKEY ) { return Plugin_Continue; }
-    
+
         // where did jockey jump from?
         GetClientAbsOrigin( client, g_fPouncePosition[client] );
     }
     else if ( IS_VALID_SURVIVOR(client) )
     {
         // could be the start or part of a hopping streak
-        
+
         new Float: fPos[3], Float: fVel[3];
         GetClientAbsOrigin( client, fPos );
-        GetEntPropVector(client, Prop_Data, "m_vecVelocity", fVel ); 
+        GetEntPropVector(client, Prop_Data, "m_vecVelocity", fVel );
         fVel[2] = 0.0; // safeguard
-        
+
         new Float: fLengthNew, Float: fLengthOld;
         fLengthNew = GetVectorLength(fVel);
-        
-        
+
+
         g_bHopCheck[client] = false;
-        
+
         if ( !g_bIsHopping[client] )
         {
             if ( fLengthNew >= GetConVarFloat(g_hCvarBHopMinInitSpeed) )
@@ -1311,24 +1311,24 @@ public Action: Event_PlayerJumped( Handle:event, const String:name[], bool:dontB
         {
             // check for hopping streak
             fLengthOld = GetVectorLength(g_fLastHop[client]);
-            
+
             // if they picked up speed, count it as a hop, otherwise, we're done hopping
             if ( fLengthNew - fLengthOld > HOP_ACCEL_THRESH || fLengthNew >= GetConVarFloat(g_hCvarBHopContSpeed) )
             {
                 g_iHops[client]++;
-                
+
                 // this should always be the case...
                 if ( fLengthNew > g_fHopTopVelocity[client] )
                 {
                     g_fHopTopVelocity[client] = fLengthNew;
                 }
-                
+
                 //PrintToChat( client, "bunnyhop %i: speed: %.1f / increase: %.1f", g_iHops[client], fLengthNew, fLengthNew - fLengthOld );
             }
             else
             {
                 g_bIsHopping[client] = false;
-                
+
                 if ( g_iHops[client] )
                 {
                     HandleBHopStreak( client, g_iHops[client], g_fHopTopVelocity[client] );
@@ -1336,25 +1336,25 @@ public Action: Event_PlayerJumped( Handle:event, const String:name[], bool:dontB
                 }
             }
         }
-        
+
         g_fLastHop[client][0] = fVel[0];
         g_fLastHop[client][1] = fVel[1];
         g_fLastHop[client][2] = fVel[2];
-        
+
         if ( g_iHops[client] != 0 )
         {
             // check when the player returns to the ground
             CreateTimer( HOP_CHECK_TIME, Timer_CheckHop, client, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE );
         }
     }
-    
+
     return Plugin_Continue;
 }
 
 public Action: Timer_CheckHop (Handle:timer, any:client)
 {
     // player back to ground = end of hop (streak)?
-    
+
     if ( !IS_VALID_INGAME(client) || !IsPlayerAlive(client) )
     {
         // streak stopped by dying / teamswitch / disconnect?
@@ -1363,25 +1363,25 @@ public Action: Timer_CheckHop (Handle:timer, any:client)
     else if ( GetEntityFlags(client) & FL_ONGROUND )
     {
         new Float: fVel[3];
-        GetEntPropVector(client, Prop_Data, "m_vecVelocity", fVel ); 
+        GetEntPropVector(client, Prop_Data, "m_vecVelocity", fVel );
         fVel[2] = 0.0; // safeguard
-        
+
         //PrintToChatAll("grounded %i: vel length: %.1f", client, GetVectorLength(fVel) );
-        
+
         g_bHopCheck[client] = true;
-        
+
         CreateTimer( HOPEND_CHECK_TIME, Timer_CheckHopStreak, client, TIMER_FLAG_NO_MAPCHANGE );
-        
+
         return Plugin_Stop;
     }
-    
+
     return Plugin_Continue;
 }
 
 public Action: Timer_CheckHopStreak (Handle:timer, any:client)
 {
     if ( !IS_VALID_INGAME(client) || !IsPlayerAlive(client) ) { return Plugin_Continue; }
-    
+
     // check if we have any sort of hop streak, and report
     if ( g_bHopCheck[client] && g_iHops[client] )
     {
@@ -1390,9 +1390,9 @@ public Action: Timer_CheckHopStreak (Handle:timer, any:client)
         g_iHops[client] = 0;
         g_fHopTopVelocity[client] = 0.0;
     }
-    
+
     g_bHopCheck[client] = false;
-    
+
     return Plugin_Continue;
 }
 
@@ -1400,14 +1400,14 @@ public Action: Timer_CheckHopStreak (Handle:timer, any:client)
 public Action: Event_PlayerJumpApex( Handle:event, const String:name[], bool:dontBroadcast )
 {
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
-    
+
     if ( g_bIsHopping[client] )
     {
         new Float: fVel[3];
-        GetEntPropVector(client, Prop_Data, "m_vecVelocity", fVel ); 
+        GetEntPropVector(client, Prop_Data, "m_vecVelocity", fVel );
         fVel[2] = 0.0;
         new Float: fLength = GetVectorLength(fVel);
-        
+
         if ( fLength > g_fHopTopVelocity[client] )
         {
             g_fHopTopVelocity[client] = fLength;
@@ -1415,29 +1415,29 @@ public Action: Event_PlayerJumpApex( Handle:event, const String:name[], bool:don
     }
 }
 
-    
+
 public Action: Event_JockeyRide( Handle:event, const String:name[], bool:dontBroadcast )
 {
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
     new victim = GetClientOfUserId( GetEventInt(event, "victim") );
-    
+
     if ( !IS_VALID_INFECTED(client) || !IS_VALID_SURVIVOR(victim) ) { return Plugin_Continue; }
-    
+
     g_fPinTime[client][0] = GetGameTime();
-    
+
     // minimum distance travelled?
     // ignore if no real pounce start pos
     if ( g_fPouncePosition[client][0] == 0.0 && g_fPouncePosition[client][1] == 0.0 && g_fPouncePosition[client][2] == 0.0 ) { return Plugin_Continue; }
-    
+
     new Float: endPos[3];
     GetClientAbsOrigin( client, endPos );
     new Float: fHeight = g_fPouncePosition[client][2] - endPos[2];
-    
+
     //PrintToChatAll("jockey height: %.3f", fHeight);
-    
+
     // (high) pounce
     HandleJockeyDP( client, victim, fHeight );
-    
+
     return Plugin_Continue;
 }
 
@@ -1447,12 +1447,12 @@ public Action: Event_AbilityUse( Handle:event, const String:name[], bool:dontBro
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
     new String: abilityName[64];
     GetEventString( event, "ability", abilityName, sizeof(abilityName) );
-    
+
     if ( !IS_VALID_INGAME(client) ) { return Plugin_Continue; }
-    
+
     new strAbility: ability;
     if ( !GetTrieValue(g_hTrieAbility, abilityName, ability) ) { return Plugin_Continue; }
-    
+
     switch ( ability )
     {
         case ABL_HUNTERLUNGE:
@@ -1461,17 +1461,17 @@ public Action: Event_AbilityUse( Handle:event, const String:name[], bool:dontBro
             ResetHunter(client);
             GetClientAbsOrigin( client, g_fPouncePosition[client] );
         }
-    
+
         case ABL_ROCKTHROW:
         {
             // tank throws rock
             g_iRocksBeingThrown[g_iRocksBeingThrownCount] = client;
-            
+
             // safeguard
             if ( g_iRocksBeingThrownCount < 9 ) { g_iRocksBeingThrownCount++; }
         }
     }
-    
+
     return Plugin_Continue;
 }
 
@@ -1483,21 +1483,21 @@ public Action: Event_ChargeCarryStart( Handle:event, const String:name[], bool:d
     if ( !IS_VALID_INFECTED(client) ) { return; }
 
     PrintDebug(0, "Charge carry start: %i - %i -- time: %.2f", client, victim, GetGameTime() );
-    
+
     g_fChargeTime[client] = GetGameTime();
     g_fPinTime[client][0] = g_fChargeTime[client];
     g_fPinTime[client][1] = 0.0;
-    
+
     if ( !IS_VALID_SURVIVOR(victim) ) { return; }
-    
+
     g_iChargeVictim[client] = victim;           // store who we're carrying (as long as this is set, it's not considered an impact charge flight)
     g_iVictimCharger[victim] = client;          // store who's charging whom
     g_iVictimFlags[victim] = VICFLG_CARRIED;    // reset flags for checking later - we know only this now
     g_fChargeTime[victim] = g_fChargeTime[client];
     g_iVictimMapDmg[victim] = 0;
-    
+
     GetClientAbsOrigin( victim, g_fChargeVictimPos[victim] );
-    
+
     //CreateTimer( CHARGE_CHECK_TIME, Timer_ChargeCheck, client, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE );
     CreateTimer( CHARGE_CHECK_TIME, Timer_ChargeCheck, victim, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE );
 }
@@ -1507,24 +1507,24 @@ public Action: Event_ChargeImpact( Handle:event, const String:name[], bool:dontB
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
     new victim = GetClientOfUserId( GetEventInt(event, "victim") );
     if ( !IS_VALID_INFECTED(client) || !IS_VALID_SURVIVOR(victim) ) { return; }
-    
+
     // remember how many people the charger bumped into, and who, and where they were
     GetClientAbsOrigin( victim, g_fChargeVictimPos[victim] );
-    
+
     g_iVictimCharger[victim] = client;      // store who we've bumped up
     g_iVictimFlags[victim] = 0;             // reset flags for checking later
     g_fChargeTime[victim] = GetGameTime();  // store time per victim, for impacts
     g_iVictimMapDmg[victim] = 0;
-    
+
     CreateTimer( CHARGE_CHECK_TIME, Timer_ChargeCheck, victim, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE );
 }
 
 public Action: Event_ChargePummelStart( Handle:event, const String:name[], bool:dontBroadcast )
 {
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
-    
+
     if ( !IS_VALID_INFECTED(client) ) { return; }
-    
+
     g_fPinTime[client][1] = GetGameTime();
 }
 
@@ -1533,9 +1533,9 @@ public Action: Event_ChargeCarryEnd( Handle:event, const String:name[], bool:don
 {
     new client = GetClientOfUserId( GetEventInt(event, "userid") );
     if ( client < 1 || client > MaxClients ) { return; }
-    
+
     g_fPinTime[client][1] = GetGameTime();
-    
+
     // delay so we can check whether charger died 'mid carry'
     CreateTimer( 0.1, Timer_ChargeCarryEnd, client, TIMER_FLAG_NO_MAPCHANGE );
 }
@@ -1553,16 +1553,16 @@ public Action: Timer_ChargeCheck( Handle:timer, any:client )
     {
         return Plugin_Stop;
     }
-    
+
     // we're done checking if either the victim reached the ground, or died
     if ( !IsPlayerAlive(client) )
     {
         // player died (this was .. probably.. a death charge)
         g_iVictimFlags[client] = g_iVictimFlags[client] | VICFLG_AIRDEATH;
-        
+
         // check conditions now
         CreateTimer( 0.0, Timer_DeathChargeCheck, client, TIMER_FLAG_NO_MAPCHANGE );
-        
+
         return Plugin_Stop;
     }
     else if ( GetEntityFlags(client) & FL_ONGROUND && g_iChargeVictim[ g_iVictimCharger[client] ] != client )
@@ -1570,31 +1570,31 @@ public Action: Timer_ChargeCheck( Handle:timer, any:client )
         // survivor reached the ground and didn't die (yet)
         // the client-check condition checks whether the survivor is still being carried by the charger
         //      (in which case it doesn't matter that they're on the ground)
-        
+
         // check conditions with small delay (to see if they still die soon)
         CreateTimer( CHARGE_END_CHECK, Timer_DeathChargeCheck, client, TIMER_FLAG_NO_MAPCHANGE );
-        
+
         return Plugin_Stop;
     }
-    
+
     return Plugin_Continue;
 }
 
 public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
 {
     if ( !IS_VALID_INGAME(client) ) { return Plugin_Stop; }
-    
+
     // check conditions.. if flags match up, it's a DC
     PrintDebug( 3, "Checking charge victim: %i - %i - flags: %i (alive? %i)", g_iVictimCharger[client], client, g_iVictimFlags[client], IsPlayerAlive(client) );
-    
+
     new flags = g_iVictimFlags[client];
-    
+
     if ( !IsPlayerAlive(client) )
     {
         new Float: pos[3];
         GetClientAbsOrigin( client, pos );
         new Float: fHeight = g_fChargeVictimPos[client][2] - pos[2];
-        
+
         /*
             it's a deathcharge when:
                 the survivor is dead AND
@@ -1602,7 +1602,7 @@ public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
                     AND not killed by someone else
                     OR is in an unreachable spot AND dropped at least X height
                     OR took plenty of map damage
-                
+
             old.. need?
                 fHeight > GetConVarFloat(g_hCvarDeathChargeHeight)
         */
@@ -1622,7 +1622,7 @@ public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
         // could be incapped and dying more slowly
         // flag only gets set on preincap, so don't need to check for incap
         g_iVictimFlags[client] = g_iVictimFlags[client] | VICFLG_WEIRDFLOWDONE;
-        
+
         CreateTimer( CHARGE_END_RECHECK, Timer_DeathChargeCheck, client, TIMER_FLAG_NO_MAPCHANGE );
     }
 
@@ -1632,7 +1632,7 @@ public Action: Timer_DeathChargeCheck( Handle:timer, any:client )
 stock ResetHunter(client)
 {
     g_iHunterShotDmgTeam[client] = 0;
-    
+
     for ( new i=1; i <= MaxClients; i++ )
     {
         g_iHunterShotDmg[client][i] = 0;
@@ -1657,17 +1657,17 @@ public OnEntityCreated ( entity, const String:classname[] )
 			decl String:rock_key[10];
 			FormatEx(rock_key, sizeof(rock_key), "%x", entity);
 			new rock_array[3];
-			
+
 			// store which tank is throwing what rock
 			new tank = ShiftTankThrower();
-			
+
 			if ( IS_VALID_INGAME(tank) )
 			{
 				g_iTankRock[tank] = entity;
 				rock_array[rckTank] = tank;
 			}
 			SetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array), true);
-			
+
 			SDKHook(entity, SDKHook_OnTakeDamageAlivePost, OnTakeDamageAlivePost_Rock);
 			SDKHook(entity, SDKHook_Touch, OnTouch_Rock);
 		}
@@ -1677,11 +1677,11 @@ public OnEntityCreated ( entity, const String:classname[] )
 
 			decl String:car_key[10];
 			FormatEx(car_key, sizeof(car_key), "%x", entity);
-			
+
 			SDKHook(entity, SDKHook_OnTakeDamage, OnTakeDamage_Car);
 			SDKHook(entity, SDKHook_Touch, OnTouch_Car);
-			
-			SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarm); 
+
+			SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarm);
 		}
 		case OEC_CARGLASS:
 		{
@@ -1689,9 +1689,9 @@ public OnEntityCreated ( entity, const String:classname[] )
 
 			SDKHook(entity, SDKHook_OnTakeDamage, OnTakeDamage_CarGlass);
 			SDKHook(entity, SDKHook_Touch, OnTouch_CarGlass);
-			
+
 			//SetTrieValue(g_hCarTrie, car_key, );
-			SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarmGlass); 
+			SDKHook(entity, SDKHook_Spawn, OnEntitySpawned_CarAlarmGlass);
 		}
 	}
 }
@@ -1699,32 +1699,32 @@ public OnEntityCreated ( entity, const String:classname[] )
 public OnEntitySpawned_CarAlarm ( entity )
 {
     if ( !IsValidEntity(entity) ) { return; }
-    
+
     decl String:car_key[10];
     FormatEx(car_key, sizeof(car_key), "%x", entity);
-    
+
     decl String:target[48];
     GetEntPropString(entity, Prop_Data, "m_iName", target, sizeof(target));
-    
+
     SetTrieValue( g_hCarTrie, target, entity );
     SetTrieValue( g_hCarTrie, car_key, 0 );         // who shot the car?
-    
+
     HookSingleEntityOutput( entity, "OnCarAlarmStart", Hook_CarAlarmStart );
 }
 
 public OnEntitySpawned_CarAlarmGlass ( entity )
 {
     if ( !IsValidEntity(entity) ) { return; }
-    
+
     // glass is parented to a car, link the two through the trie
     // find parent and save both
     decl String:car_key[10];
     FormatEx(car_key, sizeof(car_key), "%x", entity);
-    
+
     decl String:parent[48];
     GetEntPropString(entity, Prop_Data, "m_iParent", parent, sizeof(parent));
     new parentEntity;
-    
+
     // find targetname in trie
     if ( GetTrieValue(g_hCarTrie, parent, parentEntity ) )
     {
@@ -1732,17 +1732,17 @@ public OnEntitySpawned_CarAlarmGlass ( entity )
         if ( IsValidEntity(parentEntity) )
         {
             SetTrieValue( g_hCarTrie, car_key, parentEntity );
-            
+
             decl String:car_key_p[10];
             FormatEx(car_key_p, sizeof(car_key_p), "%x_A", parentEntity);
             new testEntity;
-            
+
             if ( GetTrieValue(g_hCarTrie, car_key_p, testEntity) )
             {
                 // second glass
                 FormatEx(car_key_p, sizeof(car_key_p), "%x_B", parentEntity);
             }
-            
+
             SetTrieValue( g_hCarTrie, car_key_p, entity );
         }
     }
@@ -1753,7 +1753,7 @@ public OnEntityDestroyed ( entity )
 {
     decl String:witch_key[10];
     FormatEx(witch_key, sizeof(witch_key), "%x", entity);
-    
+
     decl witch_array[MAXPLAYERS+DMGARRAYEXT];
     if ( GetTrieArray(g_hWitchTrie, witch_key, witch_array, sizeof(witch_array)) )
     {
@@ -1778,15 +1778,15 @@ public Action: Timer_CheckRockSkeet (Handle:timer, any:rock)
     decl String: rock_key[10];
     FormatEx(rock_key, sizeof(rock_key), "%x", rock);
     if (!GetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array)) ) { return Plugin_Continue; }
-    
+
     RemoveFromTrie(g_hRockTrie, rock_key);
-    
+
     // if rock didn't hit anyone / didn't touch anything, it was shot
     if ( rock_array[rckDamage] > 0 )
     {
         HandleRockSkeeted( rock_array[rckSkeeter], rock_array[rckTank] );
     }
-    
+
     return Plugin_Continue;
 }
 
@@ -1795,11 +1795,11 @@ public Action: Event_PlayerBoomed (Handle:event, const String:name[], bool:dontB
 {
     new attacker = GetClientOfUserId( GetEventInt(event, "attacker") );
     new bool: byBoom = GetEventBool(event, "by_boomer");
-    
+
     if ( byBoom && IS_VALID_INFECTED(attacker) )
     {
         g_bBoomerHitSomebody[attacker] = true;
-        
+
         // check if it was vomit spray
         new bool: byExplosion = GetEventBool(event, "exploded");
         if ( !byExplosion )
@@ -1839,9 +1839,9 @@ public Action: Event_BoomerExploded (Handle:event, const String:name[], bool:don
 public Action: Event_WitchSpawned ( Handle:event, const String:name[], bool:dontBroadcast )
 {
     new witch = GetEventInt(event, "witchid");
-    
+
     SDKHook(witch, SDKHook_OnTakeDamagePost, OnTakeDamagePost_Witch);
-    
+
     new witch_dmg_array[MAXPLAYERS+DMGARRAYEXT];
     decl String:witch_key[10];
     FormatEx(witch_key, sizeof(witch_key), "%x", witch);
@@ -1854,28 +1854,28 @@ public Action: Event_WitchKilled ( Handle:event, const String:name[], bool:dontB
     new witch = GetEventInt(event, "witchid");
     new attacker = GetClientOfUserId( GetEventInt(event, "userid") );
     SDKUnhook(witch, SDKHook_OnTakeDamagePost, OnTakeDamagePost_Witch);
-    
+
     if ( !IS_VALID_SURVIVOR(attacker) ) { return Plugin_Continue; }
-    
+
     new bool: bOneShot = GetEventBool(event, "oneshot");
-    
+
     // is it a crown / drawcrown?
     new Handle: pack = CreateDataPack();
     WritePackCell( pack, attacker );
     WritePackCell( pack, witch );
     WritePackCell( pack, (bOneShot) ? 1 : 0 );
     CreateTimer( WITCH_CHECK_TIME, Timer_CheckWitchCrown, pack );
-    
+
     return Plugin_Continue;
 }
 public Action: Event_WitchHarasserSet ( Handle:event, const String:name[], bool:dontBroadcast )
 {
     new witch = GetEventInt(event, "witchid");
-    
+
     decl String:witch_key[10];
     FormatEx(witch_key, sizeof(witch_key), "%x", witch);
     decl witch_dmg_array[MAXPLAYERS+DMGARRAYEXT];
-    
+
     if ( !GetTrieArray(g_hWitchTrie, witch_key, witch_dmg_array, MAXPLAYERS+DMGARRAYEXT) )
     {
         for ( new i = 0; i <= MAXPLAYERS; i++ )
@@ -1898,14 +1898,14 @@ public Action: OnTakeDamageByWitch ( victim, &attacker, &inflictor, &Float:damag
     // if a survivor is hit by a witch, note it in the witch damage array (maxplayers+2 = 1)
     if ( IS_VALID_SURVIVOR(victim) && damage > 0.0 )
     {
-        
+
         // not a crown if witch hit anyone for > 0 damage
         if ( IsWitch(attacker) )
         {
             decl String:witch_key[10];
             FormatEx(witch_key, sizeof(witch_key), "%x", attacker);
             decl witch_dmg_array[MAXPLAYERS+DMGARRAYEXT];
-            
+
             if ( !GetTrieArray(g_hWitchTrie, witch_key, witch_dmg_array, MAXPLAYERS+DMGARRAYEXT) )
             {
                 for ( new i = 0; i <= MAXPLAYERS; i++ )
@@ -1928,11 +1928,11 @@ public Action: OnTakeDamageByWitch ( victim, &attacker, &inflictor, &Float:damag
 public OnTakeDamagePost_Witch ( victim, attacker, inflictor, Float:damage, damagetype )
 {
     // only called for witches, so no check required
-    
+
     decl String:witch_key[10];
     FormatEx(witch_key, sizeof(witch_key), "%x", victim);
     decl witch_dmg_array[MAXPLAYERS+DMGARRAYEXT];
-    
+
     if ( !GetTrieArray(g_hWitchTrie, witch_key, witch_dmg_array, MAXPLAYERS+DMGARRAYEXT) )
     {
         for ( new i = 0; i <= MAXPLAYERS; i++ )
@@ -1942,13 +1942,13 @@ public OnTakeDamagePost_Witch ( victim, attacker, inflictor, Float:damage, damag
         witch_dmg_array[MAXPLAYERS+WTCH_HEALTH] = GetConVarInt(g_hCvarWitchHealth);
         SetTrieArray(g_hWitchTrie, witch_key, witch_dmg_array, MAXPLAYERS+DMGARRAYEXT, false);
     }
-    
+
     // store damage done to witch
     if ( IS_VALID_SURVIVOR(attacker) )
     {
         witch_dmg_array[attacker] += RoundToFloor(damage);
         witch_dmg_array[MAXPLAYERS+WTCH_HEALTH] -= RoundToFloor(damage);
-        
+
         // remember last shot
         if ( g_fWitchShotStart[attacker] == 0.0 || (GetGameTime(), g_fWitchShotStart[attacker]) > SHOTGUN_BLAST_TIME )
         {
@@ -1958,10 +1958,10 @@ public OnTakeDamagePost_Witch ( victim, attacker, inflictor, Float:damage, damag
             witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT] = 0;
             witch_dmg_array[MAXPLAYERS+WTCH_CROWNTYPE] = ( damagetype & DMG_BUCKSHOT ) ? 1 : 0; // only allow shotguns
         }
-        
+
         // continued blast, add up
         witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT] += RoundToFloor(damage);
-        
+
         SetTrieArray(g_hWitchTrie, witch_key, witch_dmg_array, MAXPLAYERS+DMGARRAYEXT, true);
     }
     else
@@ -1993,18 +1993,18 @@ stock CheckWitchCrown ( witch, attacker, bool: bOneShot = false )
         PrintDebug(0, "Witch Crown Check: Error: Trie entry missing (entity: %i, oneshot: %i)", witch, bOneShot);
         return;
     }
-    
+
     new chipDamage = 0;
     new iWitchHealth = GetConVarInt(g_hCvarWitchHealth);
-    
+
     /*
         the attacker is the last one that did damage to witch
             if their damage is full damage on an unharrassed witch, it's a full crown
             if their damage is full or > drawcrown_threshhold, it's a drawcrown
     */
-    
+
     // not a crown at all if anyone was hit, or if the killing damage wasn't a shotgun blast
-    
+
     // safeguard: if it was a 'oneshot' witch kill, must've been a shotgun
     //      this is not enough: sometimes a shotgun crown happens that is not even reported as a oneshot...
     //      seems like the cause is that the witch post ontakedamage is not called in time?
@@ -2012,7 +2012,7 @@ stock CheckWitchCrown ( witch, attacker, bool: bOneShot = false )
     {
         witch_dmg_array[MAXPLAYERS+WTCH_CROWNTYPE] = 1;
     }
-    
+
     if ( witch_dmg_array[MAXPLAYERS+WTCH_GOTSLASH] || !witch_dmg_array[MAXPLAYERS+WTCH_CROWNTYPE] )
     {
         PrintDebug(0, "Witch Crown Check: Failed: bungled: %i / crowntype: %i (entity: %i)",
@@ -2027,15 +2027,15 @@ stock CheckWitchCrown ( witch, attacker, bool: bOneShot = false )
             );
         return;
     }
-    
-    PrintDebug(0, "Witch Crown Check: crown shot: %i, harrassed: %i (full health: %i / drawthresh: %i / oneshot %i)", 
+
+    PrintDebug(0, "Witch Crown Check: crown shot: %i, harrassed: %i (full health: %i / drawthresh: %i / oneshot %i)",
             witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT],
             witch_dmg_array[MAXPLAYERS+WTCH_STARTLED],
             iWitchHealth,
             GetConVarInt(g_hCvarDrawCrownThresh),
             bOneShot
         );
-    
+
     // full crown? unharrassed
     if ( !witch_dmg_array[MAXPLAYERS+WTCH_STARTLED] && ( bOneShot || witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT] >= iWitchHealth ) )
     {
@@ -2055,7 +2055,7 @@ stock CheckWitchCrown ( witch, attacker, bool: bOneShot = false )
     else if ( witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT] >= GetConVarInt(g_hCvarDrawCrownThresh) )
     {
         // draw crown: harassed + over X damage done by one survivor -- in ONE shot
-        
+
         for ( new i = 0; i <= MAXPLAYERS; i++ )
         {
             if ( i == attacker ) {
@@ -2065,7 +2065,7 @@ stock CheckWitchCrown ( witch, attacker, bool: bOneShot = false )
                 chipDamage += witch_dmg_array[i];
             }
         }
-        
+
         // make sure that we don't count any type of chip
         if ( GetConVarBool(g_hCvarHideFakeDamage) )
         {
@@ -2080,7 +2080,7 @@ stock CheckWitchCrown ( witch, attacker, bool: bOneShot = false )
             // re-check whether it qualifies as a drawcrown:
             if ( witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT] < GetConVarInt(g_hCvarDrawCrownThresh) ) { return; }
         }
-        
+
         // plus, set final shot as 'damage', and the rest as chip
         HandleDrawCrown( attacker, witch_dmg_array[MAXPLAYERS+WTCH_CROWNSHOT], chipDamage );
     }
@@ -2096,22 +2096,22 @@ public void OnTakeDamageAlivePost_Rock (int victim, int attacker, int inflictor,
 {
     if ( !IS_VALID_SURVIVOR(attacker) )
     	return;
-    
+
     decl String:rock_key[10];
     decl rock_array[3];
     FormatEx(rock_key, sizeof(rock_key), "%x", victim);
     GetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array));
-    
+
     /*
         can't really use this for precise detection, though it does
         report the last shot -- the damage report is without distance falloff
-        
+
         NOTE: Was using TraceAttack hook.
     */
     rock_array[rckDamage] += RoundToFloor(damage);
     rock_array[rckSkeeter] = attacker;
     SetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array), true);
-    
+
     if (GetEntProp(victim, Prop_Data, "m_iHealth") > 0)
     {
         return;
@@ -2129,7 +2129,7 @@ public OnTouch_Rock ( entity )
     new rock_array[3];
     rock_array[rckDamage] = -1;
     SetTrieArray(g_hRockTrie, rock_key, rock_array, sizeof(rock_array), true);
-    
+
     SDKUnhook(entity, SDKHook_Touch, OnTouch_Rock);
 }
 
@@ -2140,9 +2140,9 @@ public Action: Event_TonguePullStopped (Handle:event, const String:name[], bool:
     new victim = GetClientOfUserId( GetEventInt(event, "victim") );
     new smoker = GetClientOfUserId( GetEventInt(event, "smoker") );
     new reason = GetEventInt(event, "release_type");
-    
+
     if ( !IS_VALID_SURVIVOR(attacker) || !IS_VALID_INFECTED(smoker) ) { return Plugin_Continue; }
-    
+
     // clear check -  if the smoker itself was not shoved, handle the clear
     HandleClear( attacker, smoker, victim,
             ZC_SMOKER,
@@ -2150,9 +2150,9 @@ public Action: Event_TonguePullStopped (Handle:event, const String:name[], bool:
             GetGameTime() - g_fPinTime[smoker][0],
             bool:( reason != CUT_SLASH && reason != CUT_KILL )
         );
-    
+
     if ( attacker != victim ) { return Plugin_Continue; }
-    
+
     if ( reason == CUT_KILL )
     {
         g_bSmokerClearCheck[smoker] = true;
@@ -2166,14 +2166,14 @@ public Action: Event_TonguePullStopped (Handle:event, const String:name[], bool:
         // check weapon
         decl String:weapon[32];
         GetClientWeapon( attacker, weapon, 32 );
-        
+
         // this doesn't count the chainsaw, but that's no-skill anyway
         if ( StrEqual(weapon, "weapon_melee", false) )
         {
             HandleTongueCut( attacker, smoker );
         }
     }
-    
+
     return Plugin_Continue;
 }
 
@@ -2181,7 +2181,7 @@ public Action: Event_TongueGrab (Handle:event, const String:name[], bool:dontBro
 {
     new attacker = GetClientOfUserId( GetEventInt(event, "userid") );
     new victim = GetClientOfUserId( GetEventInt(event, "victim") );
-    
+
     if ( IS_VALID_INFECTED(attacker) && IS_VALID_SURVIVOR(victim) )
     {
         // new pull, clean damage
@@ -2192,14 +2192,14 @@ public Action: Event_TongueGrab (Handle:event, const String:name[], bool:dontBro
         g_fPinTime[attacker][0] = GetGameTime();
         g_fPinTime[attacker][1] = 0.0;
     }
-    
+
     return Plugin_Continue;
 }
 
 public Action: Event_ChokeStart (Handle:event, const String:name[], bool:dontBroadcast)
 {
     new attacker = GetClientOfUserId( GetEventInt(event, "userid") );
-    
+
     if ( g_fPinTime[attacker][0] == 0.0 ) { g_fPinTime[attacker][0] = GetGameTime(); }
     g_fPinTime[attacker][1] = GetGameTime();
 }
@@ -2210,9 +2210,9 @@ public Action: Event_ChokeStop (Handle:event, const String:name[], bool:dontBroa
     new victim = GetClientOfUserId( GetEventInt(event, "victim") );
     new smoker = GetClientOfUserId( GetEventInt(event, "smoker") );
     new reason = GetEventInt(event, "release_type");
-    
+
     if ( !IS_VALID_SURVIVOR(attacker) || !IS_VALID_INFECTED(smoker) ) { return; }
-    
+
     // if the smoker itself was not shoved, handle the clear
     HandleClear( attacker, smoker, victim,
             ZC_SMOKER,
@@ -2227,7 +2227,7 @@ public Hook_CarAlarmStart ( const String:output[], caller, activator, Float:dela
 {
     //decl String:car_key[10];
     //FormatEx(car_key, sizeof(car_key), "%x", entity);
-    
+
     PrintDebug( 0, "calarm trigger: caller %i / activator %i / delay: %.2f", caller, activator, delay );
 }
 public Action: Event_CarAlarmGoesOff( Handle:event, const String:name[], bool:dontBroadcast )
@@ -2238,19 +2238,19 @@ public Action: Event_CarAlarmGoesOff( Handle:event, const String:name[], bool:do
 public Action: OnTakeDamage_Car ( victim, &attacker, &inflictor, &Float:damage, &damagetype )
 {
     if ( !IS_VALID_SURVIVOR(attacker) ) { return Plugin_Continue; }
-    
+
     /*
-        boomer popped on alarmed car = 
+        boomer popped on alarmed car =
             DMG_BLAST_SURFACE| DMG_BLAST
         and inflictor is the boomer
-    
+
         melee slash/club =
             DMG_SLOWBURN|DMG_PREVENT_PHYSICS_FORCE + DMG_CLUB or DMG_SLASH
         shove is without DMG_SLOWBURN
     */
-    
+
     CreateTimer( 0.01, Timer_CheckAlarm, victim, TIMER_FLAG_NO_MAPCHANGE );
-    
+
     decl String:car_key[10];
     FormatEx(car_key, sizeof(car_key), "%x", victim);
     SetTrieValue(g_hCarTrie, car_key, attacker);
@@ -2272,22 +2272,22 @@ public Action: OnTakeDamage_Car ( victim, &attacker, &inflictor, &Float:damage, 
     {
         g_iLastCarAlarmReason[attacker] = CALARM_HIT;
     }
-    
+
     return Plugin_Continue;
 }
 
 public OnTouch_Car ( entity, client )
 {
     if ( !IS_VALID_SURVIVOR(client) ) { return; }
-    
+
     CreateTimer( 0.01, Timer_CheckAlarm, entity, TIMER_FLAG_NO_MAPCHANGE );
-    
+
     decl String:car_key[10];
     FormatEx(car_key, sizeof(car_key), "%x", entity);
     SetTrieValue(g_hCarTrie, car_key, client);
-    
+
     g_iLastCarAlarmReason[client] = CALARM_TOUCHED;
-    
+
     return;
 }
 
@@ -2295,18 +2295,18 @@ public Action: OnTakeDamage_CarGlass ( victim, &attacker, &inflictor, &Float:dam
 {
     // check for either: boomer pop or survivor
     if ( !IS_VALID_SURVIVOR(attacker) ) { return Plugin_Continue; }
-    
+
     decl String:car_key[10];
     FormatEx(car_key, sizeof(car_key), "%x", victim);
     new parentEntity;
-    
+
     if ( GetTrieValue(g_hCarTrie, car_key, parentEntity) )
     {
         CreateTimer( 0.01, Timer_CheckAlarm, parentEntity, TIMER_FLAG_NO_MAPCHANGE );
-        
+
         FormatEx(car_key, sizeof(car_key), "%x", parentEntity);
         SetTrieValue(g_hCarTrie, car_key, attacker);
-        
+
         if ( damagetype & DMG_BLAST )
         {
             if ( IS_VALID_INFECTED(inflictor) && GetEntProp(inflictor, Prop_Send, "m_zombieClass") == ZC_BOOMER ) {
@@ -2325,42 +2325,42 @@ public Action: OnTakeDamage_CarGlass ( victim, &attacker, &inflictor, &Float:dam
             g_iLastCarAlarmReason[attacker] = CALARM_HIT;
         }
     }
-    
+
     return Plugin_Continue;
 }
 
 public OnTouch_CarGlass ( entity, client )
 {
     if ( !IS_VALID_SURVIVOR(client) ) { return; }
-    
+
     decl String:car_key[10];
     FormatEx(car_key, sizeof(car_key), "%x", entity);
     new parentEntity;
-    
+
     if ( GetTrieValue(g_hCarTrie, car_key, parentEntity) )
     {
         CreateTimer( 0.01, Timer_CheckAlarm, parentEntity, TIMER_FLAG_NO_MAPCHANGE );
-        
+
         FormatEx(car_key, sizeof(car_key), "%x", parentEntity);
         SetTrieValue(g_hCarTrie, car_key, client);
-        
+
         g_iLastCarAlarmReason[client] = CALARM_TOUCHED;
     }
-    
+
     return;
 }
 
 public Action: Timer_CheckAlarm (Handle:timer, any:entity)
 {
     //PrintToChatAll( "checking alarm: time: %.3f", GetGameTime() - g_fLastCarAlarm );
-    
+
     if ((GetGameTime() - g_fLastCarAlarm) < CARALARM_MIN_TIME )
     {
         // got a match, drop stuff from trie and handle triggering
         decl String:car_key[10];
         new testEntity;
         new survivor = -1;
-        
+
         // remove car glass
         FormatEx(car_key, sizeof(car_key), "%x_A", entity);
         if ( GetTrieValue(g_hCarTrie, car_key, testEntity) )
@@ -2376,7 +2376,7 @@ public Action: Timer_CheckAlarm (Handle:timer, any:entity)
             SDKUnhook(testEntity, SDKHook_OnTakeDamage, OnTakeDamage_CarGlass);
             SDKUnhook(testEntity, SDKHook_Touch, OnTouch_CarGlass);
         }
-        
+
         // remove car
         FormatEx(car_key, sizeof(car_key), "%x", entity);
         if ( GetTrieValue(g_hCarTrie, car_key, survivor) )
@@ -2385,7 +2385,7 @@ public Action: Timer_CheckAlarm (Handle:timer, any:entity)
             SDKUnhook(entity, SDKHook_OnTakeDamage, OnTakeDamage_Car);
             SDKUnhook(entity, SDKHook_Touch, OnTouch_Car);
         }
-        
+
         // check for infected assistance
         new infected = 0;
         if ( IS_VALID_SURVIVOR(survivor) )
@@ -2422,11 +2422,11 @@ public Action: L4D_OnCThrowActivate ( ability )
 {
     // tank throws rock
     if ( !IsValidEntity(ability) ) { return Plugin_Continue; }
-    
+
     // find tank player
     new tank = GetEntPropEnt(ability, Prop_Send, "m_owner");
     if ( !IS_VALID_INGAME(tank) ) { return Plugin_Continue; }
-    
+
     ...
 }
 */
@@ -2450,7 +2450,7 @@ stock HandlePop( attacker, victim, shoveCount, Float:timeAlive )
             PrintToChatAll( "\x04%N\x01 popped a boomer.", attacker );
         }
     }*/
-    
+
     Call_StartForward(g_hForwardBoomerPop);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2474,7 +2474,7 @@ stock HandleLevel( attacker, victim )
             CPrintToChatAll( "{green}★★★ {olive}%N {blue}fully {default}leveled {olive}a charger", attacker );
         }
     }
-    
+
     // call forward
     Call_StartForward(g_hForwardLevel);
     Call_PushCell(attacker);
@@ -2496,7 +2496,7 @@ stock HandleLevelHurt( attacker, victim, damage )
             CPrintToChatAll( "{green}★ {olive}%N {blue}chip-leveled {default}a charger ({blue}%i dmg{default})", attacker, damage );
         }
     }
-    
+
     // call forward
     Call_StartForward(g_hForwardLevelHurt);
     Call_PushCell(attacker);
@@ -2520,7 +2520,7 @@ stock HandleDeadstop( attacker, victim )
             CPrintToChatAll( "{green}★ {olive}%N {blue}deadstopped {olive}a hunter", attacker );
         }
     }*/
-    
+
     Call_StartForward(g_hForwardHunterDeadstop);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2541,7 +2541,7 @@ stock HandleShove( attacker, victim, zombieClass )
             PrintToChatAll( "\x04%N\x01 shoved an SI.", attacker );
         }
     }*/
-    
+
     Call_StartForward(g_hForwardSIShove);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2569,7 +2569,7 @@ stock HandleSkeet( attacker, victim, bool:bMelee = false, bool:bSniper = false, 
             PrintToChatAll( "\x04%N\x01 %sskeeted \x05%N\x01.",
                     attacker,
                     (bMelee) ? "melee-": ((bSniper) ? "headshot-" : ((bGL) ? "grenade-" : "") ),
-                    victim 
+                    victim
                 );
         }
         else if ( IS_VALID_INGAME(attacker) )
@@ -2580,7 +2580,7 @@ stock HandleSkeet( attacker, victim, bool:bMelee = false, bool:bSniper = false, 
                 );
         }
     }*/
-    
+
     // call forward
     if ( bSniper )
     {
@@ -2628,7 +2628,7 @@ stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, bool:bMe
             PrintToChatAll( "\x01Hunter was \x04not\x01 skeeted (\x03%i\x01 damage).%s", damage, (bOverKill) ? "(Would've skeeted if hunter were unchipped!)" : "" );
         }
     }*/
-    
+
     // call forward
     if ( bSniper )
     {
@@ -2674,7 +2674,7 @@ HandleCrown( attacker, damage )
             PrintToChatAll( "A witch was crowned." );
         }
     }*/
-    
+
     // call forward
     Call_StartForward(g_hForwardCrown);
     Call_PushCell(attacker);
@@ -2696,7 +2696,7 @@ HandleDrawCrown( attacker, damage, chipdamage )
             PrintToChatAll( "A witch was draw-crowned (\x03%i\x01 damage, \x05%i\x01 chip).", damage, chipdamage );
         }
     }*/
-    
+
     // call forward
     Call_StartForward(g_hForwardDrawCrown);
     Call_PushCell(attacker);
@@ -2720,7 +2720,7 @@ HandleTongueCut( attacker, victim )
             CPrintToChatAll( "{green}★★ {olive}%N {blue}cut {default}smoker tongue", attacker );
         }
     }
-    
+
     // call forward
     Call_StartForward(g_hForwardTongueCut);
     Call_PushCell(attacker);
@@ -2731,7 +2731,7 @@ HandleTongueCut( attacker, victim )
 HandleSmokerSelfClear( attacker, victim, bool:withShove = false )
 {
     // report?
-    if (GetConVarBool(g_hCvarReport)) 
+    if (GetConVarBool(g_hCvarReport))
     {
         if ( IS_VALID_INGAME(attacker) && IS_VALID_INGAME(victim) && !IsFakeClient(victim) )
         {
@@ -2742,7 +2742,7 @@ HandleSmokerSelfClear( attacker, victim, bool:withShove = false )
             CPrintToChatAll( "{green}★★ {olive}%N {blue}self-cleared {default}from a smoker tongue{blue}%s", attacker, (withShove) ? " by shoving" : "" );
         }
     }
-    
+
     // call forward
     Call_StartForward(g_hForwardSmokerSelfClear);
     Call_PushCell(attacker);
@@ -2775,7 +2775,7 @@ HandleRockSkeeted( attacker, victim )
         */
         CPrintToChatAll( "{green}★ {olive}%N {blue}skeeted {default}a tank rock", attacker );
     }
-    
+
     Call_StartForward(g_hForwardRockSkeeted);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2799,7 +2799,7 @@ stock HandleHunterDP( attacker, victim, actualDamage, Float:calculatedDamage, Fl
             CPrintToChatAll( "{green}★★ {olive}A hunter {red}high-pounced {olive}%N {default}({red}%i {default}dmg, height: {red}%i{default})", victim, RoundFloat(calculatedDamage), RoundFloat(height) );
         }
     }
-    
+
     Call_StartForward(g_hForwardHunterDP);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2826,7 +2826,7 @@ stock HandleJockeyDP( attacker, victim, Float:height )
             CPrintToChatAll( "{green}★★★ {olive}A jockey {red}high-pounced {olive}%N {default}({red}height{default}: {red}%i{default})", victim, RoundFloat(height) );
         }
     }
-    
+
     Call_StartForward(g_hForwardJockeyDP);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2856,11 +2856,11 @@ stock HandleDeathCharge( attacker, victim, Float:height, Float:distance, bool:bC
             CPrintToChatAll( "{green}★★★★ {olive}A charger {red}death-charged {olive}%N{default} %s({red}height{default}: {red}%i{default})",
                     victim,
                     (bCarried) ? "" : "by bowling ",
-                    RoundFloat(height) 
+                    RoundFloat(height)
                 );
         }
     }
-    
+
     Call_StartForward(g_hForwardDeathCharge);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2876,16 +2876,16 @@ stock HandleClear( attacker, victim, pinVictim, zombieClass, Float:clearTimeA, F
     // sanity check:
     if ( clearTimeA < 0 && clearTimeA != -1.0 ) { clearTimeA = 0.0; }
     if ( clearTimeB < 0 && clearTimeB != -1.0 ) { clearTimeB = 0.0; }
-    
+
     PrintDebug(0, "Clear: %i freed %i from %i: time: %.2f / %.2f -- class: %s (with shove? %i)", attacker, pinVictim, victim, clearTimeA, clearTimeB, g_csSIClassName[zombieClass], bWithShove );
-    
+
     if ( attacker != pinVictim && GetConVarBool(g_hCvarReport))
     {
         new Float: fMinTime = GetConVarFloat(g_hCvarInstaTime);
         new Float: fClearTime = clearTimeA;
         if ( zombieClass == ZC_CHARGER || zombieClass == ZC_SMOKER ) { fClearTime = clearTimeB; }
-        
-        
+
+
         if ( fClearTime != -1.0 && fClearTime <= fMinTime )
         {
             if ( IS_VALID_INGAME(attacker) && IS_VALID_INGAME(victim) && !IsFakeClient(victim) )
@@ -2924,7 +2924,7 @@ stock HandleClear( attacker, victim, pinVictim, zombieClass, Float:clearTimeA, F
             }
         }
     }
-    
+
     Call_StartForward(g_hForwardClear);
     Call_PushCell(attacker);
     Call_PushCell(victim);
@@ -2958,7 +2958,7 @@ stock HandleBHopStreak( survivor, streak, Float: maxVelocity )
                 maxVelocity
             );
     }
-    
+
     Call_StartForward(g_hForwardBHopStreak);
     Call_PushCell(survivor);
     Call_PushCell(streak);
@@ -3016,7 +3016,7 @@ stock HandleCarAlarmTriggered( survivor, infected, reason )
             PrintToChatAll( "\x05%N\x01 triggered an alarm.", survivor );
         }
     }*/
-    
+
     Call_StartForward(g_hForwardAlarmTriggered);
     Call_PushCell(survivor);
     Call_PushCell(infected);
@@ -3038,7 +3038,7 @@ stock GetSurvivorTempHealth(client)
 	new temphp = RoundToCeil(
             GetEntPropFloat(client, Prop_Send, "m_healthBuffer")
             - ( (GetGameTime() - GetEntPropFloat(client, Prop_Send, "m_healthBufferTime") )
-            * GetConVarFloat( FindConVar("pain_pills_decay_rate"))) 
+            * GetConVarFloat( FindConVar("pain_pills_decay_rate")))
         ) - 1;
 	return (temphp > 0 ? temphp : 0);
 }
@@ -3050,11 +3050,11 @@ stock Float: GetSurvivorDistance(client)
 stock ShiftTankThrower()
 {
     new tank = -1;
-    
+
     if ( !g_iRocksBeingThrownCount ) { return -1; }
-    
+
     tank = g_iRocksBeingThrown[0];
-    
+
     // shift the tank array downwards, if there are more than 1 throwers
     if ( g_iRocksBeingThrownCount > 1 )
     {
@@ -3063,9 +3063,9 @@ stock ShiftTankThrower()
             g_iRocksBeingThrown[x-1] = g_iRocksBeingThrown[x];
         }
     }
-    
+
     g_iRocksBeingThrownCount--;
-    
+
     return tank;
 }
 /*  Height check..
@@ -3075,16 +3075,16 @@ static Float: GetHeightAboveGround( Float:pos[3] )
 {
     // execute Trace straight down
     new Handle:trace = TR_TraceRayFilterEx( pos, ANGLE_STRAIGHT_DOWN, MASK_SHOT, RayType_Infinite, ChargeTraceFilter );
-    
+
     if (!TR_DidHit(trace))
     {
         LogError("Tracer Bug: Trace did not hit anything...");
     }
-    
+
     decl Float:vEnd[3];
     TR_GetEndPosition(vEnd, trace); // retrieve our trace endpoint
     CloseHandle(trace);
-    
+
     return GetVectorDistance(pos, vEnd, false);
 }
 
@@ -3107,11 +3107,11 @@ stock PrintDebug(debuglevel, const String:Message[], any:... )
 stock bool: IsWitch(entity)
 {
     if ( !IsValidEntity(entity) ) { return false; }
-    
+
     decl String: classname[24];
     new strOEC: classnameOEC;
     GetEdictClassname(entity, classname, sizeof(classname));
     if ( !GetTrieValue(g_hTrieEntityCreated, classname, classnameOEC) || classnameOEC != OEC_WITCH ) { return false; }
-    
+
     return true;
 }

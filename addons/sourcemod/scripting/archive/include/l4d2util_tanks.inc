@@ -47,7 +47,7 @@ forward void OnTankDeath(int iOldTank);
 
 
 /**
- * Is the player the tank? 
+ * Is the player the tank?
  *
  * @param client client ID
  * @return bool
@@ -60,7 +60,7 @@ stock bool IsTank(int client)
 }
 
 /**
- * Is the tank able to punch the entity with the tank for instant incaps? 
+ * Is the tank able to punch the entity with the tank for instant incaps?
  *
  * @param iEntity entity ID
  * @return bool
@@ -73,7 +73,7 @@ stock bool IsTankHittable(int iEntity)
 
 	char className[64];
 	GetEdictClassname(iEntity, className, sizeof(className));
-	
+
 	if (strcmp(className, "prop_physics") == 0) {
 		if (GetEntProp(iEntity, Prop_Send, "m_hasTankGlow", 1)) {
 			return true;
@@ -111,7 +111,7 @@ stock void SetTankFrustration(int iTankClient, int iFrustration)
 	if (iFrustration < 0 || iFrustration > 100) {
 		ThrowError("Native SetTankFrustration. Invalid parameter passed: %d", iFrustration);
 	}
-	
+
 	int iSetFrustration = 100 - iFrustration;
 	SetEntProp(iTankClient, Prop_Send, "m_frustration", iSetFrustration);
 }
@@ -136,7 +136,7 @@ stock bool IsEntityOnFire(int entity)
 stock int FindTankClient(int iTankClient)
 {
 	int i = (iTankClient < 0) ? 1 : iTankClient + 1;
-	
+
 	for (; i <= MaxClients; i++) {
 		if (IsTank(i)) {
 			return i;
@@ -186,6 +186,6 @@ stock int NumTanksInPlay()
 			count++;
 		}
 	}
-	
+
 	return count;
 }

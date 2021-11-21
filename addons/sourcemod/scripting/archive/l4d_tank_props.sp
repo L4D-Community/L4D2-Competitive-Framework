@@ -74,7 +74,7 @@ void PluginEnable()
 	HookEvent("player_death", TankPropTankKilled);
 }
 
-void PluginDisable() 
+void PluginDisable()
 {
 	sv_tankpropfade.BoolValue = true;
 
@@ -96,7 +96,7 @@ public void TankPropsChange(Handle convar, const char[] oldValue, const char[] n
 	}
 }
 
-public void TankPropRoundReset(Event event, const char[] name, bool dontBroadcast) 
+public void TankPropRoundReset(Event event, const char[] name, bool dontBroadcast)
 {
 	tankSpawned = false;
 
@@ -104,7 +104,7 @@ public void TankPropRoundReset(Event event, const char[] name, bool dontBroadcas
 	ClearArray(hTankPropsHit);
 }
 
-public void TankPropTankSpawn(Event event, const char[] name, bool dontBroadcast) 
+public void TankPropTankSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!tankSpawned) {
 		UnhookTankProps();

@@ -10,7 +10,7 @@
 #define PLUGIN_VERSION "3.0.2"
 #define DEBUG 0
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "[L4D2] Long Charger Get-Up Fix",
 	author = "Spoon, Forgetest",
@@ -78,11 +78,11 @@ public void OnPluginStart()
 	HookEvent("jockey_ride_end", Event_JockeyRideEnd, EventHookMode_Pre);
 	HookEvent("player_bot_replace", Event_PlayerBotReplace, EventHookMode_Post);
 	HookEvent("bot_player_replace", Event_BotPlayerReplace, EventHookMode_Post);
-	
+
 	g_hChargeDuration = FindConVar("gfc_charger_duration");
 	g_hLongChargeDuration = CreateConVar("gfc_long_charger_duration", "2.2", "God frame duration for long charger getup animations");
-	
-	
+
+
 	// Cvars
 	cvar_longChargeGetUpFixEnabled = CreateConVar("charger_long_getup_fix", "1", "Enable the long Charger get-up fix?");
 	//cvar_keepWallSlamLongGetUp = CreateConVar("charger_keep_wall_charge_animation", "1", "Enable the long wall slam animation (with god frames)");
@@ -117,7 +117,7 @@ public void OnClientDisconnect(int client)
 }
 
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
-{	
+{
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		bWallSlamed[i] = false;
@@ -136,7 +136,7 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if (client <= 0) return;
 	int oldTeam = GetEventInt(event, "oldteam");
-	
+
 	if (oldTeam == TEAM_INFECTED)
 	{ // Not really needed but better safe than sorry I guess
 		ChargerTarget[client] = -1;
@@ -146,7 +146,7 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 		bWallSlamed[client] = false;
 		bInForcedGetUp[client] = false;
 		bIgnoreJockeyed[client] = false;
-		
+
 		// Update ChargerTarget of disconnected client
 		for (int i = 1; i <= MaxClients; i++)
 		{
@@ -197,23 +197,23 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	if (!IsCharger(attacker) || !IsSurvivor(victim)) {
 		return Plugin_Continue;
 	}
-	
+
 	char classname[64];
 	GetClientWeapon(attacker, classname, sizeof(classname));
 	if (strcmp(classname, "weapon_charger_claw") != 0) {
 		return Plugin_Continue;
 	}
-	
+
 	if (damage == 10.0 && GetVectorLength(damageForce) == 0.0)
 	{
 		// CHARGE IMPACT
 		bWallSlamed[victim] = true;
-		
+
 		// In case this damage is blocked
 		// (barely happen since charger cannot impact one in godframe)
 		CreateTimer(0.1, Timer_Uncheck, victim);
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -222,12 +222,12 @@ public void OnTakeDamagePost(int victim, int attacker, int inflictor, float dama
 	if (bWallSlamed[victim])
 	{
 		bWallSlamed[victim] = false;
-		
+
 		if (IsSurvivor(victim) && IsPlayerAlive(victim) && !IsPlayerIncap(victim))
 		{
 			ChargerTarget[attacker] = victim;
 			bInForcedGetUp[victim] = true;
-			
+
 			// Adds one get-up into stack
 			PlayClientGetUpAnimation(victim);
 		}
@@ -244,11 +244,11 @@ public void Event_PummelStart(Event event, const char[] name, bool dontBroadcast
 
 	int chargerClient = GetClientOfUserId(GetEventInt(event, "userid"));
 	int survivorClient = GetClientOfUserId(GetEventInt(event, "victim"));
-	
+
 	if (survivorClient > 0 && chargerClient > 0)
 	{
 		ChargerTarget[chargerClient] = survivorClient;
-		
+
 		// Once a charge goes into the pound section, the get-up stack will be overridden.
 		// Here uncheck our stuffs.
 		bInForcedGetUp[survivorClient] = false;
@@ -274,7 +274,7 @@ public void Event_ChargerKilled(Event event, const char[] name, bool dontBroadca
 				PrintToChatAll("\x01> IgnoreJockeyed: \x05%i", bIgnoreJockeyed[survivorClient]);
 			#endif
 			bInForcedGetUp[survivorClient] = false;
-			
+
 			// NOTE:
 			//
 			// Overall, we should manually override the wall-slam get-ups from longer ones to normal ones,
@@ -290,15 +290,15 @@ public void Event_ChargerKilled(Event event, const char[] name, bool dontBroadca
 			//   2. The opposite to (1), the normal happening ones.
 			//        - We need to cancel the get-up added previously.
 			//        - If it is wall-slam, we must override the animation to normal get-up one.
-			
+
 			if (!bIgnoreJockeyed[survivorClient])
 			{
 				CancelGetUpAnimation(survivorClient);
 			}
 		}
-		
+
 		if (IsPlayingGetUpAnimation(survivorClient, 2))
-		{ // Long Charge Get Up		
+		{ // Long Charge Get Up
 			#if DEBUG
 				PrintToChatAll("\x01> \x05Event_ChargerKilled \x01- \x04Long Charge");
 			#endif
@@ -315,7 +315,7 @@ public void Event_ChargerKilled(Event event, const char[] name, bool dontBroadca
 				}
 				GiveClientGodFrames(survivorClient, GetConVarFloat(g_hLongChargeDuration), 6);
 			}
-		} 
+		}
 		else if (IsPlayingGetUpAnimation(survivorClient, 1))
 		{ // Wall Slam Get Up
 			#if DEBUG
@@ -334,7 +334,7 @@ public void Event_ChargerKilled(Event event, const char[] name, bool dontBroadca
 			CreateTimer(0.02, BlueMoonCaseCheck, chargerClient);
 			return;
 		}
-		
+
 		ResetChargerTarget(chargerClient);
 		ResetIgnoreJockeyed(survivorClient);
 	}
@@ -353,7 +353,7 @@ void ResetIgnoreJockeyed(int survivorClient)
 public Action BlueMoonCaseCheck(Handle timer, int chargerClient)
 {
 	int survivorClient = ChargerTarget[chargerClient];
-	
+
 	#if DEBUG
 		PrintToChatAll("\x05BlueMoonCaseCheck \x01- victim: \x05%N \x01| seq: \x05%i", survivorClient, GetEntProp(survivorClient, Prop_Send, "m_nSequence"));
 	#endif
@@ -375,7 +375,7 @@ public Action BlueMoonCaseCheck(Handle timer, int chargerClient)
 			}
 			GiveClientGodFrames(survivorClient, GetConVarFloat(g_hLongChargeDuration), 6);
 		}
-	} 
+	}
 	else if (IsPlayingGetUpAnimation(survivorClient, 1))
 	{ // Wall Slam Get Up
 		#if DEBUG
@@ -388,7 +388,7 @@ public Action BlueMoonCaseCheck(Handle timer, int chargerClient)
 		}
 		GiveClientGodFrames(survivorClient, GetConVarFloat(g_hLongChargeDuration), 6);
 	}
-	
+
 	ResetChargerTarget(chargerClient);
 	ResetIgnoreJockeyed(survivorClient);
 
@@ -401,7 +401,7 @@ public void Event_ChargeCarryStart(Event event, const char[] name, bool dontBroa
 
 	int chargerClient = GetClientOfUserId(GetEventInt(event, "userid"));
 	int survivorClient = GetClientOfUserId(GetEventInt(event, "victim"));
-	
+
 	if (survivorClient > 0 && chargerClient > 0)
 	{
 		#if DEBUG
@@ -420,22 +420,22 @@ public void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 	int chargerClient;
 	int survivorUserId =  GetEventInt(event, "userid");
 	int chargerUserId = GetEventInt(event, "attacker");
-	
+
 	if (survivorUserId)
 		survivorClient = GetClientOfUserId(survivorUserId);
 	if (chargerUserId)
 		chargerClient = GetClientOfUserId(chargerUserId);
-		
+
 	if (!IsCharger(chargerClient) || !IsSurvivor(survivorClient)) return;
-	
-	ChargerTarget[chargerClient] = survivorClient; 
+
+	ChargerTarget[chargerClient] = survivorClient;
 }
 
 public void Event_JockeyRide(Event event, const char[] name, bool dontBroadcast)
 {
 	int jockey = GetClientOfUserId(event.GetInt("userid"));
 	int survivor = GetClientOfUserId(event.GetInt("victim"));
-	
+
 	if (jockey > 0 && survivor > 0)
 	{
 		bIgnoreJockeyed[survivor] = true;
@@ -449,14 +449,14 @@ public void Event_JockeyRideEnd(Event event, const char[] name, bool dontBroadca
 {
 	int jockey = GetClientOfUserId(event.GetInt("userid"));
 	int survivor = GetClientOfUserId(event.GetInt("victim"));
-	
+
 	if (jockey > 0 && survivor > 0)
 	{
 		#if DEBUG
 			PrintToChatAll("\x05Event_JockeyRideEnd \x01- victim: \x05%N \x01| jockey: \x05%N", survivor, jockey);
 		#endif
 		bIgnoreJockeyed[survivor] = false;
-		
+
 		#if DEBUG
 			PrintToChatAll("\x01> ignore: \x05%i", bIgnoreJockeyed[survivor]);
 		#endif
@@ -479,7 +479,7 @@ public void Event_PlayerBotReplace(Event event, const char[] name, bool dontBroa
 {
 	int player = GetClientOfUserId(event.GetInt("player"));
 	int bot = GetClientOfUserId(event.GetInt("bot"));
-	
+
 	if (player > 0 && bot > 0)
 	{
 		if (bIgnoreJockeyed[player] && IsJockeyed(bot))
@@ -494,7 +494,7 @@ public void Event_BotPlayerReplace(Event event, const char[] name, bool dontBroa
 {
 	int player = GetClientOfUserId(event.GetInt("player"));
 	int bot = GetClientOfUserId(event.GetInt("bot"));
-	
+
 	if (player > 0 && bot > 0)
 	{
 		if (bIgnoreJockeyed[bot] && IsJockeyed(player))
@@ -516,7 +516,7 @@ stock int GetSequenceInt(int client, int type)
 
 	char survivorModel[PLATFORM_MAX_PATH];
 	GetClientModel(client, survivorModel, sizeof(survivorModel));
-	
+
 	if(StrEqual(survivorModel, "models/survivors/survivor_coach.mdl", false))
 	{
 		switch(type)
@@ -581,11 +581,11 @@ stock int GetSequenceInt(int client, int type)
 			case 2: return SEQ_LONG_FRANCIS;
 		}
 	}
-	
+
 	return -1;
 }
 
-bool IsPlayingGetUpAnimation(int survivor, int type)  
+bool IsPlayingGetUpAnimation(int survivor, int type)
 {
 	if (survivor < 1)
 		return false;
@@ -595,7 +595,7 @@ bool IsPlayingGetUpAnimation(int survivor, int type)
 	return false;
 }
 
-stock bool IsCharger(int client)  
+stock bool IsCharger(int client)
 {
 	if (!IsInfected(client))
 		return false;
@@ -610,7 +610,7 @@ stock bool IsJockey(int client)
 {
 	if (!IsInfected(client))
 		return false;
-		
+
 	if (GetEntProp(client, Prop_Send, "m_zombieClass") != ZC_JOCKEY)
 		return false;
 

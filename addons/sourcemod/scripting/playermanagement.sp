@@ -77,19 +77,19 @@ public OnPluginStart()
 	z_max_player_zombies = FindConVar("z_max_player_zombies");
 
 	l4d_pm_supress_spectate = CreateConVar("l4d_pm_supress_spectate", "0", "Don't print messages when players spectate");
-	
-	
+
+
 	Handle hGamedata = LoadGameConfigFile(GAMEDATA);
 
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	m_queuedPummelAttacker = GameConfGetOffset(hGamedata, "CTerrorPlayer->m_queuedPummelAttacker");
 	if (m_queuedPummelAttacker == -1) {
 		SetFailState("Failed to get offset 'CTerrorPlayer->m_queuedPummelAttacker'.");
 	}
-	
+
 	delete hGamedata;
 }
 
@@ -181,12 +181,12 @@ public Action Spectate_Cmd(int client, int args)
 			CreateTimer(0.1, RespecDelay_Timer, client);
 		}
 	}
-	
+
 	if (!GetConVarBool(l4d_pm_supress_spectate) && team != L4D2Team_Spectator && SpecTimer[client] == INVALID_HANDLE)
 	{
 		CPrintToChatAllEx(client, "{teamcolor}%N{default} has become a spectator!", client);
 	}
-	
+
 	if (SpecTimer[client] == INVALID_HANDLE) SpecTimer[client] = CreateTimer(7.0, SecureSpec, client);
 	return Plugin_Handled;
 }
@@ -201,7 +201,7 @@ public Action SecureSpec(Handle timer, any client)
 
 public Action RespecDelay_Timer(Handle timer, any client)
 {
-	if (IsClientInGame(client)) 
+	if (IsClientInGame(client))
 	{
 		ChangeClientTeamEx(client, L4D2Team_Spectator, true);
 		blockVotes[client] = false;
@@ -217,8 +217,8 @@ public Action Vote_Listener(int client, const char[] command, int argc)
 
 public Action TeamChange_Listener(int client, const char[] command, int argc)
 {
-	// Invalid 
-	if(!IsClientInGame(client) || argc < 1) 
+	// Invalid
+	if(!IsClientInGame(client) || argc < 1)
 		return Plugin_Handled;
 
 	// Not a jockey with a victim, don't care
@@ -226,7 +226,7 @@ public Action TeamChange_Listener(int client, const char[] command, int argc)
 	|| GetZombieClass(client) != 5
 	|| GetEntProp(client, Prop_Send, "m_jockeyVictim") < 1)
 		return Plugin_Continue;
- 
+
  	// Block Jockey from switching team.
 	return Plugin_Handled;
 }
@@ -277,7 +277,7 @@ public Action Swap_Cmd(int client, int args)
 				target_name,
 				sizeof(target_name),
 				tn_is_ml);
-		
+
 		for (int j = 0; j < targetCount; j++)
 		{
 			target = targets[j];
@@ -337,7 +337,7 @@ public Action SwapTo_Cmd(int client, int args)
 				target_name,
 				sizeof(target_name),
 				tn_is_ml);
-		
+
 		for (int j = 0; j < targetCount; j++)
 		{
 			target = targets[j];
@@ -427,7 +427,7 @@ stock bool ChangeClientTeamEx(int client, L4D2Team:team, bool force)
 stock GetTeamHumanCount(L4D2Team:team)
 {
 	int humans = 0;
-	
+
 	for (int client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client) && GetClientTeamEx(client) == team)
@@ -435,14 +435,14 @@ stock GetTeamHumanCount(L4D2Team:team)
 			humans++;
 		}
 	}
-	
+
 	return humans;
 }
 
 stock GetHumanCount()
 {
 	new humans = 0;
-	
+
 	for (new client = 1; client <= MaxClients; client++)
 	{
 		if (IsClientInGame(client) && !IsFakeClient(client))
@@ -450,7 +450,7 @@ stock GetHumanCount()
 			humans++;
 		}
 	}
-	
+
 	return humans;
 }
 

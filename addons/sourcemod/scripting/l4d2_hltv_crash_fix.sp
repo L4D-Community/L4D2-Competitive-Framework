@@ -65,31 +65,31 @@ public void OnPluginStart()
 	if (GetEngineVersion() != Engine_Left4Dead2) {
 		SetFailState("This plugin is only for L4D2!");
 	}
-	
+
 	Handle hGameData = LoadGameConfigFile(GAMEDATA);
 	if (!hGameData) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	g_pPatchAddress = GameConfGetAddress(hGameData, ADDRESS_KEY);
 	if (g_pPatchAddress == Address_Null) {
 		SetFailState("Failed to get address of '%s'", ADDRESS_KEY);
 	}
-	
+
 	int iOffset = GameConfGetOffset(hGameData, OFFSET_KEY);
 	if (iOffset == -1) {
 		SetFailState("Failed to get offset from '%s'", OFFSET_KEY);
 	}
-	
+
 	g_iPlatform = GameConfGetOffset(hGameData, "Platform");
 	if (g_iPlatform != eWindows && g_iPlatform != eLinux) {
 		SetFailState("Section not specified 'Platform'.");
 	}
-	
+
 	g_pPatchAddress += view_as<Address>(iOffset);
-	
+
 	CheckPatch(true);
-	
+
 	delete hGameData;
 }
 
@@ -105,26 +105,26 @@ void CheckPatch(bool bIsPatch)
 			PrintToServer("[%s] Plugin already enabled", GAMEDATA);
 			return;
 		}
-		
+
 		if (g_iPlatform == eLinux) {
 			CheckAndPatchBytes(g_pPatchAddress, g_iLinOriginalBytes, g_iLinPatchBytes, sizeof(g_iLinOriginalBytes));
 		} else {
 			CheckAndPatchBytes(g_pPatchAddress, g_iWinOriginalBytes, g_iWinPatchBytes, sizeof(g_iWinOriginalBytes));
 		}
-		
+
 		g_bIsPatched = true;
 	} else {
 		if (!g_bIsPatched) {
 			PrintToServer("[%s] Plugin already disabled", GAMEDATA);
 			return;
 		}
-		
+
 		if (g_iPlatform == eLinux) {
 			PatchBytes(g_pPatchAddress, g_iLinOriginalBytes, sizeof(g_iLinPatchBytes));
 		} else {
 			PatchBytes(g_pPatchAddress, g_iWinOriginalBytes, sizeof(g_iWinOriginalBytes));
 		}
-		
+
 		g_bIsPatched = false;
 	}
 }
@@ -132,26 +132,26 @@ void CheckPatch(bool bIsPatch)
 void CheckAndPatchBytes(const Address pAddress, const int[] iCheckBytes, const int[] iPatchBytes, const int iPatchSize)
 {
 	int iReadByte = -1, iByteCount = 0;
-	
+
 	for (int i = 0; i < iPatchSize; i++) {
 		iReadByte = LoadFromAddress(pAddress + view_as<Address>(i), NumberType_Int8);
-		
+
 		if (iCheckBytes[i] < 0 || iReadByte != iCheckBytes[i]) {
 			if (iReadByte == iPatchBytes[i]) {
 				iByteCount++;
 				continue;
 			}
-			
+
 			PrintToServer("Check bytes failed. Invalid byte (read: %x@%i, expected byte: %x@%i). Check offset '%s'.", iReadByte, i, iCheckBytes[i], i, OFFSET_KEY);
 			SetFailState("Check bytes failed. Invalid byte (read: %x@%i, expected byte: %x@%i). Check offset '%s'.", iReadByte, i, iCheckBytes[i], i, OFFSET_KEY);
 		}
 	}
-	
+
 	if (iByteCount == iPatchSize) {
 		PrintToServer("[%s] The patch is already installed.", GAMEDATA);
 		return;
 	}
-	
+
 	PatchBytes(pAddress, iPatchBytes, iPatchSize);
 }
 
@@ -162,7 +162,7 @@ void PatchBytes(const Address pAddress, const int[] iPatchBytes, const int iPatc
 			PrintToServer("Patch bytes failed. Invalid write byte: %x@%i. Check offset '%s'.", iPatchBytes[i], i, OFFSET_KEY);
 			SetFailState("Patch bytes failed. Invalid write byte: %x@%i. Check offset '%s'.", iPatchBytes[i], i, OFFSET_KEY);
 		}
-		
+
 		StoreToAddress(pAddress + view_as<Address>(i), iPatchBytes[i], NumberType_Int8);
 		PrintToServer("[%s] Write byte %x@%i", GAMEDATA, iPatchBytes[i], i);
 	}

@@ -7,9 +7,9 @@ new bool:UB_bEnabled = true;
 UB_OnModuleStart()
 {
 	UB_hEnable = CreateConVarEx("boss_unprohibit", "1", "Enable bosses spawning on all maps, even through they normally aren't allowed");
-	
+
 	HookConVarChange(UB_hEnable,UB_ConVarChange);
-	
+
 	UB_bEnabled = GetConVarBool(UB_hEnable);
 }
 
@@ -27,11 +27,11 @@ Action:UB_OnGetScriptValueInt(const String:key[], &retVal)
 			retVal = 0;
 			return Plugin_Handled;
 		}
-		
+
 		if(StrEqual(key, "ProhibitBosses"))
 		{
 			retVal = 0;
-			return Plugin_Handled;		
+			return Plugin_Handled;
 		}
 	}
 	return Plugin_Continue;

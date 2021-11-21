@@ -15,7 +15,7 @@ enum
 {
 	eiEntRef = 0,
 	ebHasBeenSeen,
-	
+
 	eArray_Size
 };
 
@@ -69,7 +69,7 @@ public void OnPluginStart()
 {
 	L4D2Weapons_Init();
 	g_hBlockedEntities = new ArrayList(eArray_Size);
-	
+
 	HookEvent("round_start", RoundStart_Event, EventHookMode_PostNoCopy);
 
 	CreateTimer(ENT_CHECK_INTERVAL, Timer_EntCheck, _, TIMER_REPEAT);
@@ -79,15 +79,15 @@ public Action Timer_EntCheck(Handle hTimer)
 {
 	char sTmp[PLATFORM_MAX_PATH];
 	int iCurrentEnt[eArray_Size], iEntity, iSize = g_hBlockedEntities.Length;
-	
+
 	for (int i = 0; i < iSize; i++) {
 		g_hBlockedEntities.GetArray(i, iCurrentEnt[0], sizeof(iCurrentEnt));
 		iEntity = EntRefToEntIndex(iCurrentEnt[eiEntRef]);
-		
+
 		if (iEntity != INVALID_ENT_REFERENCE && !iCurrentEnt[ebHasBeenSeen] && IsVisibleToSurvivors(iEntity)) {
 			GetEntPropString(iEntity, Prop_Data, "m_ModelName", sTmp, sizeof(sTmp));
 			iCurrentEnt[ebHasBeenSeen] = true;
-			
+
 			g_hBlockedEntities.SetArray(i, iCurrentEnt[0], sizeof(iCurrentEnt));
 		}
 	}
@@ -98,7 +98,7 @@ public Action Timer_EntCheck(Handle hTimer)
 public void RoundStart_Event(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	g_hBlockedEntities.Clear();
-	
+
 	CreateTimer(1.2, RoundStartDelay_Timer, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
@@ -113,12 +113,12 @@ public Action RoundStartDelay_Timer(Handle hTimer)
 			for (int j = 0; j < sizeof(g_iIdsToBlock); j++) {
 				if (iWeapon == g_iIdsToBlock[j]) {
 					SDKHook(i, SDKHook_SetTransmit, OnTransmit);
-					
+
 					iBhTemp[eiEntRef] = EntIndexToEntRef(i);
 					iBhTemp[ebHasBeenSeen] = false;
-					
+
 					g_hBlockedEntities.PushArray(iBhTemp[0], sizeof(iBhTemp));
-					
+
 					break;
 				}
 			}
@@ -133,16 +133,16 @@ public Action OnTransmit(int iEntity, int iClient)
 	if (GetClientTeam(iClient) != L4D2Team_Infected) {
 		return Plugin_Continue;
 	}
-	
+
 	int iCurrentEnt[eArray_Size], iSize = g_hBlockedEntities.Length;
 	for (int i = 0; i < iSize; i++) {
 		g_hBlockedEntities.GetArray(i, iCurrentEnt[0], sizeof(iCurrentEnt));
-		
+
 		if (iEntity == EntRefToEntIndex(iCurrentEnt[eiEntRef])) {
 			return (iCurrentEnt[ebHasBeenSeen]) ? Plugin_Continue : Plugin_Handled;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -154,7 +154,7 @@ bool IsVisibleToSurvivors(int iEntity)
 	for (int i = 1; i <= MaxClients && iSurvCount < 4; i++) {
 		if (IsClientInGame(i) && GetClientTeam(i) == L4D2Team_Survivor) {
 			iSurvCount++;
-			
+
 			if (IsPlayerAlive(i) && IsVisibleTo(i, iEntity)) {
 				return true;
 			}
@@ -167,23 +167,23 @@ bool IsVisibleToSurvivors(int iEntity)
 bool IsVisibleTo(int iClient, int iEntity) // check an entity for being visible to a client
 {
 	float fAngles[3], fOrigin[3], fEnt[3], fLookAt[3];
-	
+
 	GetClientEyePosition(iClient, fOrigin); // get both player and zombie position
-	
+
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", fEnt);
-	
+
 	MakeVectorFromPoints(fOrigin, fEnt, fLookAt); // compute vector from player to zombie
-	
+
 	GetVectorAngles(fLookAt, fAngles); // get angles from vector for trace
-	
+
 	// execute Trace
 	Handle hTrace = TR_TraceRayFilterEx(fOrigin, fAngles, MASK_SHOT, RayType_Infinite, TraceFilter);
-	
+
 	bool bIsVisible = false;
 	if (TR_DidHit(hTrace)) {
 		float fStart[3];
 		TR_GetEndPosition(fStart, hTrace); // retrieve our trace endpoint
-		
+
 		if ((GetVectorDistance(fOrigin, fStart, false) + TRACE_TOLERANCE) >= GetVectorDistance(fOrigin, fEnt)) {
 			bIsVisible = true; // if trace ray lenght plus tolerance equal or bigger absolute distance, you hit the targeted zombie
 		}
@@ -191,7 +191,7 @@ bool IsVisibleTo(int iClient, int iEntity) // check an entity for being visible 
 		//Debug_Print("Zombie Despawner Bug: Player-Zombie Trace did not hit anything, WTF");
 		bIsVisible = true;
 	}
-	
+
 	delete hTrace;
 
 	return bIsVisible;
@@ -202,9 +202,9 @@ public bool TraceFilter(int iEntity, int iContentsMask)
 	if (iEntity <= MaxClients || !IsValidEntity(iEntity)) { // dont let WORLD, players, or invalid entities be hit
 		return false;
 	}
-	
+
 	char sClassName[ENTITY_MAX_NAME_LENGTH];
 	GetEdictClassname(iEntity, sClassName, sizeof(sClassName)); // Ignore prop_physics since some can be seen through
-	
+
 	return (strcmp(sClassName, "prop_physics", false) != 0);
 }

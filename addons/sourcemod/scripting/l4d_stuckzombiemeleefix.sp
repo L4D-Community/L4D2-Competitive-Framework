@@ -94,7 +94,7 @@ public Action Timer_ResetMeleeDelay(Handle hTimer, int iClient)
 public void Event_EntShoved(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	int iEntity = hEvent.GetInt("entityid"); //get the events shoved entity id
-	
+
 	if (!IsCommonInfected(iEntity)) {
 		return; //make sure it IS a zombie.
 	}

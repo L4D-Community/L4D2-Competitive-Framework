@@ -14,11 +14,11 @@ forward Action CH_ShouldCollide(int ent1, int ent2, bool &result);
 forward Action CH_PassFilter(int ent1, int ent2, bool &result);
 
 
-public Extension __ext_collisionhook = 
+public Extension __ext_collisionhook =
 {
 	name = "CollisionHook",
 	file = "collisionhook.ext",
-	
+
 #if defined AUTOLOAD_EXTENSIONS
 	autoload = 1,
 #else
@@ -29,5 +29,5 @@ public Extension __ext_collisionhook =
 #else
 	required = 0,
 #endif
-	
+
 };

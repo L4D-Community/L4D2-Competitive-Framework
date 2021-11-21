@@ -51,6 +51,8 @@ public Action CheckClients(Handle hTimer)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void QueryClientConVarCallback(QueryCookie iCookie, int iClient, ConVarQueryResult iResult, const char[] sCvarName, const char[] sCvarValue)

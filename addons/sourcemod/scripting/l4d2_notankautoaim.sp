@@ -26,25 +26,25 @@ public void OnPluginStart()
 	InitGameData();
 
 	hPatchEnable = CreateConVar("l4d2_notankautoaim", "1", "Remove the Tank claw's undocumented auto-aiming ability (1 - enable, 0 - disable)", _, true, 0.0, true, 1.0);
-	
+
 	CheckPatch(hPatchEnable.BoolValue);
-	
+
 	hPatchEnable.AddChangeHook(Cvars_Changed);
 }
 
 void InitGameData()
 {
 	Handle hGamedata = LoadGameConfigFile(GAMEDATA);
-	
+
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt", GAMEDATA);
 	}
-	
+
 	hPatch_ClawTargetScan = MemoryPatch.CreateFromConf(hGamedata, "ClawTargetScan");
 	if (hPatch_ClawTargetScan == null || !hPatch_ClawTargetScan.Validate()) {
 		SetFailState("Failed to validate MemoryPatch 'ClawTargetScan'.");
 	}
-	
+
 	delete hGamedata;
 }
 

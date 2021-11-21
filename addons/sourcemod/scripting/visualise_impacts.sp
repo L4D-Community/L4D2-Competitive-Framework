@@ -1,7 +1,7 @@
 /* @A1m`:
  * We cannot send to the client temporary objects larger than specified in cvar 'sv_multiplayer_maxtempentities'.
  * A large number of decals will not be displayed if you do not set a delay in sending,
- * or we need to increase the cvar 'sv_multiplayer_maxtempentities' value, by default it is 32 (we can set 255). 
+ * or we need to increase the cvar 'sv_multiplayer_maxtempentities' value, by default it is 32 (we can set 255).
  *
  * TE_SendToClient with the set delay does not fix this issue.
  * Now the plugin shows all impacts correctly.
@@ -21,20 +21,20 @@ int
 	decalThisTick = 0,
 	iLastTick = 0,
 	g_iPrecacheDecal = 0;
-	
-public Plugin myinfo = 
+
+public Plugin myinfo =
 {
 	name = "Visualise impacts",
 	author = "Jahze?, A1m`",
 	version = "1.3",
 	description = "See name",
-	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework" 
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()
 {
 	g_iPrecacheDecal = PrecacheDecal(DECAL_NAME, true);
-	
+
 	HookEvent("bullet_impact", BulletImpactEvent, EventHookMode_Post);
 	HookEvent("round_start", EventRoundReset, EventHookMode_PostNoCopy);
 	HookEvent("round_end", EventRoundReset, EventHookMode_PostNoCopy);
@@ -73,7 +73,7 @@ public void BulletImpactEvent(Event hEvent, const char[] name, bool dontBroadcas
 	ArrayStack hStack = new ArrayStack(sizeof(pos));
 	hStack.PushArray(pos[0], sizeof(pos));
 	hStack.Push(userid);
-	
+
 	CreateTimer(++decalThisTick * GetTickInterval(), TimerDelayShowDecal, hStack, TIMER_FLAG_NO_MAPCHANGE | TIMER_HNDL_CLOSE);
 }
 

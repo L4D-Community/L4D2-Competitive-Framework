@@ -36,7 +36,7 @@ stock bool IsSurvivorAttacked(int survivor)
 }
 
 /**
- * Returns true if the client is currently on the survivor team. 
+ * Returns true if the client is currently on the survivor team.
  *
  * @param client client ID
  * @return bool
@@ -58,7 +58,7 @@ stock bool IsValidSurvivor(int client)
 }
 
 /**
- * Returns true if the player is incapacitated. 
+ * Returns true if the player is incapacitated.
  *
  * @param client client ID
  * @return bool
@@ -69,7 +69,7 @@ stock bool IsIncapacitated(int client)
 }
 
 /**
- * Returns the amount of permanent health a survivor has. 
+ * Returns the amount of permanent health a survivor has.
  *
  * @param client client ID
  * @return int
@@ -80,29 +80,45 @@ stock int GetSurvivorPermanentHealth(int client)
 }
 
 /**
- * Returns the amount of temporary health a survivor has. 
+ * Returns the amount of temporary health a survivor has.
  *
  * @param client client ID
  * @return int
  */
-stock int GetSurvivorTemporaryHealth(int client)
+stock int GetSurvivorTemporaryHealth(int iClient)
 {
-	static ConVar pain_pills_decay_rate = null;
-	if (pain_pills_decay_rate == null)
-	{
-		pain_pills_decay_rate = FindConVar("pain_pills_decay_rate");
+	static ConVar hCvar_PainPillsDecayRate = null;
+	if (hCvar_PainPillsDecayRate == null) {
+		hCvar_PainPillsDecayRate = FindConVar("pain_pills_decay_rate");
 	}
-	
-	float fDecayRate = pain_pills_decay_rate.FloatValue;
 
-	float fHealthBuffer = GetEntPropFloat(client, Prop_Send, "m_healthBuffer");
-	float fHealthBufferTimeStamp = GetEntPropFloat(client, Prop_Send, "m_healthBufferTime");
-	
+	float fHealthBuffer = GetEntPropFloat(iClient, Prop_Send, "m_healthBuffer");
+	float fHealthBufferTimeStamp = GetEntPropFloat(iClient, Prop_Send, "m_healthBufferTime");
+
 	float fHealthBufferDuration = GetGameTime() - fHealthBufferTimeStamp;
 
-	int iTempHp = RoundToCeil(fHealthBuffer - (fHealthBufferDuration * fDecayRate)) - 1;
+	int iTempHp = RoundToCeil(fHealthBuffer - (fHealthBufferDuration * hCvar_PainPillsDecayRate.FloatValue)) - 1;
 
 	return (iTempHp > 0) ? iTempHp : 0;
+}
+
+/**
+ * Returns the amount of temporary health a survivor has.
+ *
+ * @param client client ID
+ * @return float
+ */
+stock float GetSurvivorTemporaryHealthFloat(int iClient)
+{
+	static ConVar hCvar_PainPillsDecayRate = null;
+	if (hCvar_PainPillsDecayRate == null) {
+		hCvar_PainPillsDecayRate = FindConVar("pain_pills_decay_rate");
+	}
+
+	float fHealthTime = GetEntPropFloat(iClient, Prop_Send, "m_healthBufferTime");
+	float fHealth = GetEntPropFloat(iClient, Prop_Send, "m_healthBuffer");
+	fHealth -= (GetGameTime() - fHealthTime) * hCvar_PainPillsDecayRate.FloatValue;
+	return (fHealth < 0.0) ? 0.0 : fHealth;
 }
 
 /**
@@ -173,7 +189,7 @@ stock int ClientModelToSC(const char[] model)
 	if (hSurvivorModelsTrie == null) {
 		InitSurvivorModelTrie();
 	}
-	
+
 	int sc;
 	if (hSurvivorModelsTrie.GetValue(model, sc)) {
 		return sc;
@@ -183,9 +199,9 @@ stock int ClientModelToSC(const char[] model)
 }
 
 /**
- * Get the name of a survivor character. 
+ * Get the name of a survivor character.
  * Will write to string 'None' in case of error.
- * 
+ *
  * @param character     int to get the name of
  * @param buffer        buffer to store name
  * @param length        length of buffer

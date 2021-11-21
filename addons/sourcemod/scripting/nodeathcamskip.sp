@@ -7,7 +7,7 @@ new bool:Blocked[MAXPLAYERS + 1];
 new bool:bSkipPrint[MAXPLAYERS + 1];
 new Float:fSavedTime[MAXPLAYERS + 1];
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "Death Cam Skip Fix",
 	author = "Jacob, Sir",
@@ -154,19 +154,19 @@ public Action:UnblockTimer(Handle:timer, any:client)
 }
 
 stock bool:IsValidClient(client)
-{ 
+{
 	if (client <= 0 || client > MaxClients || !IsClientConnected(client))
 	{
-		return false; 
+		return false;
 	}
-	return IsClientInGame(client) && !IsFakeClient(client); 
+	return IsClientInGame(client) && !IsFakeClient(client);
 }
 
 stock bool:IsValidInfected(client)
 {
 	if (client <= 0 || client > MaxClients || !IsClientConnected(client))
 	{
-		return false; 
+		return false;
 	}
-	return IsClientInGame(client) && GetClientTeam(client) == 3 && !IsFakeClient(client); 
+	return IsClientInGame(client) && GetClientTeam(client) == 3 && !IsFakeClient(client);
 }

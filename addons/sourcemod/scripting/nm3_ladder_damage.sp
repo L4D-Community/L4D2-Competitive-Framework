@@ -31,7 +31,7 @@
 
 new bool:g_bIsSewers = false;
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "No Mercy 3 Ladder Fix",
 	author = "Jacob",
@@ -68,20 +68,20 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 {
 	new iPounceVictim = GetEntProp(victim, Prop_Send, "m_pounceAttacker");
 	new iJockeyVictim = GetEntProp(victim, Prop_Send, "m_jockeyAttacker");
-	
+
 	if(iPounceVictim <= 0 && iJockeyVictim <= 0) {
 		return Plugin_Continue;
 	}
-	
+
 	if(!g_bIsSewers){
 		return Plugin_Continue;
 	}
-	
+
 	if(IS_VALID_SURVIVOR(victim) && damage > 30.0 && damagetype == DMG_FALL)
 	{
 		damage = 30.0;
 		return Plugin_Changed;
 	}
-	
+
 	return Plugin_Continue;
 }

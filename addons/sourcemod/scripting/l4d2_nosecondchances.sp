@@ -38,7 +38,7 @@ static const char L4D2_SI_Victim_NetProps[][] = {
 
 ConVar g_hBotKickDelay = null;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 No Second Chances",
 	author = "Visor, Jacob, A1m`",
@@ -50,7 +50,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	HookEvent("player_bot_replace", PlayerBotReplace);
-	
+
 	g_hBotKickDelay = CreateConVar("bot_kick_delay", "0", "How long should we wait before kicking infected bots?", _, true, 0.0, true, 30.0);
 }
 
@@ -72,11 +72,11 @@ public void PlayerBotReplace(Event hEvent, const char[] eName, bool dontBroadcas
 bool ShouldBeKicked(int iBot)
 {
 	int iZombieClassType = GetEntProp(iBot, Prop_Send, "m_zombieClass");
-	
+
 	if (strlen(L4D2_SI_Victim_NetProps[iZombieClassType]) == 0) {
 		return false;
 	}
-	
+
 	if (GetEntPropEnt(iBot, Prop_Send, L4D2_SI_Victim_NetProps[iZombieClassType]) != -1) {
 		return false;
 	}

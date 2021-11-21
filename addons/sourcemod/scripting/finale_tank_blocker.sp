@@ -43,7 +43,7 @@ public Action SetFinaleExceptionMap(int iArgs)
 		LogError("Usage: finale_tank_default <mapname>");
 		return Plugin_Handled;
 	}
-	
+
 	char sMapName[64];
 	GetCmdArg(1, sMapName, sizeof(sMapName));
 	g_hFinaleExceptionMaps.SetValue(sMapName, true);

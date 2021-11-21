@@ -152,7 +152,7 @@ stock HealEntityOverTime(client, Float:interval, increment, total)
 	{
 		HealTowardsMax(client, increment, maxhp);
 		new Handle:myDP;
-		CreateDataTimer(interval, __HOT_ACTION, myDP, 
+		CreateDataTimer(interval, __HOT_ACTION, myDP,
 			TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 		WritePackCell(myDP, client);
 		WritePackCell(myDP, increment);

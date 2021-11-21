@@ -24,12 +24,12 @@ public void OnPluginStart()
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	int iOnOwnerTakeDamageOffset = GameConfGetOffset(hGamedata, "CBaseAbility::OnOwnerTakeDamage");
 	if (iOnOwnerTakeDamageOffset == -1) {
 		SetFailState("Failed to get offset 'CBaseAbility::OnOwnerTakeDamage'.");
 	}
-	
+
 	hCBaseAbility_OnOwnerTakeDamage = DHookCreate(iOnOwnerTakeDamageOffset, HookType_Entity, ReturnType_Void, ThisPointer_Ignore, CBaseAbility_OnOwnerTakeDamage);
 
 	DHookAddParam(hCBaseAbility_OnOwnerTakeDamage, HookParamType_ObjectPtr);
@@ -40,11 +40,11 @@ public void OnPluginStart()
 public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (strcmp(classname, "ability_lunge") == 0) {
-		DHookEntity(hCBaseAbility_OnOwnerTakeDamage, false, entity); 
+		DHookEntity(hCBaseAbility_OnOwnerTakeDamage, false, entity);
 	}
 }
 
-// During this function call the game simply validates the owner entity 
+// During this function call the game simply validates the owner entity
 // and then sets a bool saying you can't pounce again if you're already mid-pounce.
 // afaik
 public MRESReturn CBaseAbility_OnOwnerTakeDamage(Handle hParams)

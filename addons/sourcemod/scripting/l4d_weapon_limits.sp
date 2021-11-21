@@ -67,17 +67,17 @@ public void OnPluginStart()
 	if (conf == null) {
 		SetFailState("Gamedata missing: %s", GAMEDATA_FILE);
 	}
-	
+
 	StartPrepSDKCall(SDKCall_Entity);
 
 	if (!PrepSDKCall_SetFromConf(conf, SDKConf_Signature, GAMEDATA_USE_AMMO)) {
 		SetFailState("Gamedata missing signature: %s", GAMEDATA_USE_AMMO);
 	}
-	
+
 	// Client that used the ammo spawn
 	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 	hSDKGiveDefaultAmmo = EndPrepSDKCall();
-	
+
 	if (hSDKGiveDefaultAmmo == null) {
 		SetFailState("Failed to finish SDKCall setup: %s", GAMEDATA_USE_AMMO);
 	}
@@ -92,7 +92,7 @@ public void OnPluginStart()
 	HookEvent("player_death", OnDeath);
 	HookEvent("player_bot_replace", OnBotReplacedPlayer);
 	HookEvent("bot_player_replace", OnPlayerReplacedBot);
-	
+
 	delete conf;
 }
 
@@ -130,7 +130,7 @@ public Action AddLimit_Cmd(int args)
 
 	char sTempBuff[MAX_WEAPON_NAME_LENGTH];
 	GetCmdArg(1, sTempBuff, sizeof(sTempBuff));
-	
+
 	int wepid;
 
 #if SOURCEMOD_V_MINOR > 9
@@ -147,15 +147,15 @@ public Action AddLimit_Cmd(int args)
 		wepid = WeaponNameToId(sTempBuff);
 		newEntry.LAE_WeaponArray[wepid / 32] |= (1 << (wepid % 32));
 	}
-	
+
 	hLimitArray.PushArray(newEntry, sizeof(LimitArrayEntry));
 #else
 	LimitArrayEntry newEntry[LimitArrayEntry];
-	
+
 	newEntry[LAE_iLimit] = StringToInt(sTempBuff);
 
 	GetCmdArg(2, sTempBuff, sizeof(sTempBuff));
-	
+
 	newEntry[LAE_iGiveAmmo] = StringToInt(sTempBuff);
 
 	for (int i = 3; i <= args; ++i) {
@@ -163,7 +163,7 @@ public Action AddLimit_Cmd(int args)
 		wepid = WeaponNameToId(sTempBuff);
 		newEntry[LAE_WeaponArray][wepid / 32] |= (1 << (wepid % 32));
 	}
-	
+
 	hLimitArray.PushArray(newEntry[0], view_as<int>(LimitArrayEntry));
 #endif
 	return Plugin_Handled;
@@ -204,11 +204,11 @@ public Action WeaponCanUse(int client, int weapon)
 	// TODO: There seems to be an issue that this hook will be constantly called
 	//       when client with no weapon on equivalent slot just eyes or walks on it.
 	//       If the weapon meets limit, client will have the warning spamming unexpectedly.
-	
+
 	if (GetClientTeam(client) != TEAM_SURVIVOR || !bIsLocked) {
 		return Plugin_Continue;
 	}
-	
+
 	int wepid = IdentifyWeapon(weapon);
 	int wep_slot = GetSlotFromWeaponId(wepid);
 	int player_weapon = GetPlayerWeaponSlot(client, wep_slot);
@@ -230,11 +230,11 @@ public Action WeaponCanUse(int client, int weapon)
 					if (player_wepid == WEPID_MELEE && wepid == WEPID_MELEE) {
 						return Plugin_Continue;
 					}
-					
+
 					if ((wep_slot == 0 && arrayEntry.LAE_iGiveAmmo == -1) || arrayEntry.LAE_iGiveAmmo != 0) {
 						GiveDefaultAmmo(client);
 					}
-					
+
 					CPrintToChat(client, "{blue}[{default}Weapon Limits{blue}]{default} This weapon group has reached its max of {green}%d", arrayEntry.LAE_iLimit);
 					EmitSoundToClient(client, "player/suit_denydevice.wav");
 					return Plugin_Handled;
@@ -248,11 +248,11 @@ public Action WeaponCanUse(int client, int weapon)
 					if (player_wepid == WEPID_MELEE && wepid == WEPID_MELEE) {
 						return Plugin_Continue;
 					}
-					
+
 					if ((wep_slot == 0 && arrayEntry[LAE_iGiveAmmo] == -1) || arrayEntry[LAE_iGiveAmmo] != 0) {
 						GiveDefaultAmmo(client);
 					}
-					
+
 					CPrintToChat(client, "{blue}[{default}Weapon Limits{blue}]{default} This weapon group has reached its max of {green}%d", arrayEntry[LAE_iLimit]);
 					EmitSoundToClient(client, "player/suit_denydevice.wav");
 					return Plugin_Handled;
@@ -311,7 +311,7 @@ public void OnPlayerReplacedBot(Event event, const char[] name, bool dontBroadca
 stock int GetWeaponCount(const int[] mask)
 {
 	bool queryMelee = view_as<bool>(mask[WEPID_MELEE / 32] & (1 << (WEPID_MELEE % 32)));
-	
+
 	int count, wepid;
 	for (int i = 1; i <= MaxClients; i++) {
 		if (IsClientInGame(i) && GetClientTeam(i) == TEAM_SURVIVOR && IsPlayerAlive(i)) {
@@ -335,7 +335,7 @@ stock void GiveDefaultAmmo(int client)
 	// Therefore, it has been consistently using an SDKCall like below ('0' should be the index of ammo pile).
 	// However, since it actually has worked without error and crash for a long time, I would decide to leave it still.
 	// If your server suffers from this, please try making use of the functions commented below.
-	
+
 	SDKCall(hSDKGiveDefaultAmmo, 0, client);
 }
 

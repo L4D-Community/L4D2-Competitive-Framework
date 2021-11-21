@@ -164,7 +164,7 @@ public void OnNextFrame(int iEntity)
 	if (!IsUncommonInfectedBlocked(iUncommonInfected)) {
 		return;
 	}
-	
+
 	float fLocation[3];
 	GetEntPropVector(iEntity, Prop_Send, "m_vecOrigin", fLocation);			// get location
 

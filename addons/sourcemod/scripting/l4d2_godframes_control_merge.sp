@@ -106,9 +106,9 @@ bool
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)
 {
 	CreateNative("GiveClientGodFrames", Native_GiveClientGodFrames);
-	
+
 	RegPluginLibrary("l4d2_godframes_control_merge");
-	
+
 	g_bLateLoad = bLate;
 	return APLRes_Success;
 }
@@ -170,18 +170,18 @@ public void OnPluginStart()
 	HookEvent("pounce_end", PostSurvivorRelease);
 	HookEvent("jockey_ride_end", PostSurvivorRelease);
 	HookEvent("charger_pummel_end", PostSurvivorRelease);
-	
+
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
-	
+
 	if (g_bLateLoad) {
 		for (int i = 1; i <= MaxClients; i++) {
 			if (IsClientInGame(i)) {
 				SDKHook(i, SDKHook_OnTakeDamage, OnTakeDamage);
 				SDKHook(i, SDKHook_TraceAttack, TraceAttackUndoFF);
-				
+
 				g_bBuckshot[i] = false;
 			}
-			
+
 			for (int j = 0; j < UNDO_SIZE; j++) {
 				g_iLastHealth[i][j][UNDO_PERM] = 0;
 				g_iLastHealth[i][j][UNDO_TEMP] = 0;
@@ -208,7 +208,7 @@ public void PostSurvivorRelease(Event hEvent, const char[] sEventName, bool bDon
 	}
 
 	float fNow = GetGameTime();
-	
+
 	//sets fake godframe time based on cvars for each ZC
 	if (StrContains(sEventName, "tongue") != -1) {
 		g_fFakeGodframeEnd[iVictim] = fNow + g_hSmoker.FloatValue;
@@ -223,12 +223,12 @@ public void PostSurvivorRelease(Event hEvent, const char[] sEventName, bool bDon
 		g_fFakeGodframeEnd[iVictim] = fNow + g_hCharger.FloatValue;
 		g_iLastSI[iVictim] = 8;
 	}
-	
+
 	if (g_fFakeGodframeEnd[iVictim] > fNow && g_hGodframeGlows.BoolValue) {
 		// make player transparent/red while godframed
 		SetEntityRenderMode(iVictim, RENDER_GLOW);
 		SetEntityRenderColor(iVictim, 255, 0, 0, 200);
-		
+
 		CreateTimer(g_fFakeGodframeEnd[iVictim] - fNow, Timed_ResetGlow, iVictim, TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
@@ -237,9 +237,9 @@ public void OnClientPutInServer(int iClient)
 {
 	SDKHook(iClient, SDKHook_OnTakeDamage, OnTakeDamage);
 	SDKHook(iClient, SDKHook_TraceAttack, TraceAttackUndoFF);
-	
+
 	g_bBuckshot[iClient] = false;
-	
+
 	for (int j = 0; j < UNDO_SIZE; j++) {
 		g_iLastHealth[iClient][j][UNDO_PERM] = 0;
 		g_iLastHealth[iClient][j][UNDO_TEMP] = 0;
@@ -259,13 +259,13 @@ public Action Timed_SetFrustration(Handle hTimer, any iClient)
 	if (IsTank(iClient) && IsPlayerAlive(iClient)) {
 		int iFrust = GetEntProp(iClient, Prop_Send, "m_frustration");
 		iFrust += g_iFrustrationOffset[iClient];
-		
+
 		if (iFrust > 100) {
 			iFrust = 100;
 		} else if (iFrust < 0) {
 			iFrust = 0;
 		}
-		
+
 		SetEntProp(iClient, Prop_Send, "m_frustration", iFrust);
 		g_iFrustrationOffset[iClient] = 0;
 	}
@@ -276,7 +276,7 @@ public Action Timed_SetFrustration(Handle hTimer, any iClient)
 public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &fDamage, \
 								int &iDamagetype, int &iWeapon, float fDamageForce[3], float fDamagePosition[3])
 {
-	if (!IsValidSurvivor(iVictim) || !IsValidEdict(iAttacker) || !IsValidEdict(iInflictor)) { 
+	if (!IsValidSurvivor(iVictim) || !IsValidEdict(iAttacker) || !IsValidEdict(iInflictor)) {
 		return Plugin_Continue;
 	}
 
@@ -293,25 +293,25 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 	if (StrEqual(sClassname, "infected") && (g_iLastSI[iVictim] & g_hCommonFlags.IntValue)){ //commons
 		fTimeLeft += g_hCommon.FloatValue;
 	}
-	
+
 	if (StrEqual(sClassname, "insect_swarm") && (g_iLastSI[iVictim] & g_hSpitFlags.IntValue)) { //spit
 		fTimeLeft += g_hSpit.FloatValue;
 	}
-	
+
 	if (IsValidSurvivor(iAttacker)) { //friendly fire
 		//Block FF While Capped
 		if (IsSurvivorAttacked(iVictim)) {
 			return Plugin_Handled;
 		}
-		
+
 		//Block AI FF
 		if (IsFakeClient(iVictim) && IsFakeClient(iAttacker)) {
 			return Plugin_Handled;
 		}
-		
+
 		/**
 		#define DMG_PLASMA	(1 << 24)	// < Shot by Cremator
-					
+
 		Special case -- let this function know that we've manually applied damage
 		I am expecting some info about HL3 at GDC in March, so I felt like choosing this
 		exotic damage flag that stands for a cut enemy from HL2
@@ -320,13 +320,13 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 		if (iDamagetype == DMG_PLASMA) {
 			return Plugin_Continue;
 		}
-		
+
 		fTimeLeft += g_hFF.FloatValue;
 
 		if (g_iEnabledFlags) {
 			bool bUndone = false;
 			int iDmg = RoundToFloor(fDamage); // Damage to survivors is rounded down
-	
+
 			// Only check damage to survivors
 			// - if it is greater than 0, OR
 			// - if a human survivor did 0 damage (so we know when the engine forgives our friendly fire for us)
@@ -334,12 +334,12 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 				// Remember health for undo
 				int iVictimPerm = GetClientHealth(iVictim);
 				int iVictimTemp = GetSurvivorTemporaryHealth(iVictim);
-				
+
 				// if attacker is not ourself, check for undo damage
 				if (iAttacker != iVictim) {
 					char sWeaponName[CLASSNAME_LENGTH];
 					GetSafeEntityName(iWeapon, sWeaponName, sizeof(sWeaponName));
-					
+
 					float fDistance = GetClientsDistance(iVictim, iAttacker);
 					float FFDist = GetWeaponFFDist(sWeaponName);
 					if ((g_iEnabledFlags & FFTYPE_TOOCLOSE) && (fDistance < FFDist)) {
@@ -353,7 +353,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 						bUndone = ((g_iBlockZeroDmg & 0x02) || ((g_iBlockZeroDmg & 0x01)));
 					}
 				}
-		
+
 				// TODO: move to player_hurt?  and check to make sure damage was consistent between the two?
 				// We prefer to do this here so we know what the player's state looked like pre-damage
 				// Specifically, what portion of the damage was applied to perm and temp health,
@@ -367,24 +367,24 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 						// Perm damage won't reduce permanent health below 1 if there is sufficient temp health
 						iPermDmg = iVictimPerm - 1;
 					}
-					
+
 					int iTempDmg = iDmg - iPermDmg;
 					if (iTempDmg > iVictimTemp) {
 						// If TempDmg exceeds current temp health, transfer the difference to perm damage
 						iPermDmg += (iTempDmg - iVictimTemp);
 						iTempDmg = iVictimTemp;
 					}
-				
+
 					// Don't add to undo list if player is incapped
 					if (!IsIncapacitated(iVictim)) {
 						// point at next undo cell
 						int iNextUndo = (g_iCurrentUndo[iVictim] + 1) % UNDO_SIZE;
-						
+
 						if (iPermDmg < iVictimPerm) {
 							// This will call player_hurt, so we should store the damage done so that it can be added back if it is undone
 							g_iLastHealth[iVictim][iNextUndo][UNDO_PERM] = iPermDmg;
 							g_iLastHealth[iVictim][iNextUndo][UNDO_TEMP] = iTempDmg;
-							
+
 							// We need some way to tell player_hurt how much perm/temp health we expected the player to have after this attack
 							// This is used to implement the fractional damage to perm health
 							// We can't just set their health here because this attack might not actually do damage
@@ -395,18 +395,18 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 							// If the incap is undone, we will restore these settings instead of adding them
 							g_iLastHealth[iVictim][iNextUndo][UNDO_PERM] = iVictimPerm;
 							g_iLastHealth[iVictim][iNextUndo][UNDO_TEMP] = iVictimTemp;
-							
+
 							// This is used to tell player_incap_start the exact amount of damage that was done by the attack
 							g_iLastPerm[iVictim] = iPermDmg;
 							g_iLastTemp[iVictim] = iTempDmg;
-							
+
 							// TODO: can we move to incapstart?
 							g_iLastReviveCount[iVictim] = GetEntProp(iVictim, Prop_Send, "m_currentReviveCount");
 						}
 					}
 				}
 			}
-			
+
 			if (bUndone) {
 				return Plugin_Handled;
 			}
@@ -417,19 +417,19 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 
 			if (!g_bBuckshot[iAttacker]) {
 				g_bBuckshot[iAttacker] = true;
-				
+
 				ArrayStack hStack = new ArrayStack(3);
 				hStack.Push(iWeapon);
 				hStack.Push(iAttacker);
 				hStack.Push(iVictim);
-				
+
 				RequestFrame(ProcessShot, hStack);
 			}
-			
+
 			return Plugin_Handled;
 		}
 	}
-	
+
 	if (IsValidClientIndex(iAttacker) && IsTank(iAttacker)) {
 		if (strcmp(sClassname, "prop_physics") == 0|| strcmp(sClassname, "prop_car_alarm") == 0) {
 			if (g_hRageHittables.BoolValue) {
@@ -437,7 +437,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 			} else {
 				g_iFrustrationOffset[iAttacker] = 0;
 			}
-			
+
 			CreateTimer(0.1, Timed_SetFrustration, iAttacker, TIMER_FLAG_NO_MAPCHANGE);
 		} else if (iWeapon == 52) { //tank rock
 			if (g_hRageRock.BoolValue) {
@@ -445,35 +445,35 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 			} else {
 				g_iFrustrationOffset[iAttacker] = 0;
 			}
-			
+
 			CreateTimer(0.1, Timed_SetFrustration, iAttacker, TIMER_FLAG_NO_MAPCHANGE);
-		} 
+		}
 	}
 
 	if (fTimeLeft > 0) {//means fake god frames are in effect
 		if (strcmp(sClassname, "prop_physics") == 0 || strcmp(sClassname, "prop_car_alarm") == 0) { //hittables
 			if (g_hHittable.BoolValue) {
-				return Plugin_Continue; 
+				return Plugin_Continue;
 			}
 		}
-		
+
 		if (IsTankRock(iInflictor)) {//tank rock
 			if (g_hRock.BoolValue) {
-				return Plugin_Continue; 
+				return Plugin_Continue;
 			}
 		}
-		
-		if (strcmp(sClassname, "witch") == 0) {//witches 
+
+		if (strcmp(sClassname, "witch") == 0) {//witches
 			if (g_hWitch.BoolValue) {
 				return Plugin_Continue;
 			}
 		}
-		
+
 		return Plugin_Handled;
 	} else {
 		g_iLastSI[iVictim] = 0;
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -514,12 +514,12 @@ public Action TraceAttackUndoFF(int iVictim, int &iAttacker, int &iInflictor, fl
 	if (!g_iEnabledFlags) {
 		return Plugin_Continue;
 	}
-	
+
 	// Only interested in Survivor victims
 	if (!IsValidSurvivor(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	// If a valid survivor bot shoots a valid survivor human, block it to prevent survivor vision from getting experiencing recoil (it would have done 0 damage anyway)
 	if ((g_iBlockZeroDmg & 0x04) && IsValidSurvivor(iAttacker) && IsFakeClient(iAttacker) && IsValidSurvivor(iVictim) && !IsFakeClient(iVictim)) {
 		return Plugin_Handled;
@@ -535,24 +535,24 @@ public Action Event_PlayerHurt(Event hEvent, const char[] sEventName, bool bDont
 	if (!g_iEnabledFlags) {
 		return Plugin_Continue;
 	}
-	
+
 	int iVictim = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (iVictim < 1 || !IsSurvivor(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	int iAttacker = GetClientOfUserId(hEvent.GetInt("attacker"));
 	int iDmg = hEvent.GetInt("dmg_health");
 	int iCurrentPerm = hEvent.GetInt("health");
-	
+
 	/*char sWeaponName[CLASSNAME_LENGTH];
 	hEvent.GetString("weapon", sWeaponName, sizeof(sWeaponName));*/
-	
+
 	// When incapped you continuously get hurt by the world, so we just ignore incaps altogether
 	if (iDmg > 0 && !IsIncapacitated(iVictim)) {
 		// Cycle the undo pointer when we have confirmed that the damage was actually taken
 		g_iCurrentUndo[iVictim] = (g_iCurrentUndo[iVictim] + 1) % UNDO_SIZE;
-		
+
 		// victim values are what OnTakeDamage expected us to have, current values are what the game gave us
 		int iVictimPerm = g_iLastPerm[iVictim];
 		int iVictimTemp = g_iLastTemp[iVictim];
@@ -563,7 +563,7 @@ public Action Event_PlayerHurt(Event hEvent, const char[] sEventName, bool bDont
 			// make sure we don't give extra health
 			int iTotalHealthOld = iCurrentPerm + iCurrentTemp;
 			int iTotalHealthNew = iVictimPerm + iVictimTemp;
-			
+
 			if (iTotalHealthOld == iTotalHealthNew) {
 				SetEntityHealth(iVictim, iVictimPerm);
 
@@ -572,7 +572,7 @@ public Action Event_PlayerHurt(Event hEvent, const char[] sEventName, bool bDont
 			}
 		}
 	}
-	
+
 	// Announce damage, and check for guilty bots that slipped through OnTakeDamage
 	if (IsValidSurvivor(iAttacker)) {
 		// Unfortunately, the friendly fire event only fires *after* OnTakeDamage has been called so it can't be blocked in time
@@ -591,12 +591,12 @@ public Action Event_PlayerIncapStart(Event hEvent, const char[] sEventName, bool
 {
 	// Cycle the incap pointer, now that the damage has been confirmed
 	int iVictim = GetClientOfUserId(hEvent.GetInt("userid"));
-	
+
 	// Cycle the undo pointer when we have confirmed that the damage was actually taken
 	g_iCurrentUndo[iVictim] = (g_iCurrentUndo[iVictim] + 1) % UNDO_SIZE;
-	
+
 	int iAttacker = GetClientOfUserId(hEvent.GetInt("attacker"));
- 
+
 	// Announce damage, and check for guilty bots that slipped through OnTakeDamage
 	if (IsValidSurvivor(iAttacker)) {
 		// Unfortunately, the friendly fire event only fires *after* OnTakeDamage has been called so it can't be blocked in time
@@ -616,13 +616,13 @@ public Action Event_FriendlyFire(Event hEvent, const char[] sEventName, bool bDo
 	if (!(g_iEnabledFlags & FFTYPE_STUPIDBOTS)) {
 		return Plugin_Continue;
 	}
-	
+
 	int iClient = GetClientOfUserId(hEvent.GetInt("guilty"));
 	if (IsFakeClient(iClient)) {
 		g_bStupidGuiltyBots[iClient] = true;
 		CreateTimer(0.4, StupidGuiltyBotDelay, iClient, TIMER_FLAG_NO_MAPCHANGE);
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -640,7 +640,7 @@ public Action Event_ChargerCarryStart(Event hEvent, const char[] sEventName, boo
 	if (!(g_iEnabledFlags & FFTYPE_CHARGERCARRY)) {
 		return Plugin_Continue;
 	}
-	
+
 	int iClient = GetClientOfUserId(hEvent.GetInt("victim"));
 
 	g_bChargerCarryNoFF[iClient] = true;
@@ -673,18 +673,18 @@ public Action Event_HealBegin(Event hEvent, const char[] sEventName, bool bDontB
 	if (!g_iEnabledFlags) {
 		return Plugin_Continue; // Not enabled?  Done
 	}
-	
+
 	int iSubject = GetClientOfUserId(hEvent.GetInt("subject"));
 
 	if (iSubject < 1 || !IsSurvivor(iSubject) || !IsPlayerAlive(iSubject)) {
 		return Plugin_Continue;
 	}
-	
+
 	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (iClient < 1 || !IsSurvivor(iClient) || !IsPlayerAlive(iClient)) {
 		return Plugin_Continue;
 	}
-	
+
 	// Remember the target for HealEnd, since that parameter is a lie for that event
 	g_iTargetTempHealth[iClient] = iSubject;
 
@@ -698,20 +698,20 @@ public Action Event_HealEnd(Event hEvent, const char[] sEventName, bool bDontBro
 	if (!g_iEnabledFlags) {
 		return Plugin_Continue; // Not enabled?  Done
 	}
-	
+
 	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
 	int iSubject = g_iTargetTempHealth[iClient]; // this is used first to carry the subject...
-	
+
 	if (iSubject < 1 || !IsSurvivor(iSubject) || !IsPlayerAlive(iSubject)) {
 		PrintToServer("Who did you heal? (%d)", iSubject);
 		return Plugin_Continue;
 	}
-	
+
 	int iTempHealth =  GetSurvivorTemporaryHealth(iSubject);
 	if (iTempHealth < 0) {
 		iTempHealth = 0;
 	}
-	
+
 	// ...and second it is used to store the subject's temp health (since success knows the subject)
 	g_iTargetTempHealth[iClient] = iTempHealth;
 	return Plugin_Continue;
@@ -723,14 +723,14 @@ public Action Event_HealSuccess(Event hEvent, const char[] sEventName, bool bDon
 	if (!g_iEnabledFlags) {
 		return Plugin_Continue; // Not enabled?  Done
 	}
-	
+
 	int iSubject = GetClientOfUserId(hEvent.GetInt("subject"));
 	if (iSubject < 1 || !IsSurvivor(iSubject) || !IsPlayerAlive(iSubject)) {
 		return Plugin_Continue;
 	}
-	
+
 	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
-	
+
 	int iNextUndo = (g_iCurrentUndo[iSubject] + 1) % UNDO_SIZE;
 	g_iLastHealth[iSubject][iNextUndo][UNDO_PERM] = -hEvent.GetInt("health_restored");
 	g_iLastHealth[iSubject][iNextUndo][UNDO_TEMP] = g_iTargetTempHealth[iClient];
@@ -753,7 +753,7 @@ void UndoDamage(int iClient)
 			// If player is incapped, restore their previous health and incap count
 			iNewHealth = iUndoPerm;
 			iNewTemp = iUndoTemp;
-			
+
 			CheatCommand(iClient, "give", "health");
 			SetEntProp(iClient, Prop_Send, "m_currentReviveCount", g_iLastReviveCount[iClient]);
 		} else {
@@ -769,28 +769,28 @@ void UndoDamage(int iClient)
 				CheatCommand(iClient, "give", "weapon_first_aid_kit");
 			}
 		}
-		
+
 		if (iNewHealth > 100) {
 			iNewHealth = 100; // prevent going over 100 health
 		}
-		
+
 		if (iNewHealth + iNewTemp > 100) {
 			iNewTemp = 100 - iNewHealth;
 		}
-		
+
 		SetEntityHealth(iClient, iNewHealth);
 		SetEntPropFloat(iClient, Prop_Send, "m_healthBuffer", float(iNewTemp));
 		SetEntPropFloat(iClient, Prop_Send, "m_healthBufferTime", GetGameTime());
-	
+
 		// clear out the undo so it can't happen again
 		g_iLastHealth[iClient][iThisUndo][UNDO_PERM] = 0;
 		g_iLastHealth[iClient][iThisUndo][UNDO_TEMP] = 0;
-		
+
 		// point to the previous undo
 		if (iThisUndo <= 0) {
 			iThisUndo = UNDO_SIZE;
 		}
-		
+
 		iThisUndo = iThisUndo - 1;
 		g_iCurrentUndo[iClient] = iThisUndo;
 	}
@@ -803,15 +803,15 @@ float GetClientsDistance(int iVictim, int iAttacker)
 	float fMins[3], fMaxs[3];
 	GetClientMins(iVictim, fMins);
 	GetClientMaxs(iVictim, fMaxs);
-	
+
 	float fHalfHeight = fMaxs[2] - fMins[2] + 10;
-	
+
 	float fAttackerPos[3], fVictimPos[3];
 	GetClientAbsOrigin(iVictim, fVictimPos);
 	GetClientAbsOrigin(iAttacker, fAttackerPos);
-	
+
 	float fPosHeightDiff = fAttackerPos[2] - fVictimPos[2];
-	
+
 	if (fPosHeightDiff > fHalfHeight) {
 		fAttackerPos[2] -= fHalfHeight;
 	} else if (fPosHeightDiff < (-1.0 * fHalfHeight)) {
@@ -819,7 +819,7 @@ float GetClientsDistance(int iVictim, int iAttacker)
 	} else {
 		fAttackerPos[2] = fVictimPos[2];
 	}
-	
+
 	return GetVectorDistance(fVictimPos, fAttackerPos, false);
 }
 
@@ -902,7 +902,7 @@ public void ProcessShot(ArrayStack hStack)
 		iAttacker = hStack.Pop();
 		iWeapon = hStack.Pop();
 	}
-	
+
 	if (IsClientAndInGame(iVictim) && IsClientAndInGame(iAttacker)) {
 		// Replicate natural behaviour
 		float fMinFF = g_hCvarMinFF.FloatValue;
@@ -910,13 +910,13 @@ public void ProcessShot(ArrayStack hStack)
 		float fMaxFF = fMaxFFCvarValue <= 0.0 ? 99999.0 : fMaxFFCvarValue;
 		float fDamage = L4D2Util_GetMaxFloat(fMinFF, L4D2Util_GetMinFloat((g_iPelletsShot[iVictim][iAttacker] * g_hCvarModifier.FloatValue), fMaxFF));
 		g_iPelletsShot[iVictim][iAttacker] = 0;
-		
+
 		int iNewPelletCount = RoundFloat(fDamage);
 		for (int i = 0; i < iNewPelletCount; i++) {
 			SDKHooks_TakeDamage(iVictim, iAttacker, iAttacker, 1.0, DMG_PLASMA, iWeapon);
 		}
 	}
-	
+
 	g_bBuckshot[iAttacker] = false;
 
 	delete hStack;
@@ -927,7 +927,7 @@ bool IsT1Shotgun(int iEntity)
 	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
 		return false;
 	}
-	
+
 	char sClassname[CLASSNAME_LENGTH];
 	GetEdictClassname(iEntity, sClassname, sizeof(sClassname));
 	return (strcmp(sClassname, "weapon_pumpshotgun") == 0 || strcmp(sClassname, "weapon_shotgun_chrome") == 0);
@@ -938,7 +938,7 @@ bool IsTankRock(int iEntity)
 	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
 		return false;
 	}
-	
+
 	char sClassname[CLASSNAME_LENGTH];
 	GetEdictClassname(iEntity, sClassname, sizeof(sClassname));
 	return (strcmp(sClassname, "tank_rock") == 0);
@@ -948,21 +948,21 @@ bool IsTankRock(int iEntity)
 public int Native_GiveClientGodFrames(Handle hPlugin, int iNumParams)
 {
 	int iClient = GetNativeCell(1);
-	
+
 	if (!IsClientAndInGame(iClient)) {
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index or client is not in game (index %d)!", iClient);
 	}
-	
+
 	if (!IsPlayerAlive(iClient)) {
 		return ThrowNativeError(SP_ERROR_NATIVE, "The client is not alive (index %d)!", iClient);
 	}
-	
+
 	float fGodFrameTime = GetNativeCell(2);
 	int iAttackerClass = GetNativeCell(3);
-	
+
 	g_fFakeGodframeEnd[iClient] = GetGameTime() + fGodFrameTime; //godFrameTime
 	g_iLastSI[iClient] = iAttackerClass; //attackerClass
-	
+
 	// make player transparent/red while godframed
 	SetEntityRenderMode(iClient, RENDER_GLOW);
 	SetEntityRenderColor(iClient, 255, 0, 0, 200);

@@ -13,13 +13,13 @@ new bool:bTankAlive;
 new Handle:g_ArrayHittableClones;
 new Handle:g_ArrayHittables;
 
-enum L4D2GlowType 
-{ 
-	L4D2Glow_None = 0, 
-	L4D2Glow_OnUse, 
-	L4D2Glow_OnLookAt, 
-	L4D2Glow_Constant 
-} 
+enum L4D2GlowType
+{
+	L4D2Glow_None = 0,
+	L4D2Glow_OnUse,
+	L4D2Glow_OnLookAt,
+	L4D2Glow_Constant
+}
 
 public OnPluginStart()
 {
@@ -65,13 +65,13 @@ public L4D2_OnTankPassControl(oldTank, newTank, passCount)
 public TankSpawnEvent(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new tank = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (IsFakeClient(tank)) 
+	if (IsFakeClient(tank))
 	{
 		KillClones(true);
 		return;
 	}
 
-	if (!bTankAlive) 
+	if (!bTankAlive)
 	{
 		HookProps();
 		bTankAlive = true;
@@ -83,18 +83,18 @@ public CreateClone(any:entity)
 	decl Float:vOrigin[3];
 	decl Float:vAngles[3];
 	GetEntPropVector(entity, Prop_Send, "m_vecOrigin", vOrigin);
-	GetEntPropVector(entity, Prop_Data, "m_angRotation", vAngles); 
+	GetEntPropVector(entity, Prop_Data, "m_angRotation", vAngles);
 	decl String:entityModel[PLATFORM_MAX_PATH];
-	GetEntPropString(entity, Prop_Data, "m_ModelName", entityModel, sizeof(entityModel)); 
+	GetEntPropString(entity, Prop_Data, "m_ModelName", entityModel, sizeof(entityModel));
 	new clone=0;
 	clone = CreateEntityByName("prop_dynamic_override"); //prop_dynamic
 	SetEntityModel(clone, entityModel);
 	DispatchSpawn(clone);
 
-	TeleportEntity(clone, vOrigin, vAngles, NULL_VECTOR); 
+	TeleportEntity(clone, vOrigin, vAngles, NULL_VECTOR);
 	SetEntProp(clone, Prop_Send, "m_CollisionGroup", 0);
 	SetEntProp(clone, Prop_Send, "m_nSolidType", 0);
-	
+
 	SetVariantString("!activator");
 	AcceptEntityInput(clone, "SetParent", entity);
 
@@ -181,37 +181,37 @@ stock MakeEntityVisible(ent, bool:visible=true)
 	if(visible)
 	{
 		SetEntityRenderMode(ent, RENDER_NORMAL);
-		SetEntityRenderColor(ent, 255, 255, 255, 255);         
+		SetEntityRenderColor(ent, 255, 255, 255, 255);
 	}
 	else
 	{
 		SetEntityRenderMode(ent, RENDER_TRANSCOLOR);
 		SetEntityRenderColor(ent, 0, 0, 0, 0);
-	} 
+	}
 }
 
 stock HookProps()
 {
 	new iEntity = -1;
-	 
-	while ((iEntity = FindEntityByClassname(iEntity, "prop_physics")) != -1) 
+
+	while ((iEntity = FindEntityByClassname(iEntity, "prop_physics")) != -1)
 	{
-		if (IsTankHittable(iEntity)) 
+		if (IsTankHittable(iEntity))
 		{
 			HookSingleEntityOutput(iEntity, "OnHitByTank", TankHittablePunched, true);
 		}
 	}
-	 
+
 	iEntity = -1;
-	 
-	while ((iEntity = FindEntityByClassname(iEntity, "prop_car_alarm")) != -1) 
+
+	while ((iEntity = FindEntityByClassname(iEntity, "prop_car_alarm")) != -1)
 	{
 		HookSingleEntityOutput(iEntity, "OnHitByTank", TankHittablePunched, true);
 	}
 }
 
 /**
- * Is the tank able to punch the entity with the tank? 
+ * Is the tank able to punch the entity with the tank?
  *
  * @param iEntity entity ID
  * @return bool
@@ -220,9 +220,9 @@ stock bool:IsTankHittable(iEntity) {
 	if (!IsValidEntity(iEntity)) {
 		return false;
 	}
-	
+
 	decl String:className[64];
-	
+
 	GetEdictClassname(iEntity, className, sizeof(className));
 	if ( StrEqual(className, "prop_physics") ) {
 		if ( GetEntProp(iEntity, Prop_Send, "m_hasTankGlow", 1) ) {
@@ -232,7 +232,7 @@ stock bool:IsTankHittable(iEntity) {
 	else if ( StrEqual(className, "prop_car_alarm") ) {
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -322,7 +322,7 @@ stock bool:L4D2_SetEntGlow(entity, L4D2GlowType:type, range, minRange, colorOver
 	new offset = FindSendPropInfo(netclass, "m_iGlowType");
 	if (offset < 1)
 	{
-		return false;    
+		return false;
 	}
 
 	L4D2_SetEntGlow_Type(entity, type);
@@ -341,7 +341,7 @@ stock bool:L4D2_SetEntGlowOverride(entity, colorOverride[3])
 	new offset = FindSendPropInfo(netclass, "m_iGlowType");
 	if (offset < 1)
 	{
-		return false;    
+		return false;
 	}
 
 	L4D2_SetEntGlow_ColorOverride(entity, colorOverride);

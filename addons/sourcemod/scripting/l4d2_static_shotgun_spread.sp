@@ -50,7 +50,7 @@ ConVar
 	hRing1FactorCvar,
 	hCenterPelletCvar;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Static Shotgun Spread",
 	author = "Jahze, Visor, A1m`, Rena",
@@ -65,31 +65,31 @@ public void OnPluginStart()
 	if (conf == null) {
 		SetFailState("Missing gamedata \"" ... GAMEDATA_FILE ... "\"");
 	}
-	
+
 	g_hPatch_sgspread = MemoryPatch.CreateFromConf(conf, KEY_SGSPREAD);
 	if (g_hPatch_sgspread == null || !g_hPatch_sgspread.Validate()) {
 		SetFailState("Failed to validate MemoryPatch \"" ... KEY_SGSPREAD ... "\"");
 	}
-	
+
 	if (!g_hPatch_sgspread.Enable()) {
 		SetFailState("Failed to enable MemoryPatch \"" ... KEY_SGSPREAD ... "\"");
 	}
-	
+
 	g_ePlatform = GameConfGetOffset(conf, "OS");
 	if (g_ePlatform == -1) {
 		SetFailState("Failed to retrieve offset \"OS\"");
 	}
-	
+
 	delete conf;
-	
+
 	hRing1BulletsCvar = CreateConVar("sgspread_ring1_bullets", "3", "Number of bullets for the first ring, the remaining bullets will be in the second ring.");
 	hRing1FactorCvar = CreateConVar("sgspread_ring1_factor", "2", "Determines how far or closer the bullets will be from the center for the first ring.");
 	hCenterPelletCvar = CreateConVar("sgspread_center_pellet", "1", "Center pellet: 0 - off, 1 - on.", _, true, 0.0, true, 1.0);
-	
+
 	hRing1BulletsCvar.AddChangeHook(OnRing1BulletsChange);
 	hRing1FactorCvar.AddChangeHook(OnRing1FactorChange);
 	hCenterPelletCvar.AddChangeHook(OnCenterPelletChange);
-	
+
 	HotPatchBullets(hRing1BulletsCvar.IntValue);
 	HotPatchFactor(hRing1FactorCvar.IntValue);
 	HotPatchCenterPellet(hCenterPelletCvar.BoolValue);
@@ -98,11 +98,11 @@ public void OnPluginStart()
 static void HotPatchCenterPellet(bool newValue)
 {
 	Address pAddr = g_hPatch_sgspread.Address;
-	
+
 	int currentValue = LoadFromAddress(pAddr + view_as<Address>(g_CenterPelletOffset[g_ePlatform]), NumberType_Int8);
-	
+
 	int bullets = hRing1BulletsCvar.IntValue;
-	
+
 	#if DEBUG
 	static bool IsFirstPatch = false;
 	if (!IsFirstPatch) {
@@ -111,13 +111,13 @@ static void HotPatchCenterPellet(bool newValue)
 		IsFirstPatch = true;
 	}
 	#endif
-	
+
 	if (!!currentValue == newValue) {
 		return;
 	}
-	
+
 	StoreToAddress(pAddr + view_as<Address>(g_CenterPelletOffset[g_ePlatform]), view_as<int>(newValue), NumberType_Int8);
-	
+
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][0]), bullets + (1 - view_as<int>(!newValue)), NumberType_Int8);
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][1]), bullets + (1 - view_as<int>(!newValue)), NumberType_Int8);
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][2]), bullets + (2 - view_as<int>(!newValue)), NumberType_Int8);
@@ -127,19 +127,19 @@ static void HotPatchBullets(int nBullets)
 {
 	bool centerpellet = !hCenterPelletCvar.BoolValue;
 	float degree = 0.0;
-	
+
 	if (g_ePlatform == eWindows) {
 		degree = 360.0 / float(nBullets);
 	} else {
 		degree = 360.0 / (2.0 * float(nBullets));
 	}
-	
+
 	Address pAddr = g_hPatch_sgspread.Address;
-	
+
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][0]), nBullets + (1 - view_as<int>(centerpellet)), NumberType_Int8);
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][1]), nBullets + (1 - view_as<int>(centerpellet)), NumberType_Int8);
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][2]), nBullets + (2 - view_as<int>(centerpellet)), NumberType_Int8);
-	
+
 	StoreToAddress(pAddr + view_as<Address>(g_BulletOffsets[g_ePlatform][3]), view_as<int>(degree), NumberType_Int32);
 }
 
@@ -151,7 +151,7 @@ static void HotPatchFactor(int factor)
 		StoreToAddress(pAddr + view_as<Address>(g_FactorOffset[eWindows]), view_as<int>(float(factor)), NumberType_Int32); //On windows need the float type !!!
 		return;
 	}
-	
+
 	StoreToAddress(pAddr + view_as<Address>(g_FactorOffset[eLinux]), factor, NumberType_Int32);
 }
 

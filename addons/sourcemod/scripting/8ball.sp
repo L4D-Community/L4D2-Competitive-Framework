@@ -24,13 +24,13 @@ public Action Command_8ball(int iClient, int iArgs)
 		CPrintToChat(iClient, "{default}[{green}8Ball{default}] Usage: !8ball <question>");
 		return Plugin_Handled;
 	}
-	
+
 	char sQuestion[192];
 	GetCmdArgString(sQuestion, sizeof(sQuestion));
 	StripQuotes(sQuestion);
-	
+
 	PrintToChatAll("\x01[\x048Ball\x01] \x03%N\x01 Asked: \x05%s\x01", iClient, sQuestion);
-	
+
 	int iResult = GetURandomInt() % 6;
 	switch(iResult) {
 		case 0: {
@@ -52,6 +52,6 @@ public Action Command_8ball(int iClient, int iArgs)
 			CPrintToChatAll("{default}[{green}8Ball{default}] You know what? {olive}Yeah{default}!");
 		}
 	}
-	
+
 	return Plugin_Handled;
 }

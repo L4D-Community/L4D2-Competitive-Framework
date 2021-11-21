@@ -9,7 +9,7 @@ char sMeleeScript[MAXPLAYERS + 1][64];
 /*****************************************************************************************
 *
 *                          TODO:
-*                  
+*
 ******************************************************************************************
 *
 * - Use tries instead, fool.
@@ -26,7 +26,7 @@ char sMeleeScript[MAXPLAYERS + 1][64];
 ConVar l4d2_drop_secondary_debug;
 bool bDebug;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Drop Secondary",
 	author = "Sir, ProjectSky (Initial Plugin by Jahze & Visor)",
@@ -35,7 +35,7 @@ public Plugin myinfo =
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
-public void OnPluginStart() 
+public void OnPluginStart()
 {
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("player_use", Event_OnPlayerUse, EventHookMode_Post);
@@ -52,7 +52,7 @@ public void OnPluginStart()
 /*****************************************************************************************
 *
 *           THESE ARE ONLY USED TO RESET A PLAYER'S STORED SECONDARY WEAPON/MELEE SCRIPT
-*                  
+*
 *****************************************************************************************/
 public void OnClientDisconnect(int client)
 {
@@ -71,9 +71,9 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 
 /*****************************************************************************************
 *
-*                  THESE ARE USED TO MAKE SURE THE CORRECT PLAYER KEEPS 
+*                  THESE ARE USED TO MAKE SURE THE CORRECT PLAYER KEEPS
 *                          THEIR SECONDARY AND MELEE SCRIPT
-*                  
+*
 *****************************************************************************************/
 public void Event_OnPlayerReplacedByBot(Event event, const char[] name, bool dontBroadcast)
 {
@@ -104,14 +104,14 @@ public void Event_OnBotReplacedByPlayer(Event event, const char[] name, bool don
 /*****************************************************************************************
 *
 *                   THIS FIRES AND STORES A PLAYER'S SECONDARY
-*                  
+*
 *****************************************************************************************/
-public void Event_OnPlayerUse(Event event, const char[] name, bool dontBroadcast) 
+public void Event_OnPlayerUse(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	int targetid = event.GetInt("targetid");
 
-	if (IsValidSurvivor(client) && IsValidEdict(targetid)) 
+	if (IsValidSurvivor(client) && IsValidEdict(targetid))
 	{
 		char sClassname[32];
 		GetEdictClassname(targetid, sClassname, sizeof(sClassname))
@@ -140,9 +140,9 @@ public void Event_OnPlayerUse(Event event, const char[] name, bool dontBroadcast
 
 /*****************************************************************************************
 *
-*           THIS IS USED TO STORE A PLAYER'S SECONDARY WEAPON ON INCAP, 
+*           THIS IS USED TO STORE A PLAYER'S SECONDARY WEAPON ON INCAP,
 *                     IN CASE HE/SHE DIES WHILE INCAPACITATED
-*                  
+*
 *****************************************************************************************/
 public Action Event_OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
@@ -156,21 +156,21 @@ public Action Event_OnPlayerDeath(Event event, const char[] name, bool dontBroad
 	return Plugin_Continue;
 }
 
-bool IsValidSurvivor(int client) 
-{ 
-	if (client <= 0 
+bool IsValidSurvivor(int client)
+{
+	if (client <= 0
 	|| client > MaxClients
 	|| !IsClientInGame(client)) return false;
-	return GetClientTeam(client) == 2; 
+	return GetClientTeam(client) == 2;
 }
 
 void SpawnSecondary(int client)
 {
 	int weapon;
-	
+
 	if (StrEqual(sSecondary[client], SECONDARY_PISTOL)) weapon = CreateEntityByName("weapon_pistol");
 	else if (StrEqual(sSecondary[client], SECONDARY_PISTOL_MAGNUM)) weapon = CreateEntityByName("weapon_pistol_magnum");
-	else 
+	else
 	{
 		if (StrEqual(sMeleeScript[client], MELEE_NONE))
 		{
@@ -184,7 +184,7 @@ void SpawnSecondary(int client)
 		DispatchKeyValue(weapon, "melee_script_name", sMeleeScript[client]);
 	}
 
-	if (weapon != -1) 
+	if (weapon != -1)
 	{
 		DispatchSpawn(weapon);
 		float vOrigin[3];

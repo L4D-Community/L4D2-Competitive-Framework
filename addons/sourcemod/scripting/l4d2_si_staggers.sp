@@ -42,7 +42,7 @@ ConVar
 int
 	iActiveFlags;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 No SI Friendly Staggers",
 	author = "Visor, A1m`",
@@ -54,7 +54,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	hCvarInfectedFlags = CreateConVar("l4d2_disable_si_friendly_staggers", "0", "Remove SI staggers caused by other SI(bitmask: 1-Boomer/2-Charger/4-Witch)", _, true, 0.0, true, 7.0);
-	
+
 	iActiveFlags = hCvarInfectedFlags.IntValue;
 	hCvarInfectedFlags.AddChangeHook(PluginActivityChanged);
 }
@@ -76,39 +76,39 @@ public Action L4D2_OnStagger(int target, int source)
 	PrintToServer("OnStagger(target=%d, source=%d) SourceValid: %d, SourceInfectedClass %d",
 						target, source, IsValidEdict(source), GetInfectedClass(source));
 	#endif
-	
+
 	if (!iActiveFlags) { // Is the plugin active at all?
 		return Plugin_Continue;
 	}
-	
+
 	if (source != -1 && !IsValidEdict(source)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (GetInfectedZClass(source) == L4D2Infected_Boomer && !(iActiveFlags & BLOCK_BOOMER)) { // Is the Boomer eligible?
 		return Plugin_Continue;
 	}
-	
+
 	if (source == -1 && !(iActiveFlags & BLOCK_CHARGER)) { // Is the Charger eligible?
 		return Plugin_Continue;
 	}
-	
+
 	if (GetClientTeam(target) == L4D2Team_Survivor && IsSurvivorAttacked(target)) { // Capped Survivors should not get staggered
 		return Plugin_Handled;
 	}
-	
+
 	if (GetClientTeam(target) != L4D2Team_Infected) { // We'll only need SI for the following checks
 		return Plugin_Continue;
 	}
-	
+
 	if (source == -1 && GetInfectedZClass(target) != L4D2Infected_Charger) { // Allow Charger selfstaggers through
 		return Plugin_Handled;
 	}
-	
+
 	if (source <= MaxClients && GetInfectedZClass(source) == L4D2Infected_Boomer) { // Cancel any staggers caused by a Boomer explosion
 		return Plugin_Handled;
 	}
-	
+
 	if ((iActiveFlags & BLOCK_WITCH) && source != -1) { // Return early if we don't have a valid edict.
 		char classname[ENTITY_NAME_MAX_LENTH];
 		GetEdictClassname(source, classname, sizeof(classname));
@@ -116,7 +116,7 @@ public Action L4D2_OnStagger(int target, int source)
 			return Plugin_Handled;
 		}
 	}
-	
+
 	return Plugin_Continue; // Is this even reachable? Probably yes, in case some plugin has used the L4D_StaggerPlayer() native
 }
 

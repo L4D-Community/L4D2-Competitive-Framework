@@ -49,7 +49,7 @@ bool:SetCustomCfg(const String:cfgname[])
 		}
 		return true;
 	}
-	
+
 	Format(customCfgPath, sizeof(customCfgPath), "%s%s%c%s", cfgPath, customCfgDir, DirSeparator, cfgname);
 	if(!DirExists(customCfgPath))
 	{
@@ -70,10 +70,10 @@ bool:SetCustomCfg(const String:cfgname[])
 		customCfgPath[0]=0;
 		return false;
 	}
-	
+
 	SetConVarString(hCustomConfig, cfgname);
-	
-	return true;	
+
+	return true;
 }
 
 BuildConfigPath(String:buffer[], maxlength, const String:sFileName[])
@@ -97,13 +97,13 @@ BuildConfigPath(String:buffer[], maxlength, const String:sFileName[])
 			}
 		}
 	}
-	
+
 	Format(buffer, maxlength, "%s%s", configsPath, sFileName);
 	if(IsDebugEnabled())
 	{
 			LogMessage("[Configs] Built default config path: %s", buffer);
 	}
-	
+
 }
 
 ExecuteCfg(const String:sFileName[])
@@ -112,9 +112,9 @@ ExecuteCfg(const String:sFileName[])
 	{
 		return;
 	}
-	
+
 	decl String:sFilePath[PLATFORM_MAX_PATH];
-	
+
 	if(customCfgPath[0])
 	{
 		Format(sFilePath, sizeof(sFilePath), "%s%s", customCfgPath, sFileName);
@@ -125,7 +125,7 @@ ExecuteCfg(const String:sFileName[])
 				LogMessage("[Configs] Executing custom cfg file %s", sFilePath);
 			}
 			ServerCommand("exec %s%s", customCfgPath[strlen(cfgPath)], sFileName);
-			
+
 			return;
 		}
 		else
@@ -136,10 +136,10 @@ ExecuteCfg(const String:sFileName[])
 			}
 		}
 	}
-	
+
 	Format(sFilePath, sizeof(sFilePath), "%s%s", cfgPath, sFileName);
-	
-	
+
+
 	if(FileExists(sFilePath))
 	{
 		if(IsDebugEnabled())
@@ -160,20 +160,20 @@ public _native_BuildConfigPath(Handle:plugin, numParams)
 	GetNativeStringLength(3, len);
 	new String:filename[len+1];
 	GetNativeString(3, filename, len+1);
-		
+
 	len = GetNativeCell(2);
 	new String:buf[len];
 	BuildConfigPath(buf, len, filename);
-	
+
 	SetNativeString(1, buf, len);
 }
 
 public _native_ExecConfigCfg(Handle:plugin, numParams)
 {
-	decl len;	
+	decl len;
 	GetNativeStringLength(1, len);
 	new String:filename[len+1];
 	GetNativeString(1, filename, len+1);
-	
+
 	ExecuteCfg(filename);
 }

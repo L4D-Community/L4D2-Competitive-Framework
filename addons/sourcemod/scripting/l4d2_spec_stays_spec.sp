@@ -52,7 +52,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		strcopy(error, err_max, "Plugin only supports Left 4 Dead 1 & 2.");
 		return APLRes_SilentFailure;
 	}
-	
+
 	return APLRes_Success;
 }
 
@@ -86,9 +86,9 @@ public Action Check4Spec(Handle timer)
 {
 	if (GetRealClientCount() != (GetConVarInt(g_hMaxSurvivors) + GetConVarInt(g_hMaxInfected))) return Plugin_Continue;
 
-	for (int i = 1; i <= MaxClients; i++) 
+	for (int i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientInGame(i) && IsClientConnected(i) && GetClientTeam(i) == 1 && !IsClientSourceTV(i)) FakeClientCommand(i, "say /spectate");   
+		if(IsClientInGame(i) && IsClientConnected(i) && GetClientTeam(i) == 1 && !IsClientSourceTV(i)) FakeClientCommand(i, "say /spectate");
 	}
 	return Plugin_Stop;
 }
@@ -104,7 +104,7 @@ public void Event_Round_End(Event event, const char[] name, bool dontBroadcast)
 	// clear arrays and kill timers
 	for (int i = 0; i < MAX_SPECTATORS; i++) {
 		spectatorSteamIds[i] = "";
-		
+
 		if (spectatorTimer[i] != INVALID_HANDLE) {
 			KillTimer(spectatorTimer[i]);
 			spectatorTimer[i] = INVALID_HANDLE;
@@ -112,16 +112,16 @@ public void Event_Round_End(Event event, const char[] name, bool dontBroadcast)
 	}
 
 	// get steamids
-	for (int i = 1; i <= MaxClients; i++) 
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i)) continue;
 		if (IsFakeClient(i)) continue;
 		if (GetClientTeam(i) != 1) continue;
 		if (IsClientSourceTV(i)) continue;
-		
+
 		GetClientAuthId(i, AuthId_Steam2, spectatorSteamIds[spectatorCount], STEAMID_LENGTH);
 		spectatorCount++;
-	}	
+	}
 
 	// set timestamp
 	lastTimestamp = GetTime();
@@ -233,16 +233,16 @@ int Function_GetIndex(const char[] clientSteamId)
 {
 	// loop through steamids
 	for (int i = 0; i < spectatorCount; i++) {
-		if (StrEqual(spectatorSteamIds[i], clientSteamId)) return i;	
+		if (StrEqual(spectatorSteamIds[i], clientSteamId)) return i;
 	}
-	
+
 	return -1;
 }
 
 int GetRealClientCount()
 {
 	int clients = 0;
-	for (int i = 1; i <= MaxClients; i++) 
+	for (int i = 1; i <= MaxClients; i++)
 	{
 		if(IsClientInGame(i) && IsClientConnected(i) && !IsFakeClient(i) && GetClientTeam(i) != 1) clients++;
 	}

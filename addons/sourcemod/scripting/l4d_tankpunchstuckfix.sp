@@ -48,7 +48,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Tank Punch Ceiling Stuck Fix",
 	author = "Tabun, Visor, A1m`",
@@ -60,7 +60,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	InitGameData();
-	
+
 	// cvars
 	g_hCvarDeStuckTime = CreateConVar("sm_punchstuckfix_unstucktime", "1.0", "How many seconds to wait before detecting and unstucking a punched motionless player.", _, true, 0.05, false);
 	tpsf_debug_print = CreateConVar("tpsf_debug_print", "1","Enable the Debug Print?", _, true, 0.0, true, 1.0);
@@ -68,7 +68,7 @@ public void OnPluginStart()
 	// hooks
 	HookEvent("round_start", Event_Reset, EventHookMode_PostNoCopy);
 	HookEvent("round_end", Event_Reset, EventHookMode_PostNoCopy);
-	
+
 #if DEBUG_MODE
 	RegConsoleCmd("sm_warp_me", Cmd_WarpMe);
 #endif
@@ -91,13 +91,13 @@ void InitGameData()
 	}
 
 	StartPrepSDKCall(SDKCall_Player);
-	
+
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, SIGNATURE_NAME)) {
 		SetFailState("Function '%s' not found", SIGNATURE_NAME);
 	}
-	
+
 	g_hWarpToValidPositionSDKCall = EndPrepSDKCall();
-	
+
 	if (g_hWarpToValidPositionSDKCall == null) {
 		SetFailState("Function '%s' found, but something went wrong", SIGNATURE_NAME);
 	}
@@ -137,7 +137,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	// tank punched survivor, check the result
 	fClearArrayIndex(victim);
 	g_fPlayerPunch[victim] = GetTickedTime();
-	
+
 	CreateTimer(TIMER_CHECKPUNCH, Timer_CheckPunch, GetClientUserId(victim), TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
 
 	return Plugin_Continue;
@@ -167,37 +167,37 @@ public Action Timer_CheckPunch(Handle hTimer, int userid)
 	) {
 		static float vOrigin[3];
 		GetEntPropVector(client, Prop_Send, "m_vecOrigin", vOrigin);
-		
+
 		if (!g_bPlayerFlight[client]) {
 			// if the player is not detected as in punch-flight, they are now
 			g_bPlayerFlight[client] = true;
 			g_fPlayerLocation[client] = vOrigin;
-			
+
 			#if DEBUG_MODE
 				PrintDebug("[test] %i - flight start [seq:%4i][loc:%.f %.f %.f]", client, iSeq, vOrigin[0], vOrigin[1], vOrigin[2]);
 			#endif
-			
+
 		} else {
 			// if the player is in punch-flight, check location / difference to detect stuckness
 			if (GetVectorDistance(g_fPlayerLocation[client], vOrigin) == 0.0) {
 				// are we /still/ in the same position? (ie. if stucktime is recorded)
 				if (g_fPlayerStuck[client]) {
 					g_fPlayerStuck[client] = GetTickedTime();
-					
+
 					#if DEBUG_MODE
 						PrintDebug("[test] %i - stuck start [loc:%.f %.f %.f]", client, vOrigin[0], vOrigin[1], vOrigin[2]);
 					#endif
-					
+
 				} else {
 					if (GetTickedTime() - g_fPlayerStuck[client] > g_hCvarDeStuckTime.FloatValue) {
 						// time passed, player is stuck! fix.
-						
+
 						#if DEBUG_MODE
 							PrintDebug("[test] %i - stuckness FIX triggered!", client);
 						#endif
-						
+
 						fClearStuckArrayIndex(client);
-						
+
 						CTerrorPlayer_WarpToValidPositionIfStuck(client);
 						if (tpsf_debug_print.BoolValue) {
 							CPrintToChatAll("<{olive}TankPunchStuck{default}> Found {blue}%N{default} stuck after a punch. Warped him to a valid position.", client);
@@ -209,7 +209,7 @@ public Action Timer_CheckPunch(Handle hTimer, int userid)
 				// if we were detected as stuck, undetect
 				if (g_fPlayerStuck[client]) {
 					g_fPlayerStuck[client] = 0.0;
-					
+
 					#if DEBUG_MODE
 						PrintDebug("[test] %i - stuck end (previously detected, now gone) [loc:%.f %.f %.f]", client, vOrigin[0], vOrigin[1], vOrigin[2]);
 					#endif
@@ -223,12 +223,12 @@ public Action Timer_CheckPunch(Handle hTimer, int userid)
 		if (g_bPlayerFlight[client]) {
 			// landing frame, so not stuck
 			fClearStuckArrayIndex(client);
-			
+
 			#if DEBUG_MODE
 				PrintDebug("[test] %i - flight end (natural)", client);
 			#endif
 		}
-		
+
 		return Plugin_Stop;
 	}
 
@@ -294,7 +294,7 @@ public Action Cmd_WarpMe(int client, int args)
 		PrintToChat(client, "Only a living survivor can use this command!");
 		return Plugin_Handled;
 	}
-	
+
 	CTerrorPlayer_WarpToValidPositionIfStuck(client);
 	PrintToChat(client, "WarpToValidPositionIfStuck call!");
 	return Plugin_Handled;

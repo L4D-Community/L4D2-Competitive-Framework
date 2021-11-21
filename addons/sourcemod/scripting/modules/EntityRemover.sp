@@ -29,16 +29,16 @@ new bool:ER_bReplaceGhostHurt;
 public ER_OnModuleStart()
 {
 	HookEvent("round_start",ER_RoundStart_Event);
-	
+
 	ER_hKillParachutist = CreateConVarEx("remove_parachutist", "1", "Removes the parachutist from c3m2");
 	ER_hReplaceGhostHurt = CreateConVarEx("disable_ghost_hurt", "0", "Replaces all trigger_ghost_hurt with trigger_hurt, blocking ghost spawns from dying.");
 	HookConVarChange(ER_hKillParachutist,ER_ConVarChange);
 	HookConVarChange(ER_hReplaceGhostHurt,ER_ConVarChange);
-	
+
 	ER_ConVarChange(INVALID_HANDLE, "", "");
-	
+
 	ER_KV_Load();
-	
+
 	RegAdminCmd("confogl_erdata_reload", ER_KV_CmdReload, ADMFLAG_CONFIG);
 }
 
@@ -63,23 +63,23 @@ ER_KV_Close()
 ER_KV_Load()
 {
 	decl String:sNameBuff[PLATFORM_MAX_PATH], String:sDescBuff[256], String:sValBuff[32];
-	
+
 	if(DEBUG_ER || IsDebugEnabled())
 		LogMessage("[ER] Loading EntityRemover KeyValues");
-		
+
 	kERData = CreateKeyValues("EntityRemover");
 	BuildConfigPath(sNameBuff, sizeof(sNameBuff), "entityremove.txt"); //Build our filepath
 	if (!FileToKeyValues(kERData, sNameBuff))
 	{
 		LogError("[ER] Couldn't load EntityRemover data!");
 		ER_KV_Close();
-		return;	
+		return;
 	}
-	
+
 	// Create cvars for all entity removes
 	if(DEBUG_ER || IsDebugEnabled())
 		LogMessage("[ER] Creating entry CVARs");
-	
+
 	KvGotoFirstSubKey(kERData);
 	do
 	{
@@ -92,7 +92,7 @@ ER_KV_Load()
 				CreateConVarEx(sNameBuff, sValBuff, sDescBuff);
 				if(DEBUG_ER || IsDebugEnabled())
 					LogMessage("[ER] Creating CVAR %s", sNameBuff);
-				
+
 			} while(KvGotoNextKey(kERData));
 			KvGoBack(kERData);
 	} while(KvGotoNextKey(kERData));
@@ -103,7 +103,7 @@ ER_KV_Load()
 public Action:ER_KV_CmdReload(client, args)
 {
 	if (!IsPluginEnabled()) return Plugin_Continue;
-	
+
 	ReplyToCommand(client, "[ER] Reloading EntityRemoveData");
 	ER_KV_Reload();
 	return Plugin_Handled;
@@ -112,7 +112,7 @@ public Action:ER_KV_CmdReload(client, args)
 ER_KV_Reload()
 {
 	ER_KV_Close();
-	ER_KV_Load();	
+	ER_KV_Load();
 }
 
 bool:ER_KV_TestCondition(lhsval, rhsval, condition)
@@ -202,13 +202,13 @@ ER_KV_ParseEntity(Handle:kEntry, iEntity)
 	KvGetString(kEntry, "excludemap", sBuffer, sizeof(sBuffer));
 	if(strlen(sBuffer) && StrContains(sBuffer, mapname) != -1)
 			return true;
-	
+
 	// Do property check for this entry
 	KvGetString(kEntry, "property", sBuffer, sizeof(sBuffer));
 	if(strlen(sBuffer))
 	{
 		new proptype = KvGetNum(kEntry, "proptype");
-		
+
 		switch(proptype)
 		{
 			case ER_KV_PROPTYPE_INT, ER_KV_PROPTYPE_BOOL:
@@ -245,7 +245,7 @@ ER_KV_TakeAction(action, iEntity)
 		{
 			if(DEBUG_ER || IsDebugEnabled())
 				LogMessage("[ER]     Killing!");
-			
+
 			AcceptEntityInput(iEntity, "Kill");
 			return false;
 		}
@@ -281,24 +281,24 @@ bool:ER_ReplaceTriggerHurtGhost(ent)
 	{
 		// Replace trigger_hurt_ghost with trigger_hurt
 		new replace = CreateEntityByName("trigger_hurt");
-		if (replace == -1) 
+		if (replace == -1)
 		{
 			LogError("[ER] Could not create trigger_hurt entity!");
 			return false;
 		}
-		
+
 		// Get modelname
 		decl String:model[16];
 		GetEntPropString(ent, Prop_Data, "m_ModelName", model, sizeof(model));
-		
+
 		// Get position and rotation
 		decl Float:pos[3], Float:ang[3];
 		GetEntPropVector(ent, Prop_Send, "m_vecOrigin", pos);
 		GetEntPropVector(ent, Prop_Send, "m_angRotation", ang);
 
 		// Kill the old one
-		AcceptEntityInput(ent, "Kill");		
-		
+		AcceptEntityInput(ent, "Kill");
+
 		// Set the values for the new one
 		DispatchKeyValue(replace, "StartDisabled", "0");
 		DispatchKeyValue(replace, "spawnflags", "67");
@@ -307,9 +307,9 @@ bool:ER_ReplaceTriggerHurtGhost(ent)
 		DispatchKeyValue(replace, "damagecap", "10000");
 		DispatchKeyValue(replace, "damage", "10000");
 		DispatchKeyValue(replace, "model", model);
-		
+
 		DispatchKeyValue(replace, "filtername", "filter_infected");
-		
+
 		// Spawn the new one
 		TeleportEntity(replace, pos, ang, NULL_VECTOR);
 		DispatchSpawn(replace);
@@ -329,13 +329,13 @@ public Action:ER_RoundStart_Event(Handle:event, const String:name[], bool:dontBr
 public Action:ER_RoundStart_Timer(Handle:timer)
 {
 	if (!IsPluginEnabled()) return;
-	
+
 	decl String:sBuffer[64];
 	if(DEBUG_ER || IsDebugEnabled())
 		LogMessage("[ER] Starting RoundStart Event");
-	
+
 	if(kERData != INVALID_HANDLE) KvRewind(kERData);
-	
+
 	new iEntCount = GetEntityCount();
 	for (new ent = (MaxClients + 1); ent <= iEntCount; ent++)
 	{
@@ -352,13 +352,13 @@ public Action:ER_RoundStart_Timer(Handle:timer)
 			{
 				if(DEBUG_ER || IsDebugEnabled())
 					LogMessage("[ER] Dealing with an instance of %s", sBuffer);
-				
+
 				KvGotoFirstSubKey(kERData);
 				do
 				{
 					// Parse each entry for this entity's classname
 					// Stop if we run out of entries or we have killed the entity
-					if(!ER_KV_ParseEntity(kERData, ent)) break;	
+					if(!ER_KV_ParseEntity(kERData, ent)) break;
 				} while (KvGotoNextKey(kERData));
 				KvRewind(kERData);
 			}

@@ -41,7 +41,7 @@ public void Event_RoundStart(Event hEvent, const char[] sEventname, bool bDontBr
 	if (strcmp(sGameMode, "versus", false) != 0 && strcmp(sGameMode, "mutation12", false) != 0) {
 		return;
 	}
-	
+
 	//find where the survivors start so we know which medkits to replace,
 	FindSurvivorStart();
 	//and replace the medkits with pills.
@@ -59,7 +59,7 @@ void FindSurvivorStart()
 		if (!IsValidEdict(i)) {
 			continue;
 		}
-		
+
 		GetEdictClassname(i, sClassName, sizeof(sClassName));
 
 		if ((StrContains(sClassName, "prop_door_rotating_checkpoint", false) != -1)
@@ -76,7 +76,7 @@ void FindSurvivorStart()
 		if (!IsValidEdict(i)) {
 			continue;
 		}
-		
+
 		GetEdictClassname(i, sClassName, sizeof(sClassName));
 
 		if (StrContains(sClassName, "info_survivor_position", false) != -1) {

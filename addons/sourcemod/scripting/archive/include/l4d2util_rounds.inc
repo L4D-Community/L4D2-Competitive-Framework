@@ -12,7 +12,7 @@
  * Called when a new round begins.
  *
  * @noreturn
- */ 
+ */
 forward void OnRoundStart();
 
 /**

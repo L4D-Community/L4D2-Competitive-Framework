@@ -14,7 +14,7 @@
 */
 native void L4D2_ChangeLevel(const char[] sMapName, bool bShouldResetScores=true);
 
-public SharedPlugin __pl_l4d2_changelevel = 
+public SharedPlugin __pl_l4d2_changelevel =
 {
 	name = "l4d2_changelevel",
 	file = "l4d2_changelevel.smx",

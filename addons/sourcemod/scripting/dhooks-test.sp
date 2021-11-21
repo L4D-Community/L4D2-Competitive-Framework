@@ -40,36 +40,36 @@ DynamicHook hClientPrintf;
 public void OnPluginStart()
 {
 	GameData temp = new GameData("dhooks-test.games");
-	
+
 	if(temp == INVALID_HANDLE)
 	{
 		SetFailState("Why you no has gamedata?");
 	}
-	
+
 	int offset;
-	
+
 	offset = temp.GetOffset("BloodColor");
 	hBloodColor = new DynamicHook(offset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity);
-	
+
 	offset = temp.GetOffset("GetModelName");
 	hGetModelName = new DynamicHook(offset, HookType_Entity, ReturnType_String, ThisPointer_CBaseEntity);
-	
+
 	offset = temp.GetOffset("GetMaxs");
 	hGetMaxs = new DynamicHook(offset, HookType_Entity, ReturnType_Vector, ThisPointer_Ignore);
-	
+
 	offset = temp.GetOffset("CanUse");
 	hHookCanUse = new DynamicHook(offset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
 	hHookCanUse.AddParam(HookParamType_CBaseEntity);
-	
+
 	offset = temp.GetOffset("CanHaveAmmo");
 	hCanHaveAmmo = new DynamicHook(offset, HookType_GameRules, ReturnType_Bool, ThisPointer_Ignore);
 	hCanHaveAmmo.AddParam(HookParamType_CBaseEntity);
 	hCanHaveAmmo.AddParam(HookParamType_Int);
-	
+
 	offset = temp.GetOffset("SetModel");
 	hSetModel = new DynamicHook(offset, HookType_Entity, ReturnType_Void, ThisPointer_CBaseEntity);
 	hSetModel.AddParam(HookParamType_CharPtr);
-	
+
 	offset = temp.GetOffset("AcceptInput");
 	hAcceptInput = new DynamicHook(offset, HookType_Entity, ReturnType_Bool, ThisPointer_CBaseEntity);
 	hAcceptInput.AddParam(HookParamType_CharPtr);
@@ -77,22 +77,22 @@ public void OnPluginStart()
 	hAcceptInput.AddParam(HookParamType_CBaseEntity);
 	hAcceptInput.AddParam(HookParamType_Object, 20, DHookPass_ByVal|DHookPass_ODTOR|DHookPass_OCTOR|DHookPass_OASSIGNOP); //variant_t is a union of 12 (float[3]) plus two int type params 12 + 8 = 20
 	hAcceptInput.AddParam(HookParamType_Int);
-		
+
 	offset = temp.GetOffset("GetMaxPlayerSpeed");
 	hGetSpeed = new DynamicHook(offset, HookType_Entity, ReturnType_Float, ThisPointer_CBaseEntity);
-		
+
 	offset = temp.GetOffset("GiveAmmo");
 	hGiveAmmo = new DynamicHook(offset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity);
 	hGiveAmmo.AddParam(HookParamType_Int);
 	hGiveAmmo.AddParam(HookParamType_Int);
 	hGiveAmmo.AddParam(HookParamType_Bool);
-		
+
 	offset = temp.GetOffset("OnTakeDamage");
 	hTakeDamage = new DynamicHook(offset, HookType_Entity, ReturnType_Int, ThisPointer_CBaseEntity);
 	hTakeDamage.AddParam(HookParamType_ObjectPtr, -1, DHookPass_ByRef);
-	
+
 	DHookAddEntityListener(ListenType_Created, EntityCreated);
-	
+
 	//Add client printf hook pThis requires effort
 	StartPrepSDKCall(SDKCall_Static);
 	if(!PrepSDKCall_SetFromConf(temp, SDKConf_Signature, "CreateInterface"))
@@ -100,33 +100,33 @@ public void OnPluginStart()
 		SetFailState("Failed to get CreateInterface");
 		CloseHandle(temp);
 	}
-	
+
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
 	PrepSDKCall_AddParameter(SDKType_PlainOldData, SDKPass_Pointer, VDECODE_FLAG_ALLOWNULL);
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
-	
+
 	char iface[64];
 	if(!temp.GetKeyValue("EngineInterface", iface, sizeof(iface)))
 	{
 		SetFailState("Failed to get engine interface name");
 		CloseHandle(temp);
 	}
-	
+
 	Handle call = EndPrepSDKCall();
 	Address addr = SDKCall(call, iface, 0);
 	CloseHandle(call);
-	
+
 	if(!addr)
 	{
 		SetFailState("Failed to get engine ptr");
 	}
-	
+
 	offset = GameConfGetOffset(temp, "ClientPrintf");
 	hClientPrintf = new DynamicHook(offset, HookType_Raw, ReturnType_Void, ThisPointer_Ignore);
 	hClientPrintf.AddParam(HookParamType_Edict);
 	hClientPrintf.AddParam(HookParamType_CharPtr);
 	hClientPrintf.HookRaw(Hook_Pre, addr, Hook_ClientPrintf);
-	
+
 	delete temp;
 }
 
@@ -181,7 +181,7 @@ public void EntityCreated(int entity, const char[] classname)
 public MRESReturn OnTakeDamage(int pThis, DHookReturn hReturn, DHookParam hParams)
 {
 	PrintToServer("DHooksHacks = Victim %i, Attacker %i, Inflictor %i, Damage %f", pThis, hParams.GetObjectVar(1, 40, ObjectValueType_Ehandle), hParams.GetObjectVar(1, 36, ObjectValueType_Ehandle), hParams.GetObjectVar(1, 48, ObjectValueType_Float));
-	
+
 	if(pThis <= MaxClients && pThis > 0 && !IsFakeClient(pThis))
 	{
 		hParams.SetObjectVar(1, 48, ObjectValueType_Float, 0.0);
@@ -234,12 +234,12 @@ public MRESReturn GetModelName(int pThis, DHookReturn hReturn)
 {
 	char returnval[128];
 	hReturn.GetString(returnval, sizeof(returnval));
-	
+
 	if(IsFakeClient(pThis))
 	{
 		PrintToServer("It is a bot, Model should be: models/player/t_phoenix.mdl It is %s", returnval);
 	}
-	
+
 	return MRES_Ignored;
 }
 
@@ -249,7 +249,7 @@ public MRESReturn GetMaxsPost(DHookReturn hReturn)
 	float vec[3];
 	hReturn.GetVector(vec);
 	PrintToServer("Get maxes %.3f, %.3f, %.3f", vec[0], vec[1], vec[2]);
-	
+
 	return MRES_Ignored;
 }
 

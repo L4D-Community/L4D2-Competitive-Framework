@@ -9,15 +9,15 @@ Handle
 	hGameConfig,
 	hPatchAppliedForward;
 
-bool 
+bool
 	bIsWindows;
 
-ArrayList 
+ArrayList
 	hPatchNames,
 	hPatchAddresses,
 	hPatchBytes;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Code patcher",
 	author = "Jahze?, A1m`",
@@ -31,7 +31,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("IsPatchApplied", IsPatchApplied);
 	CreateNative("GetPatchAddress", GetPatchAddress);
 	CreateNative("IsPlatformWindows", IsPlatformWindows);
-	
+
 	RegPluginLibrary("code_patcher");
 	return APLRes_Success;
 }
@@ -44,7 +44,7 @@ public void OnPluginStart()
 	if (hGameConfig == INVALID_HANDLE) {
 		SetFailState("Could not load gamedata");
 	}
-	
+
 	bIsWindows = GameConfGetOffset(hGameConfig, "Platform") != 0;
 
 	hPatchNames = new ArrayList(ByteCountToCells(MAX_PATCH_NAME_LENGTH + 1));
@@ -61,7 +61,7 @@ public void OnPluginEnd()
 	int size = hPatchNames.Length;
 
 	char name[MAX_PATCH_NAME_LENGTH + 1];
-	
+
 	/*
 	 * The reverse loop resolves the errors when unloading the plugin
 	*/
@@ -69,7 +69,7 @@ public void OnPluginEnd()
 		hPatchNames.GetString(i, name, sizeof(name));
 		RevertPatch(name);
 	}
-	
+
 	if (hGameConfig != null) {
 		delete hGameConfig;
 	}
@@ -91,11 +91,11 @@ public Action CodePatchListCommand(int args)
 	for (int i = 0; i < iSize; ++i) {
 		int nBytes = GetBytes(hPatchBytes, bytes, i);
 		FormatBytes(bytes, nBytes, formattedBytes);
-		
+
 		hPatchNames.GetString(i, name, sizeof(name));
 
 		Address addr = hPatchAddresses.Get(i);
-		
+
 		PrintToServer("%d. %s\t0x%x: %s", i+1, name, addr, formattedBytes);
 	}
 
@@ -160,14 +160,14 @@ public Action CodePatchPatchCommand(int args)
 	}
 
 	Format(key, sizeof(key), "%s_bytes_%s", name, (bIsWindows) ? "windows" : "linux");
-	
+
 	if (!GameConfGetKeyValue(hGameConfig, key, value, sizeof(value))) {
 		PrintToServer("Could not find key '%s'", key);
 		return Plugin_Handled;
 	}
 
 	char[] bytes = new char[length];
-	
+
 	if (!ParseBytes(value, bytes, length)) {
 		PrintToServer("Failed to parse patch bytes for '%s'", name);
 		return Plugin_Handled;
@@ -228,7 +228,7 @@ static int GetBytes(ArrayList array, char[] bytes, int idx)
 		if (i % 4 == 0) {
 			cell = array.Get(idx, i / 4);
 		}
-		
+
 		bytes[j++] = GetPackedByte(cell, i % 4);
 	}
 
@@ -249,7 +249,7 @@ static void PushBytes(ArrayList array, char[] bytes, int count)
 		if (i % 4 == 0) {
 			++j;
 		}
-		
+
 		cells[j] = SetPackedByte(cells[j], i % 4, bytes[i - 1]);
 	}
 
@@ -269,13 +269,13 @@ static void FormatBytes(const char[] bytes, int nBytes, char[] output)
 		} else {
 			output[j++] = '0' + hinibble;
 		}
-		
+
 		if (lonibble > 9) {
 			output[j++] = 'a' + (lonibble - 10);
 		} else {
 			output[j++] = '0' + lonibble;
 		}
-		
+
 		output[j++] = ' ';
 	}
 
@@ -289,7 +289,7 @@ static bool ParseBytes(const char[] value, char[] bytes, int count)
 	if (length != count * 4) {
 		return false;
 	}
-	
+
 	char hex[3];
 	int j = 0;
 
@@ -297,11 +297,11 @@ static bool ParseBytes(const char[] value, char[] bytes, int count)
 		if (value[i] != '\\') {
 			return false;
 		}
-		
+
 		if (value[i + 1] != 'x') {
 			return false;
 		}
-		
+
 		hex[0] = value[i + 2];
 		hex[1] = value[i + 3];
 		hex[2] = 0;
@@ -334,7 +334,7 @@ static int FindPatch(const char[] name)
 
 	for (int i = 0; i < size; ++i) {
 		hPatchNames.GetString(i, iterName, sizeof(iterName));
-		
+
 		if (StrEqual(name, iterName)) {
 			return i;
 		}
@@ -349,7 +349,7 @@ static void ApplyPatch(const char[] name, Address addr, const char[] bytes, int 
 
 	ReadBytesFromMemory(addr, oldBytes, length);
 	WriteBytesToMemory(addr, bytes, length);
-	
+
 	hPatchNames.PushString(name);
 	hPatchAddresses.Push(addr);
 
@@ -367,18 +367,18 @@ static bool RevertPatch(const char[] name)
 	if (patchId == -1) {
 		return false;
 	}
-	
+
 	char bytes[MAX_PATCH_SIZE];
 	int count = GetBytes(hPatchBytes, bytes, patchId);
 
 	Address addr = hPatchAddresses.Get(patchId);
-	
+
 	WriteBytesToMemory(addr, bytes, count);
-	
+
 	hPatchNames.Erase(patchId);
 	hPatchAddresses.Erase(patchId);
 	hPatchBytes.Erase(patchId);
-	
+
 	return true;
 }
 
@@ -391,7 +391,7 @@ public int IsPatchApplied(Handle plugin, int numParams)
 	if (length <= 0) {
 		return false;
 	}
-	
+
 	char[] name = new char[length + 1];
 	GetNativeString(1, name, length + 1);
 

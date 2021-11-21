@@ -66,7 +66,7 @@ forward void OnSkeetHurt(int survivor, int hunter, int damage, bool isOverkill);
  *  @param  int     hunter      the infected client that underwent it
  *  @param  int     damage      damage done in the killing hit
  *  @param  bool    isOverKill  true if it would've been a skeet if the hunter hadn't been chipped
- */  
+ */
 forward void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverkill);
 
 /**
@@ -77,7 +77,7 @@ forward void OnSkeetMeleeHurt(int survivor, int hunter, int damage, bool isOverk
  *  @param  int     hunter      the infected client that underwent it
  *  @param  int     damage      damage done in the killing hit
  *  @param  bool    isOverKill  true if it would've been a skeet if the hunter hadn't been chipped
- */  
+ */
 forward void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOverkill);
 
 /**
@@ -85,7 +85,7 @@ forward void OnSkeetSniperHurt(int survivor, int hunter, int damage, bool isOver
  *
  *  @param  int     survivor    the survivor client that performed the feat
  *  @param  int     hunter      the infected client that underwent it
- */  
+ */
 forward void OnHunterDeadstop(int survivor, int hunter);
 
 /**
@@ -96,9 +96,9 @@ forward void OnHunterDeadstop(int survivor, int hunter);
  *  @param  int     boomer      the infected client that got popped
  *  @param  int     shoveCount  the amount of times the boomer got shoved, if any
  *  @param  Float   timeAlive   the time, in seconds, that the boomer lived
- */  
+ */
 forward void OnBoomerPop(int survivor, int boomer, int shoveCount, float timeAlive);
-  
+
 /**
  *  Called whenever a charger is fully melee-leveled (no chip).
  *  This is also called when the melee hit would've leveled if not chipped!
@@ -190,7 +190,7 @@ forward void OnHunterHighPounce(int hunter, int survivor, int actualDamage, floa
 
 /**
  *  Called whenever a jockey lands a high-pounce on a survivor.
- * 
+ *
  *  Note: due to the nature of the tracking, it only gets the height right if a jockey actually
  *  jumped or pounced from his perch. If they simple walk off and land, it may be incorrect.
  *
@@ -205,7 +205,7 @@ forward void OnJockeyHighPounce(int jockey, int victim, float height, bool repor
  *  Called whenever a charger lands a death-charge on a survivor.
  *  This is called for killing the grabbed survivor, but also the ones that get impact-bumped
  *  and fall to their deaths.
- * 
+ *
  *  Note: due to the nature of the tracking, there may be places that are technically death-
  *  charge spots, but not detected by the plugin. Example: the sidewalk next to the fence near
  *  the lower roof on Dead Air 1; the Death Toll 4 out-of-map deathcharge near the start
@@ -221,12 +221,12 @@ forward void OnDeathCharge(int charger, int survivor, float height, float distan
 
 /**
  *  Called whenever a survivor clears a teammate from a special infected pin.
- * 
+ *
  *  Note: timeB is only appliccable for smokers and chargers. For smokers it shows the
  *  time from the tongue connecting to the clear. For chargers from the charge-grab to
  *  the clear. For jockeys and hunters, timeB will always be -1.0.
  *
- *  timeA is the time, for charger, from start of pummeling till clear (-1.0 if they 
+ *  timeA is the time, for charger, from start of pummeling till clear (-1.0 if they
  *  never started pummeling). For smokers, this is the time from the survivor being
  *  fully reigned in to the smoker (-1.0 if the tongue was broken before that).
  *

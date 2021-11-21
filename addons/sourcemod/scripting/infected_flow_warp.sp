@@ -34,7 +34,7 @@ void SaveCharacter()
 	hNameToCharIDTrie.SetValue("zoey", 1);
 	hNameToCharIDTrie.SetValue("louis", 2);
 	hNameToCharIDTrie.SetValue("francis", 3);
-	
+
 	hNameToCharIDTrie.SetValue("nick", 0);
 	hNameToCharIDTrie.SetValue("rochelle", 1);
 	hNameToCharIDTrie.SetValue("coach", 2);
@@ -53,7 +53,7 @@ public Action WarpTo_Cmd(int client, int args)
 			PrintToChat(client, "No survivor player could be found!");
 			return Plugin_Handled;
 		}
-		
+
 		TeleportToClient(client, fMaxFlowSurvivor);
 		return Plugin_Handled;
 	}
@@ -62,7 +62,7 @@ public Action WarpTo_Cmd(int client, int args)
 	GetCmdArg(1, arg, sizeof(arg));
 	StripQuotes(arg);
 	String_ToLower(arg, sizeof(arg));
-	
+
 	int characterID;
 	if (GetTrieValue(hNameToCharIDTrie, arg, characterID)) {
 		int target = GetClientOfCharID(characterID);
@@ -97,6 +97,6 @@ int GetClientOfCharID(int characterID)
 bool IsGhostInfected(int client)
 {
 	return (GetClientTeam(client) == L4D2Team_Infected
-		&& IsPlayerAlive(client) 
+		&& IsPlayerAlive(client)
 		&& GetEntProp(client, Prop_Send, "m_isGhost", 1));
 }

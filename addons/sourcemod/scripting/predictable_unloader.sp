@@ -57,7 +57,7 @@
 Handle aReservedPlugins;
 char sPlugin[PLATFORM_MAX_PATH];
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Predictable Plugin Unloader",
 	author = "Sir (heavily influenced by keyCat)",
@@ -77,7 +77,7 @@ public void OnPluginStart()
 	aReservedPlugins = CreateArray(PLATFORM_MAX_PATH);
 }
 
-public Action UnloadPlugins(int args) 
+public Action UnloadPlugins(int args)
 {
 	char stockpluginname[64];
 	Handle pluginIterator = GetPluginIterator();
@@ -89,7 +89,7 @@ public Action UnloadPlugins(int args)
 		GetPluginFilename(currentPlugin, stockpluginname, sizeof(stockpluginname));
 
 		// We're not pushing this plugin itself into the array as we'll unload it on a timer at the end.
-		if (!StrEqual(sPlugin, stockpluginname)) 
+		if (!StrEqual(sPlugin, stockpluginname))
 		  PushArrayString(aReservedPlugins, stockpluginname);
 	}
 

@@ -55,7 +55,7 @@
 
 
 
-public SharedPlugin __pl_l4dh = 
+public SharedPlugin __pl_l4dh =
 {
 	name = "left4dhooks",
 	file = "left4dhooks.smx",
@@ -1349,7 +1349,7 @@ forward Action L4D2_OnPlayerFling(int client, int attacker, float vecDir[3]);
 /**
  * @brief Called when CDeathFallCamera::Enable(CBasePlayer*) is invoked.
  * @remarks Called when a player is falling in a fatal zone.
- * @remarks Does not trigger for all cases when someone is fatally falling. 
+ * @remarks Does not trigger for all cases when someone is fatally falling.
  * @remarks Use this forward to check if the current map has death fall cameras (fatal falls).
  *
  * @param client		Client index of the player.
@@ -2066,7 +2066,7 @@ native bool L4D2_VScriptWrapper_NavAreaBuildPath(float startPos[3], float endPos
 /**
  * @brief Compute distance between two areas.
  *
- * @return		-1 if can't reach 'endArea' from 'startArea'. 
+ * @return		-1 if can't reach 'endArea' from 'startArea'.
  */
 // L4D2 only.
 // Added as a demonstration and test, SDKCall is available, use "L4D2_NavAreaTravelDistance" instead.

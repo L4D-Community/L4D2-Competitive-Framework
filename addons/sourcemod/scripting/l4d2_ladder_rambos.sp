@@ -22,12 +22,12 @@
 // ====================================================================================================
 //
 // Special thanks to:
-// 
+//
 // 	* Ilya 'Visor' Komarov	- Original creator of ladder rambos extension.
 // 	* Crasher_3637			- For providing the windows signature for CTerrorGun::Holster function.
 // 	* Lux					- For providing the windows signature for CBaseShotgun::Reload function.
-// 	* Silver				- For providing the various signatures, being a very knowledgeable coder and plugin release format. Learned a lot from his work. 
-// 
+// 	* Silver				- For providing the various signatures, being a very knowledgeable coder and plugin release format. Learned a lot from his work.
+//
 // ====================================================================================================
 */
 
@@ -74,7 +74,7 @@ MemoryPatch hPatch_OnLadderDismount;
 Handle hSDKCall_AbortReload;
 Handle hSDKCall_PlayReloadAnim;
 
-// Block empty-clip gun being pulled out 
+// Block empty-clip gun being pulled out
 Handle hSDKCall_Holster;
 
 // Temp storage for shove time
@@ -96,9 +96,9 @@ public Plugin myinfo =
 // ====================================================================================================
 // OnPluginStart - Setting CVARS and Configuring Hooks
 // ====================================================================================================
-	
+
 public void OnPluginStart()
-{	
+{
 	// Setup plugin ConVars
 	Cvar_Enabled	= CreateConVar(
 								"cssladders_enabled",
@@ -135,27 +135,27 @@ public void OnPluginStart()
 								"2 to allow all, 1 to allow only between guns, 0 to block.",
 								FCVAR_NOTIFY|FCVAR_SPONLY,
 								true, 0.0, true, 2.0);
-	
+
 	// Setup ConVars change hook
 	Cvar_Enabled.AddChangeHook(OnEnableDisable);
 	Cvar_M2.AddChangeHook(OnConVarChanged);
 	Cvar_Reload.AddChangeHook(OnConVarChanged);
 	Cvar_SgReload.AddChangeHook(OnConVarChanged);
 	Cvar_Switch.AddChangeHook(OnConVarChanged);
-	
+
 	// ConVar Storage
 	GetCvars();
-	
+
 	// Load the GameData file.
 	Handle hGameData = LoadGameConfigFile(GAMEDATA);
-	if( hGameData == null ) 
+	if( hGameData == null )
 		SetFailState("Failed to load \"%s.txt\" gamedata.", GAMEDATA);
-	
+
 	//Get signature for CanDeployFor.
 	Handle hDetour_CanDeployFor = DHookCreateFromConf(hGameData, "CTerrorWeapon::CanDeployFor");
 	if( !hDetour_CanDeployFor )
 		SetFailState("Failed to setup detour for hDetour_CanDeployFor");
-	
+
 	// Get signature for reload weapon.
 	Handle hDetour_Reload = DHookCreateFromConf(hGameData, "CTerrorGun::Reload");
 	if( !hDetour_Reload )
@@ -165,7 +165,7 @@ public void OnPluginStart()
 	Handle hDetour_ShotgunReload = DHookCreateFromConf(hGameData, "CBaseShotgun::Reload");
 	if( !hDetour_ShotgunReload )
 		SetFailState("Failed to setup detour for hDetour_ShotgunReload");
-	
+
 	StartPrepSDKCall(SDKCall_Entity);
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBaseCombatWeapon::AbortReload")) {
 		SetFailState("Failed to find offset \"CBaseCombatWeapon::AbortReload\"");
@@ -174,7 +174,7 @@ public void OnPluginStart()
 		if (hSDKCall_AbortReload == null)
 			SetFailState("Failed to setup SDKCall \"CBaseCombatWeapon::AbortReload\"");
 	}
-	
+
 	StartPrepSDKCall(SDKCall_Entity);
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Signature, "CBaseShotgun::PlayReloadAnim")) {
 		SetFailState("Failed to find offset \"CBaseShotgun::PlayReloadAnim\"");
@@ -186,7 +186,7 @@ public void OnPluginStart()
 		if (hSDKCall_PlayReloadAnim == null)
 			SetFailState("Failed to setup SDKCall \"CBaseShotgun::PlayReloadAnim\"");
 	}
-	
+
 	StartPrepSDKCall(SDKCall_Entity);
 	if (!PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CBaseCombatWeapon::Holster")) {
 		SetFailState("Failed to find offset \"CBaseCombatWeapon::Holster\"");
@@ -196,41 +196,41 @@ public void OnPluginStart()
 		if (hSDKCall_Holster == null)
 			SetFailState("Failed to setup SDKCall \"CBaseCombatWeapon::Holster\"");
 	}
-	
+
 	hPatch_CanDeployFor = MemoryPatch.CreateFromConf(hGameData, TERROR_CAN_DEPLOY_FOR_KEY);
 	if(!hPatch_CanDeployFor.Validate())
 		SetFailState("%s Failed to validate patch \"%s\"", PLUGIN_NAME_KEY, TERROR_CAN_DEPLOY_FOR_KEY);
-	
+
 	hPatch_PreThink = MemoryPatch.CreateFromConf(hGameData, TERROR_PRE_THINK_KEY);
 	if(!hPatch_PreThink.Validate())
 		SetFailState("%s Failed to validate patch \"%s\"", PLUGIN_NAME_KEY, TERROR_PRE_THINK_KEY);
-	
+
 	// not as important as first 2 patches, can still function enough to be good enough.
 	hPatch_OnLadderMount = MemoryPatch.CreateFromConf(hGameData, TERROR_ON_LADDER_MOUNT_KEY);
 	if(!hPatch_OnLadderMount.Validate())
 		LogError("%s Failed to validate patch \"%s\"", PLUGIN_NAME_KEY, TERROR_ON_LADDER_MOUNT_KEY);
-	
+
 	hPatch_OnLadderDismount = MemoryPatch.CreateFromConf(hGameData, TERROR_ON_LADDER_DISMOUNT_KEY);
 	if(!hPatch_OnLadderDismount.Validate())
 		LogError("%s Failed to validate patch \"%s\"", PLUGIN_NAME_KEY, TERROR_ON_LADDER_DISMOUNT_KEY);
-	
+
 	delete hGameData;
-	
+
 	// And a pre hook for CTerrorWeapon::CanDeployFor.
 	if (!DHookEnableDetour(hDetour_CanDeployFor, false, Detour_CanDeployFor))
 		SetFailState("Failed to detour CTerrorWeapon::CanDeployFor post.");
-	
+
 	// And a pre hook for CTerrorGun::Reload.
 	if (!DHookEnableDetour(hDetour_Reload, false, Detour_Reload))
 		SetFailState("Failed to detour CTerrorGun::Reload post.");
-	
+
 	// And a pre hook for CBaseShotgun::Reload.
 	if (!DHookEnableDetour(hDetour_ShotgunReload, false, Detour_ShotgunReload))
 		SetFailState("Failed to detour CBaseShotgun::Reload post.");
-	
+
 	// Apply our patch
 	ApplyPatch((bCvar_Enabled = Cvar_Enabled.BoolValue));
-	
+
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 }
 
@@ -310,13 +310,13 @@ public MRESReturn Detour_CanDeployFor(int pThis, Handle hReturn)
 {
 	if (!bCvar_Enabled)
 		return MRES_Ignored;
-	
+
 	int client = GetEntPropEnt(pThis, Prop_Send, "m_hOwner");
 	if (client == -1)
 		return MRES_Ignored;
-	
+
 	bool bIsOnLadder = GetEntityMoveType(client) == MOVETYPE_LADDER;
-	
+
 	if (!bIsOnLadder)
 	{
 		if (fSavedShoveTime[client] > 0.0)
@@ -326,14 +326,14 @@ public MRESReturn Detour_CanDeployFor(int pThis, Handle hReturn)
 		}
 		return MRES_Ignored;
 	}
-	
+
 	// Infected triggers this though, will be blocked
 	if (GetClientTeam(client) != 2)
 	{
 		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
 	}
-	
+
 	// v2.4: Forgot melees, block them
 	// v2.5: Forgot other inventories :(
 	if (iCvar_Switch < 2 && ( Weapon_IsMelee(pThis) || !Weapon_IsGun(pThis) ))
@@ -342,14 +342,14 @@ public MRESReturn Detour_CanDeployFor(int pThis, Handle hReturn)
 		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
 	}
-	
+
 	int weapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
 	if (weapon != pThis && iCvar_Switch < 1)
 	{
 		DHookSetReturn(hReturn, 0);
 		return MRES_Supercede;
 	}
-	
+
 	if (!bCvar_M2)
 	{
 		if (fSavedShoveTime[client] == 0.0)
@@ -358,20 +358,20 @@ public MRESReturn Detour_CanDeployFor(int pThis, Handle hReturn)
 		}
 		SetEntPropFloat(client, Prop_Send, "m_flNextShoveTime", GetGameTime() + 0.2);
 	}
-	
+
 	bool bIsShotgun = Weapon_IsShotgun(pThis);
-	
+
 	if (bIsShotgun ? (!bCvar_SgReload) : (!bCvar_Reload))
 	{
 		if (GetEntProp(pThis, Prop_Send, "m_bInReload"))
 		{
 			Weapon_AbortReload(pThis);
-			
+
 			// 1418 = L4D2_ACT_VM_RELOAD_END	(see left4dhooks_anim.inc)
 			//    6 = ANIM_RELOAD_SHOTGUN_FINAL	(see l4d2util_constants.inc)
 			if (bIsShotgun) Shotgun_PlayReloadAnim(pThis, 1418, 6);
 		}
-		
+
 		if (GetEntProp(pThis, Prop_Send, "m_iClip1") == 0)
 		{
 			// TODO: Weapon clip empty check.
@@ -385,7 +385,7 @@ public MRESReturn Detour_CanDeployFor(int pThis, Handle hReturn)
 			}
 		}
 	}
-	
+
 	return MRES_Ignored;
 }
 
@@ -397,12 +397,12 @@ public MRESReturn Detour_Reload(int pThis, Handle hReturn)
 {
 	int client = GetEntPropEnt(pThis, Prop_Send, "m_hOwner");
 	bool bIsOnLadder = GetEntityMoveType(client) == MOVETYPE_LADDER;
-	
+
 	if (bIsOnLadder && !bCvar_Reload)
 	{
 		return MRES_Supercede;
 	}
-	
+
 	return MRES_Ignored;
 }
 
@@ -413,12 +413,12 @@ public MRESReturn Detour_Reload(int pThis, Handle hReturn)
 public MRESReturn Detour_ShotgunReload(int pThis, Handle hReturn)
 {
 	int client = GetEntPropEnt(pThis, Prop_Send, "m_hOwner");
-	
+
 	if (GetEntityMoveType(client) == MOVETYPE_LADDER && !bCvar_SgReload)
 	{
 		return MRES_Supercede;
 	}
-	
+
 	return MRES_Ignored;
 }
 
@@ -481,22 +481,22 @@ void Weapon_Holster(int weapon)
 // ====================================================================================================
 
 stock void ApplyPatch(bool patch)
-{	
+{
 	static bool patched = false;
 	if (patch && !patched)
 	{
 		if(hPatch_CanDeployFor.Enable())
 			PrintToServer("%s Enabled \"%s\" patch", PLUGIN_NAME_KEY, TERROR_CAN_DEPLOY_FOR_KEY);
-		
+
 		if(hPatch_PreThink.Enable())
 			PrintToServer("%s Enabled \"%s\" patch", PLUGIN_NAME_KEY, TERROR_PRE_THINK_KEY);
-		
+
 		if(hPatch_OnLadderMount.Enable())
 			PrintToServer("%s Enabled \"%s\" patch", PLUGIN_NAME_KEY, TERROR_ON_LADDER_MOUNT_KEY);
-		
+
 		if(hPatch_OnLadderDismount.Enable())
 			PrintToServer("%s Enabled \"%s\" patch", PLUGIN_NAME_KEY, TERROR_ON_LADDER_DISMOUNT_KEY);
-		
+
 		patched = true;
 	}
 	else if (!patch && patched)
@@ -505,7 +505,7 @@ stock void ApplyPatch(bool patch)
 		hPatch_PreThink.Disable();
 		hPatch_OnLadderMount.Disable();
 		hPatch_OnLadderDismount.Disable();
-		
+
 		patched = false;
 	}
 }

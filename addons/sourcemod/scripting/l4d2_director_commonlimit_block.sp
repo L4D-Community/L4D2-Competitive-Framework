@@ -9,7 +9,7 @@ int iCommonLimit;
 
 ConVar hCommonLimit;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Director-scripted common limit blocker",
 	author = "Tabun",
@@ -21,9 +21,9 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	hCommonLimit = FindConVar("z_common_limit");
-	
+
 	iCommonLimit = hCommonLimit.IntValue;
-	
+
 	HookConVarChange(hCommonLimit, Cvar_CommonLimitChange);
 }
 

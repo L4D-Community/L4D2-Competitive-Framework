@@ -34,7 +34,7 @@ public void JockeyLedgeHangChange(ConVar cVar, const char[] oldValue, const char
 	fLedgeHangInterval = hCvarJockeyLedgeHang.FloatValue;
 }
 
-public void JockeyRideEnd(Event hEvent, const char[] name, bool dontBroadcast) 
+public void JockeyRideEnd(Event hEvent, const char[] name, bool dontBroadcast)
 {
 	int jockeyVictim = GetClientOfUserId(GetEventInt(hEvent, "victim"));
 

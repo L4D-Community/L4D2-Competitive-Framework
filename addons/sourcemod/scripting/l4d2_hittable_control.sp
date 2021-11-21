@@ -63,7 +63,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Hittable Control",
 	author = "Stabby, Visor, Sir, Derpduck",
@@ -146,7 +146,7 @@ public void OnPluginStart()
 
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("finale_radio_start", Event_FinaleStart, EventHookMode_PostNoCopy);
-	
+
 	hUnbreakableForklifts.AddChangeHook(ConVarChanged_UnbreakableForklifts);
 
 	if (bLateLoad) {
@@ -176,9 +176,9 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 		fSpecialOverkill[i][1] = 0.0;
 		fSpecialOverkill[i][2] = 0.0;
 	}
-	
+
 	bIsGauntletFinale = false;
-	
+
 	// Delay breakable forklift patch as it must run after vscripts
 	if (GetConVarBool(hUnbreakableForklifts))
 	{
@@ -199,7 +199,7 @@ public Action PatchBreakableForklifts(Handle timer)
 		char sModelName[PLATFORM_MAX_PATH];
 		GetEntPropString(forklift, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
 		ReplaceString(sModelName, sizeof(sModelName), "\\", "/", false);
-		
+
 		if (StrEqual(sModelName, "models/props/cs_assault/forklift.mdl", false))
 		{
 			SetEntProp(forklift, Prop_Data, "m_iMinHealthDmg", 0);
@@ -219,7 +219,7 @@ public Action UnpatchBreakableForklifts(Handle timer)
 		char sModelName[PLATFORM_MAX_PATH];
 		GetEntPropString(forklift, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
 		ReplaceString(sModelName, sizeof(sModelName), "\\", "/", false);
-		
+
 		if (StrEqual(sModelName, "models/props/cs_assault/forklift.mdl", false))
 		{
 			SetEntProp(forklift, Prop_Data, "m_iMinHealthDmg", 400);
@@ -283,7 +283,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 
 		if (GetClientTeam(victim) != 2)
 			return Plugin_Continue; // Victim is not a Survivor.
-		
+
 		char sModelName[PLATFORM_MAX_PATH];
 		GetEntPropString(inflictor, Prop_Data, "m_ModelName", sModelName, sizeof(sModelName));
 		ReplaceString(sModelName, sizeof(sModelName), "\\", "/", false);
@@ -311,10 +311,10 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 			damage = 8.0;
 			attacker = FindTank();
 		}
-		
+
 		float val = GetConVarFloat(hStandardIncapDamage);
 		float gauntletMulti = GetConVarFloat(hGauntletFinaleMulti);
-		if (GetEntProp(victim, Prop_Send, "m_isIncapacitated") 
+		if (GetEntProp(victim, Prop_Send, "m_isIncapacitated")
 		&& val != -2) // Survivor is Incapped. (Damage)
 		{
 			if (val >= 0.0)
@@ -332,10 +332,10 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 
 			else return Plugin_Continue;
 		}
-		else 
+		else
 		{
-			if (StrContains(sModelName, "cara_", false) != -1 
-			|| StrContains(sModelName, "taxi_", false) != -1 
+			if (StrContains(sModelName, "cara_", false) != -1
+			|| StrContains(sModelName, "taxi_", false) != -1
 			|| StrContains(sModelName, "police_car", false) != -1
 			|| StrContains(sModelName, "utility_truck", false) != -1)
 			{
@@ -352,7 +352,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 			else if (StrContains(sModelName, "forklift_brokenlift", false) != -1)
 			{
 				damage = GetConVarFloat(hBrokenForkliftStandingDamage);
-			}		
+			}
 			else if (StrEqual(sModelName, "models/props_vehicles/airport_baggage_cart2.mdl", false))
 			{
 				damage = GetConVarFloat(hBaggageStandingDamage);
@@ -414,14 +414,14 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 			{
 				damage = GetConVarFloat(hBaggageStandingDamage);
 			}
-			
+
 			// Use standard damage on gauntlet finales
 			if (bIsGauntletFinale)
 			{
 				damage = damage * 4.0 * gauntletMulti;
 			}
 		}
-		
+
 		if (interval >= 0.0)
 		{
 			fOverkill[victim][inflictor] = GetGameTime() + interval;	//standardise them bitchin over-hits
@@ -432,7 +432,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 
 		return Plugin_Changed;
 	}
-	
+
 	return Plugin_Continue;
 }
 

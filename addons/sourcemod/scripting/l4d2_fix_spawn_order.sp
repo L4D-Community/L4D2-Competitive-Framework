@@ -45,14 +45,14 @@ enum /*SIClass*/
 	SI_Charger,
 	SI_Witch,
 	SI_Tank,
-	
+
 	SI_MAX_SIZE
 };
 
-stock const String:g_sSIClassNames[SI_MAX_SIZE][] = 
+stock const String:g_sSIClassNames[SI_MAX_SIZE][] =
 {	"", "Smoker", "Boomer", "Hunter", "Spitter", "Jockey", "Charger", "Witch", "Tank" };
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Proper Sack Order",
 	author = "Sir",
@@ -87,7 +87,7 @@ public OnPluginStart()
 public OnAllPluginsLoaded() { readyUpIsAvailable = LibraryExists("readyup"); }
 public OnLibraryRemoved(const String:name[]){ if (StrEqual(name, "readyup")) readyUpIsAvailable = false; }
 public OnLibraryAdded(const String:name[]) { if (StrEqual(name, "readyup")) readyUpIsAvailable = true; }
-public OnConfigsExecuted() 
+public OnConfigsExecuted()
 {
 	dominators = 53;
 	hDominators = FindConVar("l4d2_dominators");
@@ -115,7 +115,7 @@ public PlayerTeam(Handle:event, const String:name[], bool:dontBroadcast)
 
 	// 1.3 Notes: Investigate if I did these because they have issues, considering I didn't document this anywhere.
 	//--------------------------------------------------------------------------------------------------------------
-	// - Why am I checking for Tank here if we only care about Ghost Infected? 
+	// - Why am I checking for Tank here if we only care about Ghost Infected?
 	// - Why not reset stats on players regardless (for safety) prior to the Ghost/Tank check?
 	//--------------------------------------------------------------------------------------------------------------
 	if (!IsValidClient(client) || oldteam != 3 || !bLive || GetEntProp(client, Prop_Send, "m_isGhost") < 1 || GetEntProp(client, Prop_Send, "m_zombieClass") == _:SI_Tank) return;
@@ -131,7 +131,7 @@ public PlayerTeam(Handle:event, const String:name[], bool:dontBroadcast)
 public OnClientDisconnect(client)
 {
 	if (!IsValidClient(client) || IsFakeClient(client)) return;
-	else 
+	else
 	{
 		PlayerSpawned[client] = false;
 		bRespawning[client] = false;
@@ -147,7 +147,7 @@ public PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	// Don't want Tanks in our Array.. do we?!
 	// Also includes a tiny Fix.
 	new SI = GetEntProp(client, Prop_Send, "m_zombieClass");
-	if (SI != _:SI_Tank && fTankPls[client] < GetGameTime()) 
+	if (SI != _:SI_Tank && fTankPls[client] < GetGameTime())
 	{
 		if (storedClass[client] == 0) PushArrayCell(g_SpawnsArray, GetEntProp(client, Prop_Send, "m_zombieClass"));
 	}
@@ -161,7 +161,7 @@ public Action:L4D_OnFirstSurvivorLeftSafeArea(client)
 {
 	// Is the Game actually live?
 	if (readyUpIsAvailable && IsInReady()) bLive = false;
-	else 
+	else
 	{
 		// Clear Array here.
 		// Fill Array with existing spawns (from lowest SI Class to Highest, ie. 2 Hunters, if available, will be spawned before a Spitter as they're SI Class 3 and a Spitter is 4)
@@ -182,9 +182,9 @@ public void L4D_OnEnterGhostState(client)
 	if (!bLive || !IsValidClient(client) || GetClientTeam(client) != 3 || fTankPls[client] > GetGameTime()) return;
 
 	// Is Player Respawning?
-	if (PlayerSpawned[client]) 
+	if (PlayerSpawned[client])
 	{
-		bRespawning[client] = true; 
+		bRespawning[client] = true;
 		return;
 	}
 
@@ -192,7 +192,7 @@ public void L4D_OnEnterGhostState(client)
 	// If for some reason the returned SI is invalid or if the Array isn't filled up yet: allow Director to continue.
 	new SI = ReturnNextSIInQueue(client);
 	if (SI > 0) L4D_SetClass(client, SI);
-	if (bKeepChecking[client]) 
+	if (bKeepChecking[client])
 	{
 		storedClass[client] = SI;
 		bKeepChecking[client] = false;
@@ -217,7 +217,7 @@ public void L4D2_OnTankPassControl(oldTank, newTank, passCount)
 	{
 		if (storedClass[newTank] > 0)
 		{
-			if (!PlayerSpawned[newTank] || bRespawning[newTank]) 
+			if (!PlayerSpawned[newTank] || bRespawning[newTank])
 			{
 				PushArrayCell(g_SpawnsArray, storedClass[newTank]);
 				bRespawning[newTank] = false;
@@ -225,7 +225,7 @@ public void L4D2_OnTankPassControl(oldTank, newTank, passCount)
 		}
 		bKeepChecking[newTank] = false;
 	}
-	else 
+	else
 	{
 		fTankPls[oldTank] = GetGameTime() + 2.0;
 		storedClass[oldTank] = 0;
@@ -262,7 +262,7 @@ stock ReturnNextSIInQueue(client)
 	new QueuedSI = _:SI_None;
 	new QueuedIndex = 0;
 	new ArraySize = GetArraySize(g_SpawnsArray);
-	
+
 	// Do we have Spawns in our Array yet?
 	if (ArraySize > 0)
 	{
@@ -277,7 +277,7 @@ stock ReturnNextSIInQueue(client)
 			// Look for the Boomer's position in the Array.
 			QueuedSI = _:SI_Boomer;
 			QueuedIndex = FindValueInArray(g_SpawnsArray, 2);
-		
+
 			// Look for the Spitter's position in the Array.
 			new iTempIndex = FindValueInArray(g_SpawnsArray, 4);
 
@@ -287,11 +287,11 @@ stock ReturnNextSIInQueue(client)
 			// -----------------
 			// If the Boomer position returns -1 (it shouldn't, considering we've checked for any Support SI being alive)
 			// Perhaps a non-Boomer config? :D
-			if (QueuedIndex > iTempIndex || QueuedIndex == -1 ) 
-			{ 
-				QueuedSI = _:SI_Spitter; 
-				QueuedIndex = iTempIndex; 
-			}		
+			if (QueuedIndex > iTempIndex || QueuedIndex == -1 )
+			{
+				QueuedSI = _:SI_Spitter;
+				QueuedIndex = iTempIndex;
+			}
 		}
 		// We get to enforce the first available Spawn in the Array!
 		else
@@ -333,7 +333,7 @@ stock CleanSlate()
 	}
 }
 
-stock bool:IsTankInPlay() 
+stock bool:IsTankInPlay()
 {
 	for(new i = 1; i <= MaxClients; i++)
 	{
@@ -364,7 +364,7 @@ IsInfectedTeamAlive()
 	{
 		if (IsValidClient(i) &&
 		!IsFakeClient(i) &&
-		GetClientTeam(i) == 3 && 
+		GetClientTeam(i) == 3 &&
 		IsPlayerAlive(i))
 		{
 			SI++;
@@ -378,9 +378,9 @@ stock bool:IsSupportSIAlive(client)
 {
 	for(new i = 1; i <= MaxClients; i++)
 	{
-		if (IsValidClient(i) && 
-		GetClientTeam(i) == 3 && 
-		IsPlayerAlive(i) 
+		if (IsValidClient(i) &&
+		GetClientTeam(i) == 3 &&
+		IsPlayerAlive(i)
 		&& i != client)
 		{
 			if (IsSupport(i)) return true;
@@ -391,7 +391,7 @@ stock bool:IsSupportSIAlive(client)
 	return false;
 }
 
-stock bool:IsSupport(client) 
+stock bool:IsSupport(client)
 {
 	new ZClass = GetEntProp(client, Prop_Send, "m_zombieClass");
 	return (ZClass == _:SI_Boomer || ZClass == _:SI_Spitter);
@@ -439,6 +439,6 @@ bool:IsTank(client)
 bool:IsValidClient(client)
 {
 	if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false;
-	return (IsClientInGame(client)); 
+	return (IsClientInGame(client));
 }
 

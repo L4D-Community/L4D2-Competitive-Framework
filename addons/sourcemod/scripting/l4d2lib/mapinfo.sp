@@ -356,7 +356,7 @@ public int _native_GetMapStartOrigin(Handle hPlugin, int iNumParams)
 	for (int i = 0; i < sizeof(fOrigin); i++) {
 		fOrigin[i] = g_fStartPoint[i];
 	}
-	
+
 	SetNativeArray(1, fOrigin, sizeof(fOrigin));
 
 	return 1;
@@ -366,11 +366,11 @@ public int _native_GetMapEndOrigin(Handle hPlugin, int iNumParams)
 {
 	float fOrigin[3];
 	GetNativeArray(1, fOrigin, sizeof(fOrigin));
-	
+
 	for (int i = 0; i < sizeof(fOrigin); i++) {
 		fOrigin[i] = g_fEndPoint[i];
 	}
-	
+
 	SetNativeArray(1, fOrigin, sizeof(fOrigin));
 
 	return 1;
@@ -395,7 +395,7 @@ public int _native_GetMapValueInt(Handle hPlugin, int iNumParams)
 {
 	int iLen;
 	GetNativeStringLength(1, iLen);
-	
+
 	int iNewLen = iLen + 1;
 	char[] sKey = new char[iNewLen];
 	GetNativeString(1, sKey, iNewLen);
@@ -408,7 +408,7 @@ public int _native_GetMapValueFloat(Handle hPlugin, int iNumParams)
 {
 	int iLen;
 	GetNativeStringLength(1, iLen);
-	
+
 	int iNewLen = iLen + 1;
 	char[] sKey = new char[iNewLen];
 	GetNativeString(1, sKey, iNewLen);
@@ -422,16 +422,16 @@ public int _native_GetMapValueVector(Handle hPlugin, int iNumParams)
 {
 	int iLen;
 	GetNativeStringLength(1, iLen);
-	
+
 	int iNewLen = iLen + 1;
 	char[] sKey = new char[iNewLen];
 	GetNativeString(1, sKey, iNewLen);
-	
+
 	float fDefval[3], fValue[3];
 	GetNativeArray(3, fDefval, 3);
 
 	KvGetVector(g_hMIData, sKey, fValue, fDefval);
-	
+
 	SetNativeArray(2, fValue, 3);
 	return 1;
 }
@@ -440,13 +440,13 @@ public int _native_GetMapValueString(Handle hPlugin, int iNumParams)
 {
 	int iLen;
 	GetNativeStringLength(1, iLen);
-	
+
 	int iNewLen = iLen + 1;
 	char[] sKey = new char[iNewLen];
 	GetNativeString(1, sKey, iNewLen);
 
 	GetNativeStringLength(4, iLen);
-	
+
 	iNewLen = iLen + 1;
 	char[] sDefVal = new char[iNewLen];
 	GetNativeString(4, sDefVal, iNewLen);
@@ -454,7 +454,7 @@ public int _native_GetMapValueString(Handle hPlugin, int iNumParams)
 	iLen = GetNativeCell(3);
 	iNewLen = iLen + 1;
 	char[] sBuf = new char[iNewLen];
-	
+
 	KvGetString(g_hMIData, sKey, sBuf, iNewLen, sDefVal);
 
 	SetNativeString(2, sBuf, iNewLen);
@@ -476,6 +476,6 @@ public int _native_CopyMapSubsection(Handle hPlugin, int iNumParams)
 		KvCopySubkeys(g_hMIData, hKv);
 		KvGoBack(g_hMIData);
 	}
-	
+
 	return 1;
 }

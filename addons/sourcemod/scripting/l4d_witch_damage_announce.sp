@@ -23,27 +23,27 @@
 * Version 0.1b
 * - Catches Damage done to Witch
 * - Prints to Chat on Witch Death.
-* 
+*
 * Version 0.2b
 * - Fixed Percentages not adding up to 100 because Damage doesn't equal Witch's health.
 * - Prints Damage and Remaining Health when Witch Survives (Both when someone gets killed or when Witch incaps last person alive)
-* 
+*
 * Version 1.0 <Public Release>
 * - Fixed Damage Prints either being over or under Witch's Health
 * - Only Show people that did damage to the Witch, the Witch is not something you need to gang up on.
-* 
+*
 * Version 1.0a
 * - Blocked SI Damage to Witch (Except for Tank) - This also fixes less than 1000 Damage/100 %
 * - Allows Console Witch Spawns. (Doesn't support Multiple Witches at the same time)
-* 
+*
 * Version 1.1
 * - Added "Tank-Kill" Notifier when Tank kills Witch.
 * - Added Cvar to enable or disable SI from causing the witch to get startled. (FF to Witch is always blocked)
-* 
+*
 * Version 1.1b
 * - Last Fix for Damage/Percentages; not adding up to 1000/100%.
 * - Changed print format a bit.
-* 
+*
 * Version 1.1c
 * - Removed the witch FF code since it logically belongs to the si_ff_block plugin
 *
@@ -67,18 +67,18 @@ new iDamageWitch[MAXPLAYERS + 1];    //Damage done to Witch, client tracking.
 new DamageWitchTotal;                //Total Damage done to Witch.
 
 //Witch's Standard health
-new Float: g_fWitchHealth            = 1000.0;    
+new Float: g_fWitchHealth            = 1000.0;
 
 //In case a CFG uses a different Witch Health, adjust to it.
 new Handle: g_hCvarWitchHealth       = INVALID_HANDLE;
 
 //Survivor Array - Store Survivors in here for Damage Print.
-new g_iSurvivorLimit = 4;   
+new g_iSurvivorLimit = 4;
 
 //Handles Cvars
 new Handle:cvar_witch_true_damage;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Witch Damage Announce",
 	author = "Sir",
@@ -124,16 +124,16 @@ public WitchHurt_Event(Handle:event, const String:name[], bool:dontBroadcast)
 		new attackerId = GetEventInt(event, "attacker");
 		new attacker = GetClientOfUserId(attackerId);
 		new damageDone = GetEventInt(event, "amount");
-		
+
 		// Just count Survivor Damage
-		
+
 		if (IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR)
 		{
 			DamageWitchTotal += damageDone;
-			
+
 			//If Damage is higher than Max Health, Adjust.
 			if (!GetConVarBool(cvar_witch_true_damage) && DamageWitchTotal > g_fWitchHealth) iDamageWitch[attacker] += (damageDone - (DamageWitchTotal - RoundToFloor(g_fWitchHealth)));
-			else iDamageWitch[attacker] += damageDone;	
+			else iDamageWitch[attacker] += damageDone;
 		}
 	}
 }
@@ -154,9 +154,9 @@ public RoundEnd_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	if (bWitchSpawned)
 	{
 		bRoundOver = true;
-		
+
 		if (DamageWitchTotal > 0) CalculateWitch();
-		
+
 		bWitchSpawned = false;
 	}
 }
@@ -183,7 +183,7 @@ public WitchDeath_Event(Handle:event, const String:name[], bool:dontBroadcast)
 	}
 
 	if (!bRoundOver)
-	{	
+	{
 		bWitchSpawned = false;
 		CalculateWitch();
 		ClearDamage();

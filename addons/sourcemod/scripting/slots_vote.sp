@@ -86,7 +86,7 @@ bool:StartSlotVote(client, String:Slots[])
 			}
 			iPlayers[iNumPlayers++] = i;
 		}
-		
+
 		new String:sBuffer[64];
 		g_hVote = CreateBuiltinVote(VoteActionHandler, BuiltinVoteType_Custom_YesNo, BuiltinVoteAction_Cancel | BuiltinVoteAction_VoteEnd | BuiltinVoteAction_End);
 		Format(sBuffer, sizeof(sBuffer), "Limit Slots to '%s'?", Slots);

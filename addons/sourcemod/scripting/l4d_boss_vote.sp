@@ -39,12 +39,12 @@ int
 public void OnPluginStart()
 {
 	g_forwardUpdateBosses = CreateGlobalForward("OnUpdateBosses", ET_Ignore, Param_Cell, Param_Cell);
-	
+
 	g_hCvarBossVoting = CreateConVar("l4d_boss_vote", "1", "Enable boss voting", FCVAR_NOTIFY, true, 0.0, true, 1.0); // Sets if boss voting is enabled or disabled
-	
+
 	RegConsoleCmd("sm_voteboss", VoteBossCmd); // Allows players to vote for custom boss spawns
 	RegConsoleCmd("sm_bossvote", VoteBossCmd); // Allows players to vote for custom boss spawns
-	
+
 	RegAdminCmd("sm_ftank", ForceTankCommand, ADMFLAG_BAN);
 	RegAdminCmd("sm_fwitch", ForceWitchCommand, ADMFLAG_BAN);
 }
@@ -84,7 +84,7 @@ public Action VoteBossCmd(int client, int args)
 	if (!GetConVarBool(g_hCvarBossVoting)) {
 		return Plugin_Handled;
 	}
-	
+
 	if (!RunVoteChecks(client)) {
 		return Plugin_Handled;
 	}
@@ -95,7 +95,7 @@ public Action VoteBossCmd(int client, int args)
 		CReplyToCommand(client, "{blue}<{green}BossVote{blue}>{default} Use {default}\"{blue}0{default}\" for {olive}No Spawn{default}, \"{blue}-1{default}\" for {olive}Ignorance.");
 		return Plugin_Handled;
 	}
-	
+
 	// Get all non-spectating players
 	int iNumPlayers;
 	int[] iPlayers = new int[MaxClients];
@@ -107,23 +107,23 @@ public Action VoteBossCmd(int client, int args)
 		}
 		iPlayers[iNumPlayers++] = i;
 	}
-	
+
 	// Get Requested Boss Percents
 	char bv_sTank[8];
 	char bv_sWitch[8];
 	GetCmdArg(1, bv_sTank, 8);
 	GetCmdArg(2, bv_sWitch, 8);
-	
+
 	bv_iTank = -1;
 	bv_iWitch = -1;
-	
+
 	// Make sure the args are actual numbers
 	if (!IsInteger(bv_sTank) || !IsInteger(bv_sWitch))
 	{
 		CReplyToCommand(client, "{blue}<{green}BossVote{blue}>{default} Percentages are {olive}invalid{default}.");
 		return Plugin_Handled;
 	}
-	
+
 	// Check to make sure static bosses don't get changed
 	if (!IsStaticTankMap())
 	{
@@ -134,7 +134,7 @@ public Action VoteBossCmd(int client, int args)
 		bv_bTank = false;
 		CReplyToCommand(client, "{blue}<{green}BossVote{blue}>{default} Tank spawn is static and can not be changed on this map.");
 	}
-	
+
 	if (!IsStaticWitchMap())
 	{
 		bv_bWitch = (bv_iWitch = StringToInt(bv_sWitch)) > 0;
@@ -144,24 +144,24 @@ public Action VoteBossCmd(int client, int args)
 		bv_bWitch = false;
 		CReplyToCommand(client, "{blue}<{green}BossVote{blue}>{default} Witch spawn is static and can not be changed on this map.");
 	}
-	
+
 	// Check if percent is within limits
 	if (bv_bTank && !IsTankPercentValid(bv_iTank))
 	{
 		bv_bTank = false;
 		CReplyToCommand(client, "{blue}<{green}BossVote{blue}>{default} Tank percentage is {blue}banned{default}.");
 	}
-	
+
 	if (bv_bWitch && !IsWitchPercentValid(bv_iWitch, true))
 	{
 		bv_bWitch = false;
 		CReplyToCommand(client, "{blue}<{green}BossVote{blue}>{default} Witch percentage is {blue}banned{default}.");
 	}
-	
+
 	char bv_voteTitle[64];
-	
+
 	// Set vote title
-	if (bv_bTank && bv_bWitch)	// Both Tank and Witch can be changed 
+	if (bv_bTank && bv_bWitch)	// Both Tank and Witch can be changed
 	{
 		Format(bv_voteTitle, 64, "Set Tank to: %s and Witch to: %s?", bv_sTank, bv_sWitch);
 	}
@@ -206,7 +206,7 @@ public Action VoteBossCmd(int client, int args)
 			return Plugin_Handled;
 		}
 	}
-	
+
 	// Start the vote!
 	Handle bv_hVote = CreateBuiltinVote(BossVoteActionHandler, BuiltinVoteType_Custom_YesNo, BuiltinVoteAction_Cancel | BuiltinVoteAction_VoteEnd | BuiltinVoteAction_End);
 	SetBuiltinVoteArgument(bv_hVote, bv_voteTitle);
@@ -241,15 +241,15 @@ public void BossVoteResultHandler(Handle vote, int num_votes, int num_clients, c
 		{
 			if (item_info[i][BUILTINVOTEINFO_ITEM_VOTES] > (num_clients / 2))
 			{
-			
+
 				// One last ready-up check.
 				if (!IsInReady())  {
 					DisplayBuiltinVoteFail(vote, BuiltinVoteFail_Loses);
 					CPrintToChatAll("{blue}<{green}BossVote{blue}>{default} Spawns can only be set during ready up.");
 					return;
 				}
-				
-				if (bv_bTank && bv_bWitch)	// Both Tank and Witch can be changed 
+
+				if (bv_bTank && bv_bWitch)	// Both Tank and Witch can be changed
 				{
 					DisplayBuiltinVotePass(vote, "Setting Boss Spawns...");
 				}
@@ -265,34 +265,34 @@ public void BossVoteResultHandler(Handle vote, int num_votes, int num_clients, c
 				{
 					DisplayBuiltinVotePass(vote, "Setting Boss Disabled...");
 				}
-				
+
 				SetWitchPercent(bv_iWitch);
 				SetTankPercent(bv_iTank);
-				
+
 				if (bv_iWitch == 0)
 				{
 					SetWitchDisabled(true);
 				}
-				
+
 				if (bv_iTank == 0)
 				{
 					SetTankDisabled(true);
 				}
-				
+
 				// Update our shiz yo
 				UpdateBossPercents();
-				
+
 				// Forward da message man :)
 				Call_StartForward(g_forwardUpdateBosses);
 				Call_PushCell(bv_iTank);
 				Call_PushCell(bv_iWitch);
 				Call_Finish();
-				
+
 				return;
 			}
 		}
 	}
-	
+
 	// Vote Failed
 	DisplayBuiltinVoteFail(vote, BuiltinVoteFail_Loses);
 	return;
@@ -303,7 +303,7 @@ bool IsInteger(const char[] buffer)
 	// negative check
 	if ( !IsCharNumeric(buffer[0]) && buffer[0] != '-' )
 		return false;
-	
+
 	int len = strlen(buffer);
 	for (int i = 1; i < len; i++)
 	{
@@ -328,60 +328,60 @@ public Action ForceTankCommand(int client, int args)
 	if (!GetConVarBool(g_hCvarBossVoting)) {
 		return Plugin_Handled;
 	}
-	
+
 	if (IsDarkCarniRemix())
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Command not available on this map.");
 		return Plugin_Handled;
 	}
-	
+
 	if (IsStaticTankMap())
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Tank spawn is static and can not be changed on this map.");
 		return Plugin_Handled;
 	}
-	
+
 	if (!IsInReady())
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Command can only be used during ready up.");
 		return Plugin_Handled;
 	}
-	
+
 	// Get Requested Tank Percent
 	char bv_sTank[32];
 	GetCmdArg(1, bv_sTank, 32);
-	
+
 	// Make sure the cmd argument is a number
 	if (!IsInteger(bv_sTank))
 		return Plugin_Handled;
-	
+
 	// Convert it to in int boy
 	int p_iRequestedPercent = StringToInt(bv_sTank);
-	
+
 	if (p_iRequestedPercent < 0)
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Percentage is {blue}invalid{default}.");
 		return Plugin_Handled;
 	}
-	
+
 	// Check if percent is within limits
 	if (!IsTankPercentValid(p_iRequestedPercent))
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Percentage is {blue}banned{default}.");
 		return Plugin_Handled;
 	}
-	
+
 	// Set the boss
 	SetTankPercent(p_iRequestedPercent);
-	
+
 	// Let everybody know
 	char clientName[32];
 	GetClientName(client, clientName, sizeof(clientName));
 	CPrintToChatAll("{blue}<{green}BossVote{blue}>{default} Tank spawn set to {olive}%i%%{default} by Admin {blue}%s{default}.", p_iRequestedPercent, clientName);
-	
+
 	// Update our shiz yo
 	UpdateBossPercents();
-	
+
 	// Forward da message man :)
 	Call_StartForward(g_forwardUpdateBosses);
 	Call_PushCell(p_iRequestedPercent);
@@ -396,60 +396,60 @@ public Action ForceWitchCommand(int client, int args)
 	if (!GetConVarBool(g_hCvarBossVoting)) {
 		return Plugin_Handled;
 	}
-	
+
 	if (IsDarkCarniRemix())
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Command not available on this map.");
 		return Plugin_Handled;
 	}
-	
+
 	if (IsStaticWitchMap())
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Witch spawn is static and can not be changed on this map.");
 		return Plugin_Handled;
 	}
-	
+
 	if (!IsInReady())
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Command can only be used during ready up.");
 		return Plugin_Handled;
 	}
-	
+
 	// Get Requested Witch Percent
 	char bv_sWitch[32];
 	GetCmdArg(1, bv_sWitch, 32);
-	
+
 	// Make sure the cmd argument is a number
 	if (!IsInteger(bv_sWitch))
 		return Plugin_Handled;
-	
+
 	// Convert it to in int boy
 	int p_iRequestedPercent = StringToInt(bv_sWitch);
-	
+
 	if (p_iRequestedPercent < 0)
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Percentage is {blue}invalid{default}.");
 		return Plugin_Handled;
 	}
-	
+
 	// Check if percent is within limits
 	if (!IsWitchPercentValid(p_iRequestedPercent))
 	{
 		CPrintToChat(client, "{blue}<{green}BossVote{blue}>{default} Percentage is {olive}banned{default}.");
 		return Plugin_Handled;
 	}
-	
+
 	// Set the boss
 	SetWitchPercent(p_iRequestedPercent);
-	
+
 	// Let everybody know
 	char clientName[32];
 	GetClientName(client, clientName, sizeof(clientName));
 	CPrintToChatAll("{blue}<{green}BossVote{blue}>{default} Witch spawn set to {olive}%i%%{default} by Admin {blue}%s{default}.", p_iRequestedPercent, clientName);
-	
+
 	// Update our shiz yo
 	UpdateBossPercents();
-	
+
 	// Forward da message man :)
 	Call_StartForward(g_forwardUpdateBosses);
 	Call_PushCell(-1);

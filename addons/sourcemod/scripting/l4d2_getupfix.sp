@@ -23,7 +23,7 @@ enum
 	eINDEX_CHARGER = 1,							//index for getup anim on post-slam clears
 	eINDEX_CHARGER_WALL = 2,					//index for getup anim on mid-slam clears against walls
 	eINDEX_CHARGER_GROUND = 3,					//index for getup anim on mid-slam clears against ground (after long charges)
-	
+
 	eINDEX_SIZE
 };
 
@@ -32,23 +32,23 @@ enum
 {
 	eSINGLE_PISTOL = 0,							//index for getup anim on hunter clears
 	eDUAL_PISTOLS = 1,							//index for getup anim on post-slam clears
-	
+
 	eINCAP_ANIMATIONS_SIZE
 };
 
 int
 	bArClientAlreadyChecked[MAXPLAYERS + 1]; //in the rare event of it being a game with multiple chargers and 2+ getting cleared on slam
 
-static const int 
+static const int
 	getUpAnimations[SurvivorCharacter_Size][eINDEX_SIZE] =
 	{
-		// l4d2 
+		// l4d2
 		// 0: Nick, 1: Rochelle, 2: Coach, 3: Ellis
 		{620, 667, 671, 672}, //Nick
 		{629, 674, 678, 679}, //Rochelle
 		{621, 656, 660, 661}, //Coach
 		{625, 671, 675, 676}, //Ellis
-		
+
 		// l4d1
 		// 4: Bill, 5: Zoey, 6: Louis, 7: Francis
 		{528, 759, 763, 764}, //Bill
@@ -65,7 +65,7 @@ static const int
 		{621, 622}, //Rochelle
 		{613, 614}, //Coach
 		{617, 618}, //Ellis
-		
+
 		// l4d1
 		// 4: Bill, 5: Zoey, 6: Louis, 7: Francis
 		{520, 521}, //Bill
@@ -112,7 +112,7 @@ void ProcessClient(int client)
 	}
 
 	int sequence = GetEntProp(client, Prop_Send, "m_nSequence");
-	
+
 	// charger or hunter get up animation?
 	if (sequence != getUpAnimations[charIndex][eINDEX_HUNTER] && sequence != getUpAnimations[charIndex][eINDEX_CHARGER]
 		&&  sequence != getUpAnimations[charIndex][eINDEX_CHARGER_GROUND] && sequence != getUpAnimations[charIndex][eINDEX_CHARGER_WALL]
@@ -127,7 +127,7 @@ void ProcessClient(int client)
 	ArrayStack tempStack = new ArrayStack(3);
 	tempStack.Push(client);
 	tempStack.Push(sequence);
-	
+
 	float fTime = 0.0;
 
 	if (sequence == getUpAnimations[charIndex][eINDEX_HUNTER]) {
@@ -139,7 +139,7 @@ void ProcessClient(int client)
 	} else {
 		fTime = ANIM_CHARGER_SLAMMED_GROUND_LENGTH - 2.5 * GetEntPropFloat(client, Prop_Send, "m_flCycle");
 	}
-	
+
 	CreateTimer(fTime, Timer_CheckClient, tempStack, TIMER_FLAG_NO_MAPCHANGE | TIMER_HNDL_CLOSE);
 }
 
@@ -154,14 +154,14 @@ public Action Timer_CheckClient(Handle hTimer, ArrayStack tempStack)
 	}
 
 	int newSequence = GetEntProp(client, Prop_Send, "m_nSequence");
-	
+
 	// not the same animation?
 	if (newSequence == oldSequence) {
 		return Plugin_Stop;
 	}
-	
+
 	float duration = 0.0;
-	
+
 	// charger or hunter get up animation?
 	if (newSequence == getUpAnimations[charIndex][eINDEX_HUNTER]) {
 		duration = ANIM_HUNTER_LENGTH;
@@ -194,11 +194,11 @@ public Action GetupTimer(Handle hTimer, any attacker)
 		if (IsSurvivor(i) && !bArClientAlreadyChecked[i]) {
 			int seq = GetEntProp(i, Prop_Send, "m_nSequence");
 			int character = IdentifySurvivor(i);
-			
+
 			if (character == SurvivorCharacter_Invalid) {
 				return Plugin_Stop;
 			}
-			
+
 			if (seq == getUpAnimations[character][eINDEX_CHARGER_WALL]) {
 				if (i == attacker) {
 					SetEntPropFloat(attacker, Prop_Send, "m_flCycle", ANIM_CHARGER_SLAMMED_WALL_LENGTH);
@@ -207,7 +207,7 @@ public Action GetupTimer(Handle hTimer, any attacker)
 					CreateTimer(ANIM_CHARGER_SLAMMED_WALL_LENGTH, ResetAlreadyCheckedBool, i, TIMER_FLAG_NO_MAPCHANGE);
 					ProcessClient(i);
 				}
-				
+
 				break;
 			} else if (seq == getUpAnimations[character][eINDEX_CHARGER_GROUND]) {
 				if (i == attacker) {
@@ -217,7 +217,7 @@ public Action GetupTimer(Handle hTimer, any attacker)
 					CreateTimer(ANIM_CHARGER_SLAMMED_GROUND_LENGTH, ResetAlreadyCheckedBool, i, TIMER_FLAG_NO_MAPCHANGE);
 					ProcessClient(i);
 				}
-				
+
 				break;
 			}
 		}

@@ -93,7 +93,7 @@ public void OnWeaponSwitched(int iClient, int iWeapon)
 	if (IsFakeClient(iClient) || !IsValidEdict(iWeapon)) {
 		return;
 	}
-	
+
 	char sWeaponName[ENTITY_MAX_NAME_LENGTH];
 	GetEdictClassname(iWeapon, sWeaponName, sizeof(sWeaponName));
 	if (strcmp(sWeaponName, "weapon_melee") != 0) {

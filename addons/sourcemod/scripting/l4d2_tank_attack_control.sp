@@ -19,9 +19,9 @@ new Handle:hOverhandOnly;
 
 new Float:throwQueuedAt[MAXPLAYERS + 1];
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
-	name = "Tank Attack Control", 
+	name = "Tank Attack Control",
 	author = "vintik, CanadaRox, Jacob, Visor",
 	description = "",
 	version = "0.7.1",
@@ -36,7 +36,7 @@ public OnPluginStart()
 	{
 		SetFailState("Plugin supports Left 4 dead 2 only!");
 	}
-	
+
 	//future-proof remake of the confogl feature (could be used with lgofnoc)
 	g_hBlockPunchRock = CreateConVar("l4d2_block_punch_rock", "1", "Block tanks from punching and throwing a rock at the same time");
 	g_hBlockJumpRock = CreateConVar("l4d2_block_jump_rock", "0", "Block tanks from jumping and throwing a rock at the same time");
@@ -80,13 +80,13 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 	if (!IsClientInGame(client) || IsFakeClient(client) || GetClientTeam(client) != 3
 		|| GetEntProp(client, Prop_Send, "m_zombieClass") != 8)
 			return Plugin_Continue;
-	
+
 	//if tank
 	if ((buttons & IN_JUMP) && ShouldCancelJump(client))
 	{
 		buttons &= ~IN_JUMP;
 	}
-	
+
 	if (GetConVarBool(hOverhandOnly) == false)
 	{
 		if (buttons & IN_RELOAD)
@@ -108,7 +108,7 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 	{
 		g_iQueuedThrow[client] = 3; // two hand overhand
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -120,13 +120,13 @@ public Action:L4D_OnCThrowActivate(ability)
 		return Plugin_Continue;
 	}
 	new client = GetEntPropEnt(ability, Prop_Data, "m_hOwnerEntity");
-	
+
 	if (GetClientButtons(client) & IN_ATTACK)
 	{
 		if (GetConVarBool(g_hBlockPunchRock))
 			return Plugin_Handled;
 	}
-	
+
 	throwQueuedAt[client] = GetGameTime();
 	return Plugin_Continue;
 }

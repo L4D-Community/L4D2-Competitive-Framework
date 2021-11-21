@@ -26,7 +26,7 @@ public void OnMapStart()
 	char sBuffer[64];
 	for (int i = 0; i < sizeof(snipers); i++) {
 		PrecacheModel(WeaponModels[snipers[i]]);
-		
+
 		GetWeaponName(snipers[i], sBuffer, sizeof(sBuffer));
 		SpawnWeaponByName(sBuffer);
 	}
@@ -38,9 +38,9 @@ void SpawnWeaponByName(const char[] sWeaponName)
 	if (iEntity == -1) {
 		return;
 	}
-	
+
 	DispatchSpawn(iEntity);
-	
+
 	#if SOURCEMOD_V_MINOR > 8
 		RemoveEntity(iEntity);
 	#else

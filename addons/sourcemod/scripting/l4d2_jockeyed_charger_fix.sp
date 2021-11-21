@@ -31,27 +31,27 @@ public void OnPluginStart()
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	m_queuedPummelAttacker = GameConfGetOffset(hGamedata, "CTerrorPlayer->m_queuedPummelAttacker");
 	if (m_queuedPummelAttacker == -1) {
 		SetFailState("Failed to get offset 'CTerrorPlayer->m_queuedPummelAttacker'.");
 	}
-	
+
 	int iCleapOnTouch = GameConfGetOffset(hGamedata, "CBaseAbility::OnTouch");
 	if (iCleapOnTouch == -1) {
 		SetFailState("Failed to get offset 'CBaseAbility::OnTouch'.");
 	}
-	
+
 	hCLeap_OnTouch = DHookCreate(iCleapOnTouch, HookType_Entity, ReturnType_Void, ThisPointer_CBaseEntity, CLeap_OnTouch);
 	DHookAddParam(hCLeap_OnTouch, HookParamType_CBaseEntity);
-	
+
 	delete hGamedata;
 }
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
 	if (strcmp(classname, "ability_leap") == 0) {
-		DHookEntity(hCLeap_OnTouch, false, entity); 
+		DHookEntity(hCLeap_OnTouch, false, entity);
 	}
 }
 
@@ -61,8 +61,8 @@ public MRESReturn CLeap_OnTouch(int pThis, Handle hParams)
 	int survivor = DHookGetParam(hParams, 1);
 	if (IsValidJockey(jockey)/* probably redundant */ && IsSurvivor(survivor))
 	{
-		if (IsValidCharger(GetCarrier(survivor)) 
-		|| IsValidCharger(GetPummelQueueAttacker(survivor)) 
+		if (IsValidCharger(GetCarrier(survivor))
+		|| IsValidCharger(GetPummelQueueAttacker(survivor))
 		|| IsValidCharger(GetPummelAttacker(survivor))
 		) {
 			return MRES_Supercede;
@@ -73,27 +73,27 @@ public MRESReturn CLeap_OnTouch(int pThis, Handle hParams)
 
 bool IsSurvivor(int client)
 {
-	return (client > 0 
-		&& client <= MaxClients 
-		&& IsClientInGame(client) 
+	return (client > 0
+		&& client <= MaxClients
+		&& IsClientInGame(client)
 		&& GetClientTeam(client) == TEAM_SURVIVOR);
 }
 
 bool IsValidJockey(int client)
 {
-	return (client > 0 
-		&& client <= MaxClients 
-		&& IsClientInGame(client) 
+	return (client > 0
+		&& client <= MaxClients
+		&& IsClientInGame(client)
 		&& GetClientTeam(client) == TEAM_INFECTED
 		&& GetEntProp(client, Prop_Send, "m_zombieClass") == Z_JOCKEY);
 }
 
 bool IsValidCharger(int client)
 {
-	return (client > 0 
-		&& client <= MaxClients 
-		&& IsClientInGame(client) 
-		&& GetClientTeam(client) == TEAM_INFECTED 
+	return (client > 0
+		&& client <= MaxClients
+		&& IsClientInGame(client)
+		&& GetClientTeam(client) == TEAM_INFECTED
 		&& GetEntProp(client, Prop_Send, "m_zombieClass") == Z_CHARGER);
 }
 

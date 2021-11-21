@@ -21,7 +21,7 @@ enum
 {
 	eCount = 0,
 	eAltTick,
-	
+
 	eArray_Size
 };
 
@@ -49,7 +49,7 @@ float
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)
 {
 	g_bLateLoad = bLate;
-	
+
 	return APLRes_Success;
 }
 
@@ -70,17 +70,17 @@ public void OnPluginStart()
 	g_hCvarAlternateDamagePerTwoTicks = CreateConVar("l4d2_spit_alternate_dmg", "-1.0", "Damage per alternate tick. -1 to disable");
 	g_hCvarMaxTicks = CreateConVar("l4d2_spit_max_ticks", "28", "Maximum number of acid damage ticks");
 	g_hCvarGodframeTicks = CreateConVar("l4d2_spit_godframe_ticks", "4", "Number of initial godframed acid ticks");
-	
+
 	g_hCvarDamagePerTick.AddChangeHook(CvarsChanged);
 	g_hCvarAlternateDamagePerTwoTicks.AddChangeHook(CvarsChanged);
 	g_hCvarMaxTicks.AddChangeHook(CvarsChanged);
 	g_hCvarGodframeTicks.AddChangeHook(CvarsChanged);
-	
+
 	g_hPuddles = new StringMap();
-	
+
 	HookEvent("round_start", Event_RoundReset, EventHookMode_PostNoCopy);
 	//HookEvent("round_end", Event_RoundReset, EventHookMode_PostNoCopy);
-	
+
 	if (g_bLateLoad) {
 		for (int i = 1; i <= MaxClients; i++) {
 			if (IsClientInGame(i)) {
@@ -97,12 +97,12 @@ void InitGameData()
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	g_iActiveTimerOffset = GameConfGetOffset(hGamedata, "CInferno->m_activeTimer");
 	if (g_iActiveTimerOffset == -1) {
 		SetFailState("Failed to get offset 'CInferno->m_activeTimer'.");
 	}
-	
+
 	delete hGamedata;
 }
 
@@ -180,14 +180,14 @@ public Action Hook_OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, fl
 	if (!IsInsectSwarm(iInflictor) || !IsSurvivor(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	char sTrieKey[MAX_INT_STRING_SIZE];
 	IntToString(iInflictor, sTrieKey, sizeof(sTrieKey));
 
 	int iVictimArray[MAXPLAYERS + 1][eArray_Size];
 	if (g_hPuddles.GetArray(sTrieKey, iVictimArray[0][0], (sizeof(iVictimArray) * sizeof(iVictimArray[])))) {
 		iVictimArray[iVictim][eCount]++;
-		
+
 		// Check to see if it's a godframed tick
 		if ((GetPuddleLifetime(iInflictor) >= g_iGodframeTicks * TICK_TIME) && iVictimArray[iVictim][eCount] < g_iGodframeTicks) {
 			iVictimArray[iVictim][eCount] = g_iGodframeTicks + 1;
@@ -203,18 +203,18 @@ public Action Hook_OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, fl
 				iVictimArray[iVictim][eAltTick] = true;
 			}
 		}
-		
+
 		// Update the array with stored tickcounts
 		g_hPuddles.SetArray(sTrieKey, iVictimArray[0][0], (sizeof(iVictimArray) * sizeof(iVictimArray[])));
-		
+
 		if (g_iGodframeTicks >= iVictimArray[iVictim][eCount] || iVictimArray[iVictim][eCount] > g_iMaxTicks) {
 			fDamage = 0.0;
 		}
-		
+
 		if (iVictimArray[iVictim][eCount] > g_iMaxTicks) {
 			KillEntity(iInflictor);
 		}
-		
+
 		return Plugin_Changed;
 	}
 

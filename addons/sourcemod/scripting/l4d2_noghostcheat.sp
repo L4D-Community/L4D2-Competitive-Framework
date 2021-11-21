@@ -1,7 +1,7 @@
 #include <sourcemod>
 #include <sdkhooks>
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "L4D2 Ghost-Cheat Preventer",
 	author = "Sir",

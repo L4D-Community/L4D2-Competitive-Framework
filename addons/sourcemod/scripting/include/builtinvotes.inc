@@ -232,7 +232,7 @@ stock bool DisplayBuiltinVoteToAll(Handle vote, int time)
 		if (!IsClientInGame(i) || IsFakeClient(i)) {
 			continue;
 		}
-		
+
 		iPlayers[iNumPlayers++] = i;
 	}
 
@@ -524,7 +524,7 @@ stock bool IsNewBuiltinVoteAllowed()
 
 /**
  * Checks if the BuiltinVote is in progress
- * By default this is already built into the native IsBuiltinVoteInProgress(), 
+ * By default this is already built into the native IsBuiltinVoteInProgress(),
  * you can use this for something else
  *
  * @return				True if BuiltinVote vote in progress, otherwise false
@@ -533,7 +533,7 @@ native bool BuiltinVote_IsVoteInProgress();
 
 /**
  * Checks if the in-game voting is in progress
- * By default this is already built into the native IsBuiltinVoteInProgress(), 
+ * By default this is already built into the native IsBuiltinVoteInProgress(),
  * you can use this for something else
  *
  * @return				True if game vote in progress, otherwise false
@@ -545,7 +545,7 @@ native bool Game_IsVoteInProgress();
  * @remarks		Team number: 1 - spectators, 2 - survivors, 3 - infected
  * @remarks		It hardly works for a team of spectators
  *
- * @returns		-1 if no vote in progress or vote is for everyone, 
+ * @returns		-1 if no vote in progress or vote is for everyone,
  *					otherwise the command number
  */
 native int Game_GetVoteTeam();
@@ -577,7 +577,7 @@ stock void GetBuiltinVoteInfo(int param2, int &winningVotes, int &totalVotes)
 stock bool DisplayBuiltinVoteToTeam(Handle vote, int team, int time)
 {
 	SetBuiltinVoteTeam(vote, team);
-	
+
 	int iNumPlayers;
 	int[] iPlayers = new int[MaxClients];
 
@@ -585,7 +585,7 @@ stock bool DisplayBuiltinVoteToTeam(Handle vote, int team, int time)
 		if (!IsClientInGame(i) || IsFakeClient(i) || (GetClientTeam(i) != team)) {
 			continue;
 		}
-		
+
 		iPlayers[iNumPlayers++] = i;
 	}
 
@@ -608,7 +608,7 @@ stock bool DisplayBuiltinVoteToAllButOne(Handle vote, int client, int time)
 	if (!IsClientInGame(client)) {
 		return false;
 	}
-	
+
 	int iNumPlayers;
 	int[] iPlayers = new int[MaxClients];
 
@@ -616,7 +616,7 @@ stock bool DisplayBuiltinVoteToAllButOne(Handle vote, int client, int time)
 		if (!IsClientInGame(i) || IsFakeClient(i) || (i == client)) {
 			continue;
 		}
-		
+
 		iPlayers[iNumPlayers++] = i;
 	}
 
@@ -648,7 +648,7 @@ stock bool DisplayBuiltinVoteToTeamButOne(Handle vote, int client, int time)
 #endif
 
 	SetBuiltinVoteTeam(vote, team);
-	
+
 	int iNumPlayers;
 	int[] iPlayers = new int[MaxClients];
 
@@ -656,10 +656,10 @@ stock bool DisplayBuiltinVoteToTeamButOne(Handle vote, int client, int time)
 		if (!IsClientInGame(i) || IsFakeClient(i) || (i == client) || (GetClientTeam(i) != team)) {
 			continue;
 		}
-		
+
 		iPlayers[iNumPlayers++] = i;
 	}
-	
+
 	return DisplayBuiltinVote(vote, iPlayers, iNumPlayers, time);
 }
 
@@ -681,7 +681,7 @@ stock bool DisplayBuiltinVoteToAllNonSpectators(Handle vote, int time)
 		if (!IsClientInGame(i) || IsFakeClient(i) || (GetClientTeam(i) < 2)) {
 			continue;
 		}
-		
+
 		iPlayers[iNumPlayers++] = i;
 	}
 

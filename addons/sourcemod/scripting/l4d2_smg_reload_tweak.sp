@@ -24,7 +24,7 @@ public void OnPluginStart()
 {
 	hCvarReloadSpeedUzi = CreateConVar("l4d2_reload_speed_uzi", "0", "Reload duration of Uzi(normal SMG)", FCVAR_CHEAT|FCVAR_NOTIFY, true, 0.0, true, 10.0);
 	hCvarReloadSpeedSilencedSmg = CreateConVar("l4d2_reload_speed_silenced_smg", "0", "Reload duration of Silenced SMG", FCVAR_CHEAT|FCVAR_NOTIFY, true, 0.0, true, 10.0);
-	
+
 	HookEvent("weapon_reload", OnWeaponReload, EventHookMode_Post);
 }
 
@@ -35,7 +35,7 @@ public void OnWeaponReload(Event hEvent, const char[] eName, bool dontBroadcast)
 	if (client < 1 || !IsSurvivor(client) || !IsPlayerAlive(client) || IsFakeClient(client)) {
 		return;
 	}
-	
+
 	float originalReloadDuration = 0.0, alteredReloadDuration = 0.0;
 
 	int weapon = GetPlayerWeaponSlot(client, 0);
@@ -54,7 +54,7 @@ public void OnWeaponReload(Event hEvent, const char[] eName, bool dontBroadcast)
 			return;
 		}
 	}
-	
+
 	if (alteredReloadDuration <= 0.0) {
 		return;
 	}
@@ -62,7 +62,7 @@ public void OnWeaponReload(Event hEvent, const char[] eName, bool dontBroadcast)
 	float oldNextAttack = GetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", 0);
 	float newNextAttack = oldNextAttack - originalReloadDuration + alteredReloadDuration;
 	float playbackRate = originalReloadDuration / alteredReloadDuration;
-	
+
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", newNextAttack);
 	SetEntPropFloat(client, Prop_Send, "m_flNextAttack", newNextAttack);
 	SetEntPropFloat(weapon, Prop_Send, "m_flPlaybackRate", playbackRate);
@@ -73,13 +73,13 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 	if (!(buttons & IN_ATTACK2)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsSurvivor(client) || !IsPlayerAlive(client) || IsFakeClient(client)) {
 		return Plugin_Continue;
 	}
-	
+
 	float originalReloadDuration = 0.0, alteredReloadDuration = 0.0;
-	
+
 	int weapon = GetPlayerWeaponSlot(client, 0);
 	int weaponId = IdentifyWeapon(weapon);
 
@@ -99,6 +99,6 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 
 	float playbackRate = originalReloadDuration / alteredReloadDuration;
 	SetEntPropFloat(weapon, Prop_Send, "m_flPlaybackRate", playbackRate);
-	
+
 	return Plugin_Continue;
 }

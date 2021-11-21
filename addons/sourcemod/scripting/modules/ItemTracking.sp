@@ -7,7 +7,7 @@ enum ItemList {
 	IL_Adrenaline,
 	// Not sure we need these.
 	//IL_FirstAid,
-	//IL_Defib,  
+	//IL_Defib,
 	IL_PipeBomb,
 	IL_Molotov,
 	IL_VomitJar
@@ -18,11 +18,11 @@ static Handle:g_hItemListTrie;
 
 // Names for cvars, kv, descriptions
 // [ItemIndex][shortname=0,fullname=1,spawnname=2]
-enum ItemNames {	
-	IN_shortname,	
-	IN_longname, 	
-	IN_officialname, 	
-	IN_modelname 
+enum ItemNames {
+	IN_shortname,
+	IN_longname,
+	IN_officialname,
+	IN_modelname
 };
 
 static const String:g_sItemNames[ItemList][ItemNames][] =
@@ -81,11 +81,11 @@ public IT_OnModuleStart()
 {
 	decl String:sNameBuf[64];
 	decl String:sCvarDescBuf[256];
-	
+
 	g_hCvarEnabled = CreateConVarEx("enable_itemtracking", "0", "Enable the itemtracking module");
 	g_hCvarConsistentSpawns = CreateConVarEx("itemtracking_savespawns", "0", "Keep item spawns the same on both rounds");
 	g_hCvarMapSpecificSpawns = CreateConVarEx("itemtracking_mapspecific", "0", "Change how mapinfo.txt overrides work. 0 = ignore mapinfo.txt, 1 = allow limit reduction, 2 = allow limit increases,");
-	
+
 	// Create itemlimit cvars
 	for(new i = 0; i < _:ItemList; i++)
 	{
@@ -93,18 +93,18 @@ public IT_OnModuleStart()
 		Format(sCvarDescBuf, sizeof(sCvarDescBuf), "Limits the number of %s on each map. -1: no limit; >=0: limit to cvar value", g_sItemNames[i][IN_longname]);
 		g_hCvarLimits[i] = CreateConVarEx(sNameBuf, "-1", sCvarDescBuf);
 	}
-		
+
 	// Create name translation trie
 	g_hItemListTrie = CreateItemListTrie();
-	
-	
+
+
 	// Create item spawns array;
 	for (new i = 0; i < _:ItemList; i++)
 	{
-		g_hItemSpawns[i] = CreateArray(_:ItemTracking); 
+		g_hItemSpawns[i] = CreateArray(_:ItemTracking);
 	}
-	
-	
+
+
 	HookEvent("round_start", _IT_RoundStartEvent, EventHookMode_PostNoCopy);
 	HookEvent("round_end", _IT_RoundEndEvent, EventHookMode_PostNoCopy);
 	g_hSurvivorLimit = FindConVar("survivor_limit");
@@ -170,7 +170,7 @@ public Action:IT_RoundStartTimer(Handle:timer)
 			}
 			else
 			{
-				EnumAndElimSpawns(); 
+				EnumAndElimSpawns();
 			}
 		}
 	}
@@ -288,7 +288,7 @@ static SpawnItems()
 			wepid = GetWeaponIDFromItemList(ItemList:itemidx);
 			if(IsDebugEnabled())
 			{
-				LogMessage("[IT] Spawning an instance of item %s (%d, wepid %d), number %d, at %.02f %.02f %.02f", 
+				LogMessage("[IT] Spawning an instance of item %s (%d, wepid %d), number %d, at %.02f %.02f %.02f",
 				g_sItemNames[itemidx][IN_officialname], itemidx, wepid, idx, origins[0], origins[1], origins[2]);
 			}
 			itement = CreateEntityByName("weapon_spawn");
@@ -321,7 +321,7 @@ static EnumerateSpawns()
 					else if(!AcceptEntityInput(i, "kill"))
 						LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
 				}
-				else if (IsEntityInSaferoom(i, END_SAFEROOM)) 
+				else if (IsEntityInSaferoom(i, END_SAFEROOM))
 				{
 					if(g_iSaferoomCount[END_SAFEROOM - 1] < g_iSurvivorLimit)
 						g_iSaferoomCount[END_SAFEROOM - 1]++;
@@ -347,7 +347,7 @@ static EnumerateSpawns()
 							LogError("[IT] Error killing instance of item %s", g_sItemNames[itemindex][IN_longname]);
 						}
 					}
-					else 
+					else
 					{
 						// Store entity, angles, origin
 						curitem[IT_entity]=i;
@@ -359,7 +359,7 @@ static EnumerateSpawns()
 						}
 						SetSpawnOrigins(origins, curitem);
 						SetSpawnAngles(angles, curitem);
-						
+
 						// Push this instance onto our array for that item
 						PushArrayArray(g_hItemSpawns[itemindex], curitem[0]);
 					}
@@ -444,7 +444,7 @@ static WeaponIDs:GetWeaponIDFromItemList(ItemList:id)
 		case IL_Adrenaline:
 		{
 			return  WEPID_ADRENALINE;
-		}		
+		}
 		case IL_PipeBomb:
 		{
 			return WEPID_PIPE_BOMB;
@@ -459,7 +459,7 @@ static WeaponIDs:GetWeaponIDFromItemList(ItemList:id)
 		}
 		default:
 		{
-		
+
 		}
 	}
 	return WeaponIDs:-1;
@@ -474,7 +474,7 @@ static ItemList:GetItemIndexFromEntity(entity)
 	{
 		return index;
 	}
-	
+
 	if(StrEqual(classname, "weapon_spawn") || StrEqual(classname, "weapon_item_spawn"))
 	{
 		new WeaponIDs:id = WeaponIDs:GetEntProp(entity, Prop_Send, "m_weaponID");
@@ -502,10 +502,10 @@ static ItemList:GetItemIndexFromEntity(entity)
 			}
 			default:
 			{
-			
+
 			}
 		}
 	}
-	
+
 	return ItemList:-1;
 }

@@ -21,7 +21,7 @@ new String:g_sCfg[32];
 new bool:g_bIsConfoglAvailable;
 new bool:OnSet
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "Match Vote",
 	author = "vintik, Sir",
@@ -44,12 +44,12 @@ public OnPluginStart()
 	{
 		SetFailState("Couldn't load matchmodes.txt!");
 	}
-	
+
 	g_hSvMaxPlayers = FindConVar("sv_maxplayers");
 	g_hMaxPlayers = CreateConVar("mv_maxplayers", "30", "How many slots would you like the Server to be at Config Load/Unload?");
 	RegConsoleCmd("sm_match", MatchRequest);
 	RegConsoleCmd("sm_rmatch", MatchReset);
-	
+
 	g_hCvarPlayerLimit = CreateConVar("sm_match_player_limit", "1", "Minimum # of players in game to start the vote");
 	g_bIsConfoglAvailable = LibraryExists("confogl");
 }
@@ -339,11 +339,11 @@ public void ResetMatchVoteResultHandler(Handle vote, int num_votes, int num_clie
 ConnectingPlayers()
 {
 	new Clients = 0;
-	
+
 	for (new i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientInGame(i) && IsClientConnected(i))
-			
+
 		Clients++;
 	}
 	return Clients;

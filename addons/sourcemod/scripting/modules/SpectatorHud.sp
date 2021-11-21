@@ -19,7 +19,7 @@
 
 const 	Float:	SPECHUD_UPDATEINTERVAL 					= 0.5;
 
-enum SIClasses 
+enum SIClasses
 {
 	SMOKER=1,
 	BOOMER,
@@ -54,11 +54,11 @@ bool:IsClientUsingSpecHud(client) {
 
 public Action:SH_SpecHUD_Timer(Handle:timer) {
 	if (!IsPluginEnabled()) return Plugin_Stop;
-	
+
 	SH_BuildClientIndex();
 	SH_SpecHUD_Draw();
 	SH_SpecHUD_Update();
-	
+
 	return Plugin_Continue;
 }
 
@@ -93,9 +93,9 @@ SH_BuildClientIndex() {
 	new isurvivors;
 	new iinfected;
 	decl team;
-	for (new client = 1; client <= MaxClients; client++) {	
+	for (new client = 1; client <= MaxClients; client++) {
 		if (!IsClientInGame(client)) continue;
-		
+
 		team = GetClientTeam(client);
 		switch(team)
 		{
@@ -121,7 +121,7 @@ SH_SpecHUD_Update() {
 	for(new client = 1;client < MaxClients+1;client++) {
 		if(!IsClientInGame(client) || GetClientTeam(client) != TEAM_SPECTATORS || !g_bSH_SpecHUD_ShowPanel[client] || IsFakeClient(client)){continue;}
 		SendPanelToClient(g_hSH_SpecHUD, client, SH_SpecHUD_MenuHandler, 3);
-		
+
 		if(g_bSH_SpecHUD_ShowHint[client]) {
 			g_bSH_SpecHUD_ShowHint[client] = false;
 			CPrintToChatAll("{blue}[{default}Confogl{blue}] {default}Say \"{olive}/spechud{default}\" to toggle the {blue}Spectator HUD");
@@ -133,31 +133,31 @@ SH_SpecHUD_Draw() {
 	if(g_hSH_SpecHUD != INVALID_HANDLE) {
 		CloseHandle(g_hSH_SpecHUD);
 	}
-	
+
 	g_hSH_SpecHUD = CreatePanel();
-	
+
 	decl String:sTempString[512], String:sWeaponString[64], String:sNameString[MAX_NAME_LENGTH+1];
 	new SIclass, Float:SIspawntimer, survivorhealth, survivordown;
 
 	DrawPanelText(g_hSH_SpecHUD, "Confogl's Spectator HUD");
 	DrawPanelText(g_hSH_SpecHUD, "-------------------------------------");
-	
+
 	// Health Bonus
 	Format(sTempString, sizeof(sTempString), "Health Bonus: %d", SM_CalculateScore());
 	DrawPanelText(g_hSH_SpecHUD, sTempString);
-	
+
 	// Mob Spawn timer
-	Format(sTempString, sizeof(sTempString), "Mob Timer: %ds", 
+	Format(sTempString, sizeof(sTempString), "Mob Timer: %ds",
 		L4D2_CTimerHasStarted(L4D2CT_MobSpawnTimer) ? RoundFloat(L4D2_CTimerGetRemainingTime(L4D2CT_MobSpawnTimer)) : 0);
 	DrawPanelText(g_hSH_SpecHUD, sTempString);
-	
-	
+
+
 	//start with survivor team first
 	//this part probably needs rewriting..
 	for(new survivors = 0; survivors < NUM_OF_SURVIVORS; survivors++) {
 		//just incase
 		if(SH_SurvivorIndex[survivors] == 0) break;
-		
+
 		GetClientName(SH_SurvivorIndex[survivors],sNameString,sizeof(sNameString));
 		if(sNameString[0] == '[')
 		{
@@ -167,7 +167,7 @@ SH_SpecHUD_Draw() {
 			decl String:buf[MAX_NAME_LENGTH];
 			strcopy(buf, sizeof(buf), sNameString);
 			strcopy(sNameString[1], sizeof(sNameString)-1, buf);
-			sNameString[0]=' ';			
+			sNameString[0]=' ';
 		}
 		if(strlen(sNameString) > 25)
 		{
@@ -220,7 +220,7 @@ SH_SpecHUD_Draw() {
 				decl String:buf[MAX_NAME_LENGTH];
 				strcopy(buf, sizeof(buf), sNameString);
 				strcopy(sNameString[1], sizeof(sNameString)-1, buf);
-				sNameString[0]=' ';			
+				sNameString[0]=' ';
 			}
 			if(strlen(sNameString) > 25) {
 					sNameString[22] = '.';

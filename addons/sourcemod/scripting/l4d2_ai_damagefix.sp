@@ -15,24 +15,24 @@
 			- (dcx2) Removed handles from global variables, since they are unused after OnPluginStart
 			- (dcx2) Switched hunter skeeting to SetEntityHealth() for increased compatibility with damage tracking plugins (ie l4d2_assist)
 
-		1.0.5 
+		1.0.5
 			- (dcx2) Added enable cvar
 			- (dcx2) cached pounce interrupt cvar
 			- (dcx2) fixed charger debuff calculation
-			
-		1.0.4 
+
+		1.0.4
 			- Used dcx2's much better IN_ATTACK2 method of blocking stumble-scratching.
-			
+
 		1.0.3
 			- Added stumble-negation inflictor check so only SI scratches are affected.
-		
+
 		1.0.2
 			- Fixed incorrect bracketing that caused error spam. (Re-fixed because drunk)
-		
+
 		1.0.0
 			- Blocked AI scratches-while-stumbling from doing any damage.
 			- Replaced clunky charger tracking with simple netprop check.
-		
+
 		0.0.5 and older
 			- Small fix for chargers getting 1 damage for 0-damage events.
 			- simulates human-charger damage behavior while charging for AI chargers.
@@ -72,7 +72,7 @@ int
 public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)
 {
 	g_bLateLoad = bLate;
-	
+
 	return APLRes_Success;
 }
 
@@ -183,7 +183,7 @@ public Action OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &
 					return Plugin_Continue;
 				}
 				g_iHunterSkeetDamage[iVictim] += RoundToFloor(fDamage);
-				
+
 				// have we skeeted it?
 				if (g_iHunterSkeetDamage[iVictim] >= g_iPounceInterrupt) {
 					// Skeet the hunter

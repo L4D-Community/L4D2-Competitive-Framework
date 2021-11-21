@@ -23,7 +23,7 @@ public Action CheckClients(Handle hTimer)
 	if (!IsServerProcessing()) {
 		return Plugin_Continue;
 	}
-	
+
 	for (int client = 1; client <= MaxClients; client++) {
 		if (IsClientInGame(client) && !IsFakeClient(client)) {
 			if (GetClientTeam(client) > 1) {// Only query clients on survivor or infected team, ignore spectators.
@@ -50,10 +50,10 @@ public void ClientQueryCallback(QueryCookie cookie, int client, ConVarQueryResul
 				if (IsFakeClient(client)) {
 					return;
 				}
-				
-				//gets clients ip	
+
+				//gets clients ip
 				GetClientIP(client,t_ip,31);
-				
+
 				BuildPath(Path_SM, path, 256, "logs/mathack_cheaters.txt");
 				LogToFile(path, ".:[Name: %s | STEAMID: %s | IP: %s]:.", t_name, t_steamid, t_ip);
 				PrintToChatAll("\x04[\x01Mathack Detector\x04] \x03%s \x01has been kicked for using mathack!", t_name);

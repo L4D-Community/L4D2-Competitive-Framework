@@ -6,7 +6,7 @@
 #define TEAM_SPECTATORS 1
 #define TEAM_SURVIVORS  2
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Duplicate Survivor Fix",
 	author = "Sir",
@@ -67,15 +67,15 @@ public Action Listener_Join(int client, char[] command, int args)
 	return Plugin_Continue;
 }
 
-stock bool IsValidClient(int client) 
-{ 
-	if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false; 
-	return IsClientInGame(client); 
-} 
+stock bool IsValidClient(int client)
+{
+	if (client <= 0 || client > MaxClients || !IsClientConnected(client)) return false;
+	return IsClientInGame(client);
+}
 
 stock bool HasIdlePlayer(int bot)
 {
-	int client = GetClientOfUserId(GetEntProp(bot, Prop_Send, "m_humanSpectatorUserID"))			
+	int client = GetClientOfUserId(GetEntProp(bot, Prop_Send, "m_humanSpectatorUserID"))
 	if (IsValidClient(client) && !IsFakeClient(client) && GetClientTeam(client) == TEAM_SPECTATORS) return true;
 	return false;
 }

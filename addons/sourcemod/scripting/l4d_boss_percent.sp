@@ -1,13 +1,13 @@
 /*
 
-This version of Boss Percents was designed to work with my custom Ready Up plugin. 
+This version of Boss Percents was designed to work with my custom Ready Up plugin.
 It's designed so when boss percentages are changed, it will edit the already existing
 Ready Up footer, rather then endlessly stacking them ontop of one another.
 
-It was also created so that my Witch Toggler plugin can properly display if the witch is disabled 
+It was also created so that my Witch Toggler plugin can properly display if the witch is disabled
 or not on both the ready up menu aswell as when using the !boss commands.
 
-I tried my best to comment everything so it can be very easy to understand what's going on. Just in case you want to 
+I tried my best to comment everything so it can be very easy to understand what's going on. Just in case you want to
 do some personalization for your server or config. It will also come in handy if somebody finds a bug and I need to figure
 out what's going on :D Kinda makes my other plugins look bad huh :/
 
@@ -97,14 +97,14 @@ public void OnPluginStart()
 	g_hCvarGlobalPercent.AddChangeHook(OnConVarChanged);
 	g_hCvarTankPercent.AddChangeHook(OnConVarChanged);
 	g_hCvarWitchPercent.AddChangeHook(OnConVarChanged);
-	
+
 	GetCvars();
-	
+
 	// Commands
 	RegConsoleCmd("sm_boss", BossCmd); // Used to see percentages of both bosses
 	RegConsoleCmd("sm_tank", BossCmd); // Used to see percentages of both bosses
 	RegConsoleCmd("sm_witch", BossCmd); // Used to see percentages of both bosses
-	
+
 	// Hooks/Events
 	HookEvent("player_left_start_area", LeftStartAreaEvent, EventHookMode_PostNoCopy); // Called when a player has left the saferoom
 	HookEvent("round_start", RoundStartEvent, EventHookMode_PostNoCopy); // When a new round starts (2 rounds in 1 map -- this should be called twice a map)
@@ -128,7 +128,7 @@ void GetCvars()
 // ======================= Natives ========================
 // ========================================================
  *
- * This section contains all the methods that other plugins 
+ * This section contains all the methods that other plugins
  * can use.
  *
  * vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -196,7 +196,7 @@ public int Native_RefreshReadyUp(Handle plugin, int numParams){
 // ========================================================
  *
  * This section makes sure that the Ready Up plugin is loaded.
- * 
+ *
  * It's needed to make sure we can actually add to the Ready
  * Up menu, or if we should just diplay percentages in chat.
  *
@@ -235,13 +235,13 @@ public void OnMapStart()
 
 	// Get Current Map
 	GetCurrentMap(g_sCurrentMap, sizeof(g_sCurrentMap));
-	
+
 	// Check if the current map is part of the Dark Carnival: Remix Campaign -- and save it
 	g_bIsRemix = IsDKR();
-	
+
 }
 
-// Called when a map ends 
+// Called when a map ends
 public void OnMapEnd()
 {
 	// Reset Variables
@@ -256,21 +256,21 @@ public void OnMapEnd()
 }
 
 /* Called when survivors leave the saferoom
- * If the Ready Up plugin is not available, we use this. 
+ * If the Ready Up plugin is not available, we use this.
  * It will print boss percents upon survivors leaving the saferoom.
 */
 public void LeftStartAreaEvent(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!g_ReadyUpAvailable) {
 		PrintBossPercents();
-		
+
 		// If it's the first round of a Dark Carnival: Remix map, we want to save our boss percentages so we can set them next round
 		if (g_bIsRemix && !InSecondHalfOfRound()) {
 			g_fDKRFirstRoundTankPercent = g_fTankPercent;
 			g_fDKRFirstRoundWitchPercent = g_fWitchPercent;
 		}
 	}
-	
+
 }
 
 /* Called when the round goes live (Requires Ready Up Plugin)
@@ -280,7 +280,7 @@ public void LeftStartAreaEvent(Event event, const char[] name, bool dontBroadcas
 public void OnRoundIsLive()
 {
 	PrintBossPercents();
-	
+
 	// If it's the first round of a Dark Carnival: Remix map, we want to save our boss percentages so we can set them next round
 	if (g_bIsRemix && !InSecondHalfOfRound()) {
 		g_fDKRFirstRoundTankPercent = g_fTankPercent;
@@ -292,14 +292,14 @@ public void OnRoundIsLive()
  * Here we will need to refresh the boss percents.
 */
 public void RoundStartEvent(Event event, const char[] name, bool dontBroadcast)
-{	
+{
 	// Reset Ready Up Variables
 	g_bReadyUpFooterAdded = false;
 	g_iReadyUpFooterIndex = -1;
-	
+
 	// Check if the current map is part of the Dark Carnival: Remix Campaign -- and save it
 	//g_bIsRemix = IsDKR();
-	
+
 	// Find percentages and update readyup footer
 	CreateTimer(5.0, GetBossPercents);
 	UpdateReadyUpFooter(6.0);
@@ -313,7 +313,7 @@ public void RoundStartEvent(Event event, const char[] name, bool dontBroadcast)
  * This section is where all of our DKR work around stuff
  * well be kept. DKR has it's own boss flow "randomizer"
  * and therefore needs to be set as a static map to avoid
- * having 2 tanks on the map. Because of this, we need to 
+ * having 2 tanks on the map. Because of this, we need to
  * do a few extra steps to determine the boss spawn percents.
  *
  * vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -327,7 +327,7 @@ bool IsDKR()
 		return true;
 	}
 	return false;
-	
+
 }
 
 // Finds a percentage from a string
@@ -335,27 +335,27 @@ int GetPercentageFromText(const char[] text)
 {
 	// Check to see if text contains '%' - Store the index if it does
 	int index = StrContains(text, "%", false);
-	
+
 	// If the index isn't -1 (No '%' found) then find the percentage
 	if (index > -1) {
 		char sBuffer[12]; // Where our percentage will be kept.
-		
+
 		// If the 3rd character before the '%' symbol is a number it's 100%.
 		if (IsCharNumeric(text[index-3])) {
 			return 100;
 		}
-		
+
 		// Check to see if the characters that are 1 and 2 characters before our '%' symbol are numbers
 		if (IsCharNumeric(text[index-2]) && IsCharNumeric(text[index-1])) {
-		
+
 			// If both characters are numbers combine them into 1 string
 			Format(sBuffer, sizeof(sBuffer), "%c%c", text[index-2], text[index-1]);
-			
+
 			// Convert our string to an int
 			return StringToInt(sBuffer);
 		}
 	}
-	
+
 	// Couldn't find a percentage
 	return -1;
 }
@@ -371,66 +371,66 @@ public void DKRWorkaround(Event event, const char[] name, bool dontBroadcast)
 {
 	// If the current map is not part of the Dark Carnival: Remix campaign, don't continue
 	if (!g_bIsRemix) return;
-	
+
 	// Check if the function has already ran more than twice this map
 	//if (g_bDKRFirstRoundBossesSet || InSecondHalfOfRound()) return;
-	
+
 	// Check if the message is not from a user (Which means its from the map script)
 	int UserID = GetEventInt(event, "userid", 0);
 	if (!UserID/* && !InSecondHalfOfRound()*/)
 	{
-	
+
 		// Get the message text
 		char sBuffer[128];
 		GetEventString(event, "text", sBuffer, sizeof(sBuffer), "");
-		
+
 		// If the message contains "The Tank" we can try to grab the Tank Percent from it
 		if (StrContains(sBuffer, "The Tank", false) > -1)
-		{	
+		{
 			// Create a new int and find the percentage
 			int percentage;
 			percentage = GetPercentageFromText(sBuffer);
-			
+
 			// If GetPercentageFromText didn't return -1 that means it returned our boss percentage.
 			// So, if it did return -1, something weird happened, set our boss to 0 for now.
 			if (percentage > -1) {
 				g_fTankPercent = percentage;
 			} else {
-				g_fTankPercent = 0;					
-			} 
-			
+				g_fTankPercent = 0;
+			}
+
 			g_fDKRFirstRoundTankPercent = g_fTankPercent;
 		}
-		
+
 		// If the message contains "The Witch" we can try to grab the Witch Percent from it
 		if (StrContains(sBuffer, "The Witch", false) > -1)
 		{
 			// Create a new int and find the percentage
 			int percentage;
 			percentage = GetPercentageFromText(sBuffer);
-			
+
 			// If GetPercentageFromText didn't return -1 that means it returned our boss percentage.
 			// So, if it did return -1, something weird happened, set our boss to 0 for now.
 			if (percentage > -1){
 				g_fWitchPercent = percentage;
-			
+
 			} else {
 				g_fWitchPercent = 0;
 			}
-			
+
 			g_fDKRFirstRoundWitchPercent = g_fWitchPercent;
 		}
-		
+
 		// Increase the amount of times we've done this function. We only want to do it twice. Once for each boss, for each map.
 		//g_idkrwaAmount = g_idkrwaAmount + 1;
-		
-		// Check if both bosses have already been set 
+
+		// Check if both bosses have already been set
 		//if (g_idkrwaAmount > 1)
 		//{
 			// This function has been executed two or more times, so we should be done here for this map.
 		//	g_bDKRFirstRoundBossesSet = true;
 		//}
-		
+
 		ProcessBossString();
 		UpdateReadyUpFooter();
 	}
@@ -458,7 +458,7 @@ stock float GetWitchFlow(int round)
 	return L4D2Direct_GetVSWitchFlowPercent(round);
 }
 
-/* 
+/*
  *
  * This method will find the current boss percents and will
  * save them to our boss percent variables.
@@ -471,102 +471,102 @@ public Action GetBossPercents(Handle timer)
 	if (g_bIsRemix)
 	{
 		// Our boss percents should be set for us via the Workaround method on round one - so lets skip it
-		if (InSecondHalfOfRound()) 
+		if (InSecondHalfOfRound())
 		{
 			// When the first round begines, this variables are set. So, we can just copy them for our second round.
 			g_fWitchPercent = g_fDKRFirstRoundWitchPercent;
 			g_fTankPercent = g_fDKRFirstRoundTankPercent;
-			
+
 		}
-		else 
+		else
 		{
 			// Bosses cannot be changed on Dark Carnival: Remix maps. Unless they are completely disabled. So, we need to check if that's the case here
-			
+
 			//if (g_bDKRFirstRoundBossesSet)
 			//{
 				// If the Witch is not set to spawn this round, set it's percentage to 0
 				if (!L4D2Direct_GetVSWitchToSpawnThisRound(0))
 				{
 					// Not quite enough yet. We also want to check if the flow is 0
-					if ((GetWitchFlow(0) * 100.0) < 1) 
+					if ((GetWitchFlow(0) * 100.0) < 1)
 					{
 						// One last check
 							if (g_bWitchDisabled)
-								g_fWitchPercent = 0;				
+								g_fWitchPercent = 0;
 					}
 				}
-				else 
+				else
 				{
 					// The boss must have been re-enabled :)
 					g_fWitchPercent = g_fDKRFirstRoundWitchPercent;
 				}
-				
+
 				// If the Tank is not set to spawn this round, set it's percentage to 0
 				if (!L4D2Direct_GetVSTankToSpawnThisRound(0))
 				{
 					// Not quite enough yet. We also want to check if the flow is 0
-					if ((GetTankFlow(0) * 100) < 1) 
+					if ((GetTankFlow(0) * 100) < 1)
 					{
 						// One last check
 							if (g_bTankDisabled)
-								g_fTankPercent = 0;		
+								g_fTankPercent = 0;
 					}
 				}
-				else 
+				else
 				{
 					// The boss must have been re-enabled :)
 					g_fTankPercent = g_fDKRFirstRoundTankPercent;
 				}
 			//}
 		}
-	} 
-	else 
+	}
+	else
 	{
 		// This will be any map besides Remix
-		if (InSecondHalfOfRound()) 
+		if (InSecondHalfOfRound())
 		{
 
 			// We're in the second round
-			
+
 			// If the witch flow isn't already 0 from the first round then get the round 2 witch flow
 			if (g_fWitchPercent != 0)
 				g_fWitchPercent = RoundToNearest(GetWitchFlow(1) * 100.0);
-				
+
 			// If the tank flow isn't already 0 from the first round then get the round 2 tank flow
 			if (g_fTankPercent != 0)
 				g_fTankPercent = RoundToNearest(GetTankFlow(1) * 100.0);
-				
+
 		}
-		else 
+		else
 		{
-		
+
 			// We're in the first round.
-			
+
 			// Set our boss percents to 0 - If bosses are not set to spawn this round, they will remain 0
 			g_fWitchPercent = 0;
 			g_fTankPercent = 0;
-		
+
 			// If the Witch is set to spawn this round. Find the witch flow and set it as our witch percent
 			if (L4D2Direct_GetVSWitchToSpawnThisRound(0))
 			{
 				g_fWitchPercent = RoundToNearest(GetWitchFlow(0) * 100.0);
 			}
-			
+
 			// If the Tank is set to spawn this round. Find the witch flow and set it as our witch percent
 			if (L4D2Direct_GetVSTankToSpawnThisRound(0))
 			{
 				g_fTankPercent = RoundToNearest(GetTankFlow(0) * 100.0);
 			}
-			
+
 		}
 	}
-	
+
 	// Finally build up our string for effiency, yea.
 	ProcessBossString();
 	return Plugin_Stop;
 }
 
-/* 
+/*
  *
  * This method will update the ready up footer with our
  * current boss percntages
@@ -576,26 +576,26 @@ public Action GetBossPercents(Handle timer)
 void UpdateReadyUpFooter(float interval = 0.1)
 {
 	static float fPrevTime = 0.0;
-	
+
 	if (fPrevTime == 0.0)
 		fPrevTime = GetEngineTime();
-	
+
 	float fTime = GetEngineTime() + interval;
 	if (fTime < fPrevTime)
 		return;
-	
+
 	fPrevTime = fTime;
-	
+
 	if (g_hUpdateFooterTimer == null)
 		g_hUpdateFooterTimer = CreateTimer(interval, Timer_UpdateReadyUpFooter);
 }
 
-public Action Timer_UpdateReadyUpFooter(Handle timer) 
+public Action Timer_UpdateReadyUpFooter(Handle timer)
 {
 	g_hUpdateFooterTimer = null;
-	
+
 	// Check to see if Ready Up plugin is available
-	if (g_ReadyUpAvailable) 
+	if (g_ReadyUpAvailable)
 	{
 		// Create some variables
 		char p_sTankString[32]; // Private Variable - Where our formatted Tank string will be kept
@@ -604,7 +604,7 @@ public Action Timer_UpdateReadyUpFooter(Handle timer)
 		bool p_bStaticWitch; // Private Variable - Stores if current map contains static witch spawn
 		char p_sNewFooter[65]; // Private Variable - Where our new footer string will be kept
 
-		
+
 		// Check if the current map is from Dark Carnival: Remix
 		if (!g_bIsRemix)
 		{
@@ -629,7 +629,7 @@ public Action Timer_UpdateReadyUpFooter(Handle timer)
 		{
 			Format(p_sTankString, sizeof(p_sTankString), "Tank: None");
 		}
-		
+
 		// Format our Witch String
 		if (g_fWitchPercent > 0) // If Witch percent is not 0
 		{
@@ -647,7 +647,7 @@ public Action Timer_UpdateReadyUpFooter(Handle timer)
 		{
 			Format(p_sWitchString, sizeof(p_sWitchString), "Witch: None");
 		}
-		
+
 		// Combine our Tank and Witch strings together
 		if (g_bCvarWitchPercent && g_bCvarTankPercent) // Display Both Tank and Witch Percent
 		{
@@ -660,10 +660,10 @@ public Action Timer_UpdateReadyUpFooter(Handle timer)
 		else if (g_bCvarTankPercent) // Display just Tank Percent
 		{
 			Format(p_sNewFooter, sizeof(p_sNewFooter), "%s", p_sTankString);
-		}	
-		
-		// Check to see if the Ready Up footer has already been added 
-		if (g_bReadyUpFooterAdded) 
+		}
+
+		// Check to see if the Ready Up footer has already been added
+		if (g_bReadyUpFooterAdded)
 		{
 			// Ready Up footer already exists, so we can just edit it.
 			EditFooterStringAtIndex(g_iReadyUpFooterIndex, p_sNewFooter);
@@ -712,7 +712,7 @@ void ProcessBossString()
 	bool p_bStaticTank; // Private Variable - Stores if current map contains static tank spawn
 	bool p_bStaticWitch; // Private Variable - Stores if current map contains static witch spawn
 
-		
+
 	// Check if the current map is from Dark Carnival: Remix
 	if (!g_bIsRemix)
 	{
@@ -720,38 +720,38 @@ void ProcessBossString()
 		p_bStaticTank = IsStaticTankMap();
 		p_bStaticWitch = IsStaticWitchMap();
 	}
-	
+
 	// Format String For Tank
 	if (g_fTankPercent > 0) // If Tank percent is not equal to 0
 	{
 		Format(g_sTankString, sizeof(g_sTankString), "<{olive}Tank{default}> {red}%d%%", g_fTankPercent);
-	}  
+	}
 	else if (g_bTankDisabled) // If another plugin has disabled the tank
 	{
 		Format(g_sTankString, sizeof(g_sTankString), "<{olive}Tank{default}> {red}Disabled");
-	} 
+	}
 	else if (p_bStaticTank) // If current map has static Tank spawn
 	{
 		Format(g_sTankString, sizeof(g_sTankString), "<{olive}Tank{default}> {red}Static Spawn");
-	} 
+	}
 	else // There is no Tank
 	{
 		Format(g_sTankString, sizeof(g_sTankString), "<{olive}Tank{default}> {red}None");
 	}
-	
+
 	// Format String For Witch
 	if (g_fWitchPercent > 0) // If Witch percent is not equal to 0
 	{
 		Format(g_sWitchString, sizeof(g_sWitchString), "<{olive}Witch{default}> {red}%d%%", g_fWitchPercent);
-	}  
+	}
 	else if (g_bWitchDisabled) // If another plugin has disabled the witch
 	{
 		Format(g_sWitchString, sizeof(g_sWitchString), "<{olive}Witch{default}> {red}Disabled");
-	} 
+	}
 	else if (p_bStaticWitch) // If current map has static Witch spawn
 	{
 		Format(g_sWitchString, sizeof(g_sWitchString), "<{olive}Witch{default}> {red}Static Spawn");
-	} 
+	}
 	else // There is no Witch
 	{
 		Format(g_sWitchString, sizeof(g_sWitchString), "<{olive}Witch{default}> {red}None");
@@ -761,9 +761,9 @@ void ProcessBossString()
 void PrintBossPercents(int client = 0)
 {
 	// Print Messages to client
-	
+
 	int teamflag = 0;
-	
+
 	if (!client)
 	{
 		teamflag = (1 << 4) - 2; // without team 0
@@ -774,7 +774,7 @@ void PrintBossPercents(int client = 0)
 		if (team > 1)
 			teamflag = (1 << team);
 	}
-	
+
 	if (g_bCvarTankPercent)
 	{
 		if (teamflag > 0)

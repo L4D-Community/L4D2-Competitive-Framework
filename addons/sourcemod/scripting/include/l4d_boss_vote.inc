@@ -10,7 +10,7 @@
  */
 forward void OnUpdateBosses(int iTankFlow, int iWitchFlow);
 
-public SharedPlugin __pl_l4d_boss_vote = 
+public SharedPlugin __pl_l4d_boss_vote =
 {
 	name = "l4d_boss_vote",
 	file = "l4d_boss_vote.smx",

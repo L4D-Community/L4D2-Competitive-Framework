@@ -16,7 +16,7 @@ ConVar
 MemoryPatch
 	g_hPatch_WanderersCondition = null;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Boomer Horde Equalizer",
 	author = "Visor, Jacob, A1m`",
@@ -32,9 +32,9 @@ public void OnPluginStart()
 	g_hPatchEnable = CreateConVar("boomer_horde_equalizer", "1", "Fix boomer hordes being different sizes based on wandering commons. (1 - enable, 0 - disable)", _, true, 0.0, true, 1.0);
 
 	CheckPatch(g_hPatchEnable.BoolValue);
-	
+
 	g_hPatchEnable.AddChangeHook(Cvars_Changed);
-	
+
 	g_hzMobSpawnMaxSize = FindConVar("z_mob_spawn_max_size");
 }
 
@@ -45,12 +45,12 @@ void InitGameData()
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	g_hPatch_WanderersCondition = MemoryPatch.CreateFromConf(hGamedata, KEY_WANDERERSCONDITION);
 	if (g_hPatch_WanderersCondition == null || !g_hPatch_WanderersCondition.Validate()) {
 		SetFailState("Failed to validate MemoryPatch \"" ... KEY_WANDERERSCONDITION ... "\"");
 	}
-	
+
 	delete hGamedata;
 }
 

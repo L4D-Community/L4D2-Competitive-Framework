@@ -36,7 +36,7 @@ public void OnPluginStart()
 
 #if TANKS_MODULE_ENABLE
 	L4D2Util_Tanks_Init();
-	
+
 	HookEvent("tank_spawn", L4D2Util_TankSpawn);
 	HookEvent("player_death", L4D2Util_PlayerDeath);
 #endif

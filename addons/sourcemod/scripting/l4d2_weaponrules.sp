@@ -49,9 +49,9 @@ public void OnPluginStart()
 {
 	RegServerCmd("l4d2_addweaponrule", AddWeaponRuleCb);
 	RegServerCmd("l4d2_resetweaponrules", ResetWeaponRulesCb);
-	
+
 	HookEvent("round_start", RoundStartCb, EventHookMode_PostNoCopy);
-	
+
 	ResetWeaponRules();
 }
 
@@ -83,7 +83,7 @@ public void OnMapStart()
 public void OnConfigsExecuted()
 {
 	g_bConfigsExecuted = true;
-	
+
 	if (g_bRoundStartHit) {
 		WeaponSearchLoop();
 	}
@@ -92,7 +92,7 @@ public void OnConfigsExecuted()
 public Action RoundStartDelay(Handle hTimer)
 {
 	g_bRoundStartHit = true;
-	
+
 	if (g_bConfigsExecuted) {
 		WeaponSearchLoop();
 	}
@@ -106,7 +106,7 @@ public Action AddWeaponRuleCb(int args)
 		PrintToServer("Usage: l4d2_addweaponrule <match> <replace>");
 		return Plugin_Handled;
 	}
-	
+
 	char weaponbuf[64];
 
 	GetCmdArg(1, weaponbuf, sizeof(weaponbuf));
@@ -158,7 +158,7 @@ int WeaponNameToId2(const char[] name)
 {
 	char namebuf[64] = "weapon_";
 	int wepid = WeaponNameToId(name);
-	
+
 	if (wepid == WEPID_NONE) {
 		strcopy(namebuf[7], sizeof(namebuf) - 7, name);
 		wepid = WeaponNameToId(namebuf);

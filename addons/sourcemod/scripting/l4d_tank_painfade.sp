@@ -41,8 +41,8 @@ new Handle:g_hCvarWeaponFlags;
 new iFadeDuration;
 new iWeaponFlags;
 
-new bool:bEnabled; 
-new bool:bIsTankInPlay = false; 
+new bool:bEnabled;
+new bool:bIsTankInPlay = false;
 
 public Plugin:myinfo =
 {
@@ -67,9 +67,9 @@ public OnPluginStart()
 	HookEvent("player_death", PlayerDeath);
 }
 
-public OnClientDisconnect(client) 
+public OnClientDisconnect(client)
 {
-	if (bEnabled && IsTank(client)) 
+	if (bEnabled && IsTank(client))
 	{
 		CreateTimer(0.1, CheckForTanksDelay, _, TIMER_FLAG_NO_MAPCHANGE);
 	}
@@ -83,34 +83,34 @@ public Action:TankSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 	AttachEffect();
 }
 
-public Action:PlayerDeath( Handle:event, const String:name[], bool:dontBroadcast ) 
+public Action:PlayerDeath( Handle:event, const String:name[], bool:dontBroadcast )
 {
 	if (!bEnabled) return;
 
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (IsTank(client)) 
+	if (IsTank(client))
 	{
 		CreateTimer(0.1, CheckForTanksDelay, _, TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
 
-public Action:CheckForTanksDelay( Handle:timer ) 
+public Action:CheckForTanksDelay( Handle:timer )
 {
-	if (FindTank() == -1) 
+	if (FindTank() == -1)
 	{
 		bIsTankInPlay = false;
 		DetachEffect();
 	}
 }
 
-public Action:OnTankDamaged(victim, &attacker, &inflictor, &Float:damage, &damageType, &weapon, Float:damageForce[3], Float:damagePosition[3]) 
+public Action:OnTankDamaged(victim, &attacker, &inflictor, &Float:damage, &damageType, &weapon, Float:damageForce[3], Float:damagePosition[3])
 {
 	if (!attacker || weapon < 1 || !IsTank(victim))
 		return Plugin_Continue;
 
 	if (iWeaponFlags & IdentifyWeapon(weapon))
 	{
-		UTIL_ScreenFade(victim, 1, iFadeDuration, 0, FADE_COLOR_R, FADE_COLOR_G, FADE_COLOR_B, FADE_ALPHA_LEVEL);    
+		UTIL_ScreenFade(victim, 1, iFadeDuration, 0, FADE_COLOR_R, FADE_COLOR_G, FADE_COLOR_B, FADE_ALPHA_LEVEL);
 	}
 
 	return Plugin_Continue;
@@ -118,22 +118,22 @@ public Action:OnTankDamaged(victim, &attacker, &inflictor, &Float:damage, &damag
 
 AttachEffect()
 {
-	for (new i = 1; i <= MaxClients; i++) 
+	for (new i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientConnected(i) || !IsClientInGame(i))
 			continue;
-		
+
 		if (IsInfected(i)) SDKHook(i, SDKHook_OnTakeDamage, OnTankDamaged);
 	}
 }
 
 DetachEffect()
 {
-	for (new i = 1; i <= MaxClients; i++) 
+	for (new i = 1; i <= MaxClients; i++)
 	{
 		if (!IsClientConnected(i) || !IsClientInGame(i))
 			continue;
-		
+
 		SDKUnhook(i, SDKHook_OnTakeDamage, OnTankDamaged);
 	}
 }
@@ -158,7 +158,7 @@ IdentifyWeapon(ent_id)
 	return 0;
 }
 
-bool:IsInfected(client) 
+bool:IsInfected(client)
 {
 	if (!IsClientInGame(client) || GetClientTeam(client) != 3) {
 		return false;
@@ -166,7 +166,7 @@ bool:IsInfected(client)
 	return true;
 }
 
-FindTank() 
+FindTank()
 {
 	for ( new i = 1; i <= MaxClients; i++ ) {
 		if ( IsTank(i) && IsPlayerAlive(i) ) {
@@ -177,7 +177,7 @@ FindTank()
 	return -1;
 }
 
-bool:IsTank( client ) 
+bool:IsTank( client )
 {
 	if ( client <= 0 || !IsInfected(client) ) {
 		return false;

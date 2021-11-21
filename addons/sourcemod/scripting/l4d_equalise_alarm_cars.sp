@@ -118,11 +118,11 @@ public Action:RoundStartDelay( Handle:timer )
 
 	while ( (iEntity = FindEntityByClassname(iEntity, "logic_relay")) != -1 ) {
 		GetEntityName(iEntity, sTargetName, sizeof(sTargetName));
-		
+
 		if ( StrContains(sTargetName, "-relay_caralarm_off") == -1 ) {
 			continue;
 		}
-		
+
 		HookSingleEntityOutput(iEntity, "OnTrigger", CarAlarmLogicRelayTriggered);
 	}
 }
@@ -135,7 +135,7 @@ public CarAlarmLogicRelayTriggered( const String:output[], caller, activator, Fl
 	if (IsValidEntity(activator)) {
 		decl String:sClassName[128];
 		GetEntityClassname(activator, sClassName, sizeof(sClassName));
-		
+
 		// If a car is turned off because of a tank punch or because it was
 		// triggered the activator is the car itself. When the cars get
 		// randomised the activator is the player who entered the trigger area.
@@ -143,7 +143,7 @@ public CarAlarmLogicRelayTriggered( const String:output[], caller, activator, Fl
 			return;
 		}
 	}
-		
+
 	if ( !bSecondRound ) {
 		bActivated = true;
 		PushArrayString(hFirstRoundCars, sTargetName);
@@ -163,7 +163,7 @@ public Action:PatchAlarmedCars( Handle:timer )
 
 	for ( new i = 0; i < GetArraySize(hFirstRoundCars); i++ ) {
 		GetArrayString(hFirstRoundCars, i, sEntName, sizeof(sEntName));
-		
+
 		if ( FindStringInArray(hSecondRoundCars, sEntName) == -1 ) {
 			DisableCar(sEntName);
 		}
@@ -171,7 +171,7 @@ public Action:PatchAlarmedCars( Handle:timer )
 
 	for ( new i = 0; i < GetArraySize(hSecondRoundCars); i++ ) {
 		GetArrayString(hSecondRoundCars, i, sEntName, sizeof(sEntName));
-		
+
 		if ( FindStringInArray(hFirstRoundCars, sEntName) == -1 ) {
 			EnableCar(sEntName);
 		}
@@ -227,9 +227,9 @@ FindEntityByName( const String:sName[], const String:sClassName[] )
 		if ( !IsValidEntity(iEntity) ) {
 			continue;
 		}
-		
+
 		GetEntityName(iEntity, sEntName, sizeof(sEntName));
-		
+
 		if ( StrEqual(sEntName, sName) ) {
 			return iEntity;
 		}

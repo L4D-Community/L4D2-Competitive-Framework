@@ -84,7 +84,7 @@ stock bool HasValidMeleeWeaponModel(int wepid)
 
 /**
  * Get the player weapon slot used by the given WeaponId.
- * 
+ *
  * @param wepid     WeaponId to get the slot for.
  * @return Slot number (0-4) or -1 for invalid WeaponId or no slot
  */
@@ -116,12 +116,12 @@ stock int WeaponNameToId(const char[] weaponName)
 	if (hWeaponNamesTrie == null) {
 		InitWeaponNamesTrie();
 	}
-	
+
 	int id;
 	if (hWeaponNamesTrie.GetValue(weaponName, id)) {
 		return id;
 	}
-	
+
 	return WEPID_NONE;
 }
 
@@ -215,7 +215,7 @@ stock bool GetMeleeWeaponNameFromEntity(int entity, char[] buffer, const int len
 		if (hMeleeWeaponModelsTrie.GetString(sModelName, buffer, length)) {
 			return true;
 		}
-		
+
 		return false;
 	} else if (StrEqual(classname, "weapon_melee")) {
 		GetEntPropString(entity, Prop_Data, "m_strMapSetScriptName", buffer, length);
@@ -318,11 +318,11 @@ stock int ConvertWeaponSpawn(int entity, int wepid, int count = 5, const char[] 
 	if (!IsValidEntity(entity)) {
 		return -1;
 	}
-	
+
 	if (!IsValidWeaponId(wepid)) {
 		return -1;
 	}
-	
+
 	if (model[0] == '\0' && !HasValidWeaponModel(wepid)) {
 		return -1;
 	}
@@ -337,7 +337,7 @@ stock int ConvertWeaponSpawn(int entity, int wepid, int count = 5, const char[] 
 	if (entity == -1) {
 		return -1;
 	}
-	
+
 	SetEntProp(entity, Prop_Send, "m_weaponID", wepid);
 
 	char buf[PLATFORM_MAX_PATH - 16], modelName[PLATFORM_MAX_PATH];
@@ -348,7 +348,7 @@ stock int ConvertWeaponSpawn(int entity, int wepid, int count = 5, const char[] 
 		Format(modelName, sizeof(modelName), "models%s", buf);
 		SetEntityModel(entity, modelName);
 	}
-	
+
 	IntToString(count, buf, sizeof(buf));
 	DispatchKeyValue(entity, "count", buf);
 

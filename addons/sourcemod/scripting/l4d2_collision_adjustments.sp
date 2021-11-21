@@ -42,14 +42,14 @@ public void OnPluginStart()
 	hRockFix = CreateConVar("collision_tankrock_common", "1", "Will Rocks go through Common Infected (and also kill them) instead of possibly getting stuck on them?");
 	hPullThrough = CreateConVar("collision_smoker_common", "0", "Will Pulled Survivors go through Common Infected?");
 	hRockThroughIncap = CreateConVar("collision_tankrock_incap", "0", "Will Rocks go through Incapacitated Survivors? (Won't go through new incaps caused by the Rock)");
-	
+
 	CvarsInType();
 
 	//Cvar Changes
 	hRockFix.AddChangeHook(cvarChanged);
 	hPullThrough.AddChangeHook(cvarChanged);
 	hRockThroughIncap.AddChangeHook(cvarChanged);
-	
+
 	HookEvent("round_start", Event_Reset, EventHookMode_PostNoCopy);
 	HookEvent("round_end", Event_Reset, EventHookMode_PostNoCopy);
 }

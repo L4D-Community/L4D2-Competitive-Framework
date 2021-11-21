@@ -29,7 +29,7 @@ public void OnPluginStart()
 public Action PlayerHit(Handle event, char[] event_name, bool dontBroadcast)
 {
 	int Player = GetClientOfUserId(GetEventInt(event, "userid"));
-	char Weapon[256];  
+	char Weapon[256];
 	GetEventString(event, "weapon", Weapon, sizeof(Weapon));
 	if (IsSurvivor(Player) && StrEqual(Weapon, "tank_claw"))
 	{
@@ -37,9 +37,9 @@ public Action PlayerHit(Handle event, char[] event_name, bool dontBroadcast)
 		if (IsValidEdict(activeweapon))
 		{
 			char weaponname[64];
-			GetEdictClassname(activeweapon, weaponname, sizeof(weaponname));    
-			
-			if (StrEqual(weaponname, "weapon_melee", false) && 
+			GetEdictClassname(activeweapon, weaponname, sizeof(weaponname));
+
+			if (StrEqual(weaponname, "weapon_melee", false) &&
 			GetPlayerWeaponSlot(Player, 0) != -1) // Must have a Primary Weapon.
 			{
 				switch(iDropMethod)
@@ -50,7 +50,7 @@ public Action PlayerHit(Handle event, char[] event_name, bool dontBroadcast)
 					{
 						// Note: If a player's primary weapon is empty, it will still switch to the primary weapon, but then instantly switch back to the melee weapon.
 						int PrimaryWeapon = GetPlayerWeaponSlot(Player, 0);
-						SetEntPropEnt(Player, Prop_Send, "m_hActiveWeapon", PrimaryWeapon); 
+						SetEntPropEnt(Player, Prop_Send, "m_hActiveWeapon", PrimaryWeapon);
 						SetEntPropFloat(PrimaryWeapon, Prop_Send, "m_flNextPrimaryAttack", GetGameTime() + 0.1); // Prevent players instantly firing their Primary Weapon when they're holding down M1 with their melee.
 					}
 				}
@@ -66,7 +66,7 @@ public Action L4D_OnShovedBySurvivor(int shover, int shovee, const float vector[
 	if (IsTankOrCharger(shovee)) return Plugin_Handled;
 	return Plugin_Continue;
 }
- 
+
 public Action L4D2_OnEntityShoved(int shover, int shovee_ent, int weapon, float vector[3], bool bIsHunterDeadstop)
 {
 	if (!IsSurvivor(shover) || !IsInfected(shovee_ent)) return Plugin_Continue;
@@ -83,23 +83,23 @@ stock bool IsSurvivor(int client)
 {
 	return IsValidClient(client) && GetClientTeam(client) == 2;
 }
- 
+
 stock bool IsInfected(int client)
 {
 	return IsValidClient(client) && GetClientTeam(client) == 3;
 }
- 
-stock bool IsTankOrCharger(int client)  
+
+stock bool IsTankOrCharger(int client)
 {
 	if (!IsPlayerAlive(client))
 		return false;
- 
+
 	if (GetEntProp(client, Prop_Send, "m_zombieClass") == 8)
 		return true;
- 
+
 	if (GetEntProp(client, Prop_Send, "m_zombieClass") == 6)
 		return true;
- 
+
 	return false;
 }
 

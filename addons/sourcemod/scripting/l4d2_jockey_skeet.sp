@@ -9,17 +9,17 @@
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
 
-ConVar 
+ConVar
 	z_leap_damage_interrupt,
 	z_jockey_health,
 	jockey_skeet_report;
 
-float 
+float
 	jockeySkeetDmg,
 	jockeyHealth,
 	inflictedDamage[MAXPLAYERS + 1][MAXPLAYERS + 1];
 
-bool 
+bool
 	reportJockeySkeets,
 	lateLoad;
 
@@ -29,7 +29,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Jockey Skeet",
 	author = "Visor, A1m`",
@@ -76,14 +76,14 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	if (!IsJockey(victim) || !IsSurvivor(attacker) || IsFakeClient(attacker) || !IsValidEdict(weapon)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!HasJockeyTarget(victim) && IsAttachable(victim) && IsShotgun(weapon)) {
 		inflictedDamage[victim][attacker] += damage;
 		if (inflictedDamage[victim][attacker] >= jockeySkeetDmg) {
 			if (reportJockeySkeets) {
 				CPrintToChat(victim, "{green}★★{default} You were {blue}skeeted{default} by {olive}%N{default}.", attacker);
 				CPrintToChat(attacker, "{green}★★{default} You {blue}skeeted {olive}%N{default}'s Jockey.", victim);
-				
+
 				for (int i = 1; i <= MaxClients; i++)  {
 					if (i == victim || i == attacker)
 						continue;
@@ -93,7 +93,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 					}
 				}
 			}
-			
+
 			damage = jockeyHealth;
 			return Plugin_Changed;
 		}
@@ -114,9 +114,9 @@ public Action ResetDamageCounter(Handle hTimer, any jockey)
 
 bool IsSurvivor(int client)
 {
-	return (client > 0 
-		&& client <= MaxClients 
-		&& IsClientInGame(client) 
+	return (client > 0
+		&& client <= MaxClients
+		&& IsClientInGame(client)
 		&& GetClientTeam(client) == TEAM_SURVIVOR);
 }
 
@@ -133,7 +133,7 @@ bool IsJockey(int client)
 bool HasJockeyTarget(int infected)
 {
 	int client = GetEntPropEnt(infected, Prop_Send, "m_jockeyVictim");
-	
+
 	return (IsSurvivor(client) && IsPlayerAlive(client));
 }
 

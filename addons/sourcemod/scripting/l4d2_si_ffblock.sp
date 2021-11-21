@@ -40,9 +40,9 @@ public void OnPluginStart()
 	g_hCvarFFBlock = CreateConVar("l4d2_block_infected_ff", "1", "Disable SI->SI friendly fire", _, true, 0.0, true, 1.0);
 	g_hCvarAllowTankFF = CreateConVar("l4d2_infected_ff_allow_tank", "1", "Do not disable friendly fire for tanks on other SI", _, true, 0.0, true, 1.0);
 	g_hCvarBlockWitchFF = CreateConVar("l4d2_infected_ff_block_witch", "0", "Disable FF towards witches", _, true, 0.0, true, 1.0);
-	
+
 	CvarsToType();
-	
+
 	g_hCvarFFBlock.AddChangeHook(Cvars_Changed);
 	g_hCvarAllowTankFF.AddChangeHook(Cvars_Changed);
 	g_hCvarBlockWitchFF.AddChangeHook(Cvars_Changed);
@@ -90,7 +90,7 @@ public Action Hook_WitchOnTakeDamage(int iVictim, int &iAttacker, int &iInflicto
 	if (!(iDamagetype & DMG_CLUB) || !g_bBlockWitchFF) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsWitch(iVictim) || !IsInfected(iAttacker)) {
 		return Plugin_Continue;
 	}
@@ -117,11 +117,11 @@ public Action Hook_PlayerOnTakeDamage(int iVictim, int &iAttacker, int &iInflict
 	if (!(iDamagetype & DMG_CLUB) || !g_bFFBlock) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsInfected(iAttacker) || !IsInfected(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	int iZClass = GetEntProp(iAttacker, Prop_Send, "m_zombieClass");
 
 #if DEBUG
@@ -145,7 +145,7 @@ bool IsWitch(int iEntity)
 	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
 		return false;
 	}
-	
+
 	char sClassName[MAX_ENTITY_NAME_SIZE];
 	GetEdictClassname(iEntity, sClassName, sizeof(sClassName));
 	return (strncmp(sClassName, "witch", 5) == 0); //witch and witch_bride

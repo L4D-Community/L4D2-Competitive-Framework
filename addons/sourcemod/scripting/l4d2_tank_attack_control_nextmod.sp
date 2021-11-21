@@ -64,14 +64,14 @@ public void TankSpawn_Event(Event hEvent, char[] sEventName, bool bDontBroadcast
 	if (IsFakeClient(tank)) {
 		return;
 	}
-	
+
 	bool hidemessage = false;
 	char buffer[3];
-	
+
 	if (GetClientInfo(tank, "rs_hidemessage", buffer, sizeof(buffer))) {
 		hidemessage = view_as<bool>(StringToInt(buffer));
 	}
-	
+
 	if (!hidemessage && (GetConVarBool(hOverhandOnly) == false)) {
 		CPrintToChat(tank, "{red}[{default}Tank Rock Selector{red}]");
 		CPrintToChat(tank, "{red}Use {default}-> {olive}Underhand throw");
@@ -87,18 +87,18 @@ public void TankSpawn_Event(Event hEvent, char[] sEventName, bool bDontBroadcast
 	JumpRockReady = true;
 }
 
-public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], 
+public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3],
 								int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
 	if (/*!IsClientInGame(client)
 		|| */IsFakeClient(client)
-		|| GetClientTeam(client) != 3 
-		|| GetEntProp(client, Prop_Send, "m_zombieClass") != 8 
+		|| GetClientTeam(client) != 3
+		|| GetEntProp(client, Prop_Send, "m_zombieClass") != 8
 		|| !IsPlayerAlive(client)
 	) {
 		return Plugin_Continue;
 	}
-	
+
 	// Cancel jump rocks
 
 	if ((buttons & IN_JUMP) && ShouldCancelJump(client)) {
@@ -114,7 +114,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 		if (!JumpRockReady) {
 			return Plugin_Stop; //??
 		}
-		
+
 		g_iQueuedThrow[client] = 3; //two hand overhand
 		blah(client, buttons);
 		buttons |= IN_ATTACK2;
@@ -135,7 +135,7 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3
 	} else {
 		g_iQueuedThrow[client] = 3; // two hand overhand
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -145,15 +145,15 @@ public Action L4D_OnCThrowActivate(int ability)
 		LogMessage("Invalid 'ability_throw' index: %d. Continuing throwing.", ability);
 		return Plugin_Continue;
 	}
-	
+
 	int client = GetEntPropEnt(ability, Prop_Data, "m_hOwnerEntity");
 
 	if ((GetClientButtons(client) & IN_ATTACK) && GetConVarBool(g_hBlockPunchRock)) {
 		return Plugin_Handled;
 	}
-	
+
 	throwQueuedAt[client] = GetGameTime();
-	
+
 	return Plugin_Continue;
 }
 
@@ -167,7 +167,7 @@ public Action L4D2_OnSelectTankAttack(int client, int &sequence)
 		sequence = g_iQueuedThrow[client] + 48;
 		return Plugin_Handled;
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -176,11 +176,11 @@ bool ShouldCancelJump(int client)
 	if (GetConVarBool(g_hBlockJumpRock)) {
 		return true;
 	}
-	
+
 	if (JumpRockReady) {
 		return false;
 	}
-	
+
 	return (1.5 > GetGameTime() - throwQueuedAt[client]);
 }
 
@@ -189,14 +189,14 @@ void PutJumpRockOnCooldown(int client)
 	if (GetConVarBool(g_hBlockJumpRock)) {
 		return;
 	}
-	
+
 	// Disable Jump Rocks and start countdown to re-enable them
 	g_fCooldownTime = GetConVarFloat(g_hJumpRockCooldown);
 	JumpRockReady = false;
-	
+
 	CreateTimer(GetConVarFloat(g_hJumpRockCooldown), ResetJumpRockCooldown, GetClientUserId(client));
 	CreateTimer(1.0, Timer_Countdown, _, TIMER_REPEAT);
-	
+
 	// Announce Time Until Rock is ready
 	CPrintToChat(client, "<{red}JumpRock{default}> Jump Rock will be ready in {olive}%i{default} seconds!", GetConVarInt(g_hJumpRockCooldown));
 }
@@ -223,7 +223,7 @@ public Action ResetJumpRockCooldown(Handle hTimer, any userid)
 	if (client == 0) {
 		return Plugin_Stop;
 	}
-	
+
 	JumpRockReady = true;
 	CPrintToChat(client, "<{red}JumpRock{default}> Jump Rock Is {olive}Ready!");
 	return Plugin_Stop;

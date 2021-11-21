@@ -83,7 +83,7 @@ public Action SetMapFirstTankSpawningScheme(int args)
 		LogError("Usage: tank_map_flow_and_second_event <mapname>");
 		return Plugin_Handled;
 	}
-	
+
 	char mapname[MAP_NAME_MAX_LENGTH];
 	GetCmdArg(1, mapname, sizeof(mapname));
 	hFirstTankSpawningScheme.SetValue(mapname, true);
@@ -98,7 +98,7 @@ public Action SetMapSecondTankSpawningScheme(int args)
 		LogError("Usage: tank_map_only_first_event <mapname>");
 		return Plugin_Handled;
 	}
-	
+
 	char mapname[MAP_NAME_MAX_LENGTH];
 	GetCmdArg(1, mapname, sizeof(mapname));
 	hSecondTankSpawningScheme.SetValue(mapname, true);
@@ -115,19 +115,19 @@ public Action ProcessTankSpawn(Handle hTimer)
 {
 	spawnScheme = Skip;
 	tankCount = 0;
-	
+
 	char mapname[MAP_NAME_MAX_LENGTH];
 	GetCurrentMap(mapname, sizeof(mapname));
-	
+
 	int iValue;
 	if (hFirstTankSpawningScheme.GetValue(mapname, iValue)) {
 		spawnScheme = FlowAndSecondOnEvent;
 	}
-	
+
 	if (hSecondTankSpawningScheme.GetValue(mapname, iValue)) {
 		spawnScheme = FirstOnEvent;
 	}
-	
+
 	if (IsTankAllowed() && spawnScheme != Skip) {
 		bool bIsSpawn = (spawnScheme == FlowAndSecondOnEvent);
 		L4D2Direct_SetVSTankToSpawnThisRound(InSecondHalfOfRound(), bIsSpawn);
@@ -144,9 +144,9 @@ public Action L4D2_OnChangeFinaleStage(int &finaleType, const char[] arg)
 		|| finaleType == FINALE_GAUNTLET_ESCAPE)
 	) {
 		//PrintToChatAll("Finale type %i has commenced", finaleType);
-		
+
 		tankCount++;
-		
+
 		if ((spawnScheme == FlowAndSecondOnEvent && tankCount != 2)
 			|| (spawnScheme == FirstOnEvent && tankCount != 1)
 		) {

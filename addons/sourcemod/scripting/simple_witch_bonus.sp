@@ -30,11 +30,11 @@ enum strOEC
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
-	g_bLateLoad = late;    
+	g_bLateLoad = late;
 	return APLRes_Success;
 }
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "Simple Witch Kill Bonus",
 	author = "Tabun",
@@ -88,7 +88,7 @@ public OnEntityDestroyed(entity)
 // witch tracking
 public Action: Event_WitchSpawned(Handle:event, const String:name[], bool:dontBroadcast)
 {
-	new witch = GetEventInt(event, "witchid");    
+	new witch = GetEventInt(event, "witchid");
 	decl String:witch_key[10];
 	FormatEx(witch_key, sizeof(witch_key), "%x", witch);
 	SetTrieValue(g_hWitchTrie, witch_key, 0);

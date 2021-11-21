@@ -8,14 +8,14 @@
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util>
 
-bool 
+bool
 	bTankAlive,
 	bHooked;
 
-int 
+int
 	iDistance;
 
-ConVar 
+ConVar
 	cvar_noTankRush,
 	cvar_SpawnEnableSound,
 	cvar_unfreezeSaferoom;
@@ -34,7 +34,7 @@ public void OnPluginStart()
 	cvar_noTankRush = CreateConVar("l4d_no_tank_rush", "1", "Prevents survivor team from accumulating points whilst the tank is alive", _, true, 0.0, true, 1.0);
 	cvar_unfreezeSaferoom = CreateConVar("l4d_no_tank_rush_unfreeze_saferoom", "0", "Unfreezes Distance if a Survivor makes it to the end saferoom while the Tank is still up.", _, true, 0.0, true, 1.0);
 	cvar_SpawnEnableSound = CreateConVar("l4d_no_tank_rush_spawn_sound", "0", "Turn on the sound when spawning a tank", _, true, 0.0, true, 1.0);
-	
+
 	// ChangeHook
 	cvar_noTankRush.AddChangeHook(NoTankRushChange);
 
@@ -61,7 +61,7 @@ void PluginEnable()
 		HookEvent("round_start", RoundStart, EventHookMode_PostNoCopy); //no params pls
 		HookEvent("tank_spawn", TankSpawn, EventHookMode_PostNoCopy); //no params pls
 		HookEvent("player_death", PlayerDeath, EventHookMode_Post);
-		
+
 		if (IsTankActuallyInPlay()) {
 			FreezePoints();
 		}
@@ -84,7 +84,7 @@ void PluginDisable()
 		UnhookEvent("round_start", RoundStart, EventHookMode_PostNoCopy); //no params pls
 		UnhookEvent("tank_spawn", TankSpawn, EventHookMode_PostNoCopy); //no params pls
 		UnhookEvent("player_death", PlayerDeath, EventHookMode_Post);
-		
+
 		bHooked = false;
 	}
 
@@ -177,7 +177,7 @@ int GetUprightSurvivors()
 	for (int i = 1; i <= MaxClients && survivorCount < iTeamSize; i++) {
 		if (IsSurvivor(i)) {
 			survivorCount++;
-			if (IsPlayerAlive(i) && !IsIncapacitated(i) && !IsHangingFromLedge(i)) { //IsIncapacitated, IsHangingFromLedge - l4d2util 
+			if (IsPlayerAlive(i) && !IsIncapacitated(i) && !IsHangingFromLedge(i)) { //IsIncapacitated, IsHangingFromLedge - l4d2util
 				aliveCount++;
 			}
 		}

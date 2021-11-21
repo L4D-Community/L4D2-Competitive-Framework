@@ -22,7 +22,7 @@
 //-------------------------------------------------------------------------------------------------------------------
 // - Be a nice guy and less lazy, allow the plugin to work flawlessly with other's peoples needs.. It doesn't require much attention.
 // - Find cleaner methods to detect and handle functions.
-// - Find a reliable way to detect Dual Pistol pick-up. 
+// - Find a reliable way to detect Dual Pistol pick-up.
 */
 
 #pragma semicolon 1
@@ -53,7 +53,7 @@ bool
 	bCantSwitchHealth[MAXPLAYERS + 1],
 	bCantSwitchSecondary[MAXPLAYERS + 1],
 	bPreventValveSwitch[MAXPLAYERS +1];
-	
+
 Handle
 	hSecondary[MAXPLAYERS + 1],
 	hHealth[MAXPLAYERS + 1],
@@ -88,10 +88,10 @@ public void OnPluginStart()
 {
 	hSwitchFlags = CreateConVar("pickup_switch_flags", "3", "Flags for Switching from current item (1:Melee Weapons, 2: Passed Pills)", _, true, 0.0, true, 3.0);
 	hIncapPickupFlags = CreateConVar("pickup_incap_flags", "7", "Flags for Stopping Pick-up progress on Incapped Survivors (1:Spit Damage, 2:TankPunch, 4:TankRock", _, true, 0.0, true, 7.0);
-	
+
 	SwitchFlags = hSwitchFlags.IntValue;
 	IncapFlags = hIncapPickupFlags.IntValue;
-	
+
 	HookConVarChange(hSwitchFlags, CVarChanged);
 	HookConVarChange(hIncapPickupFlags, CVarChanged);
 
@@ -197,7 +197,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	if (!IsValidEdict(inflictor) || !IsPlayerSurvivor(victim)) {
 		return Plugin_Continue;
 	}
-	
+
 	// Spitter damaging player that's being picked up.
 	// Read the damage input differently, forcing the pick-up to end with every damage tick. (NOTE: Bots still bypass this)
 	if ((IncapFlags & FLAGS_INCAP_SPIT) && IsPlayerIncapacitated(victim))
@@ -222,7 +222,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 			bTanked[victim] = true;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -233,19 +233,19 @@ public Action WeaponCanSwitchTo(int client, int weapon)
 	}
 
 	char sWeapon[64];
-	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon)); 
+	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon));
 	int wep = WeaponNameToId(sWeapon);
 
 	// Health Items.
 	if ((iSwitchFlags[client] & FLAGS_SWITCH_PILLS) && (wep == WEPID_PAIN_PILLS || wep == WEPID_ADRENALINE) && bCantSwitchHealth[client]) {
 		return Plugin_Stop;
 	}
-	
+
 	//Weapons.
 	if ((iSwitchFlags[client] & FLAGS_SWITCH_MELEE) && (wep == WEPID_MELEE || wep == WEPID_PISTOL_MAGNUM || wep == WEPID_PISTOL) && bCantSwitchSecondary[client]) {
 		return Plugin_Stop;
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -254,15 +254,15 @@ public Action WeaponEquip(int client, int weapon)
 	if (!IsValidEntity(weapon)) {
 		return Plugin_Continue;
 	}
-	
+
 	// Weapon Currently Using
 	char weapon_name[64];
 	GetClientWeapon(client, weapon_name, sizeof(weapon_name));
 	int wepname = WeaponNameToId(weapon_name);
 
 	// New Weapon
-	char sWeapon[64]; 
-	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon)); 
+	char sWeapon[64];
+	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon));
 	int wep = WeaponNameToId(sWeapon);
 
 	// Health Items.
@@ -279,12 +279,12 @@ public Action WeaponEquip(int client, int weapon)
 			if (wepname == WEPID_MELEE || wepname == WEPID_PISTOL || wepname == WEPID_PISTOL_MAGNUM) {
 				return Plugin_Continue;
 			}
-			
+
 			bCantSwitchSecondary[client] = true;
 			hSecondary[client] = CreateTimer(0.1, DelaySwitchSecondary, client);
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -293,7 +293,7 @@ public Action WeaponDrop(int client, int weapon)
 	if (!IsValidEntity(weapon)) {
 		return Plugin_Continue;
 	}
-	
+
 	// Weapon Currently Using
 	char weapon_name[64];
 	GetClientWeapon(client, weapon_name, sizeof(weapon_name));
@@ -303,8 +303,8 @@ public Action WeaponDrop(int client, int weapon)
 	//int Secondary = GetPlayerWeaponSlot(client, 1);
 
 	// Weapon Dropping
-	char sWeapon[64]; 
-	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon)); 
+	char sWeapon[64];
+	GetEntityClassname(weapon, sWeapon, sizeof(sWeapon));
 	int wep = WeaponNameToId(sWeapon);
 
 	// Check if Player is Alive/Incapped and just dropped his secondary for a different one
@@ -331,7 +331,7 @@ public Action WeaponDrop(int client, int weapon)
 bool IsValidClient(int client)
 {
 	return (client > 0 && client <= MaxClients && IsClientInGame(client));
-} 
+}
 
 bool IsPlayerSurvivor(int client)
 {
@@ -375,22 +375,22 @@ void KillActiveTimers(int client)
 		KillTimer(hTanked[client]);
 		hTanked[client] = null;
 	}
-	
+
 	if (hHealth[client] != null) {
 		KillTimer(hHealth[client]);
 		hHealth[client] = null;
 	}
-	
+
 	if (hSecondary[client] != null) {
 		KillTimer(hSecondary[client]);
 		hSecondary[client] = null;
 	}
-	
+
 	if (hValveSwitch[client] != null) {
 		KillTimer(hValveSwitch[client]);
 		hValveSwitch[client] = null;
 	}
-	
+
 	hTanked[client] = null;
 	hHealth[client] = null;
 	hSecondary[client] = null;

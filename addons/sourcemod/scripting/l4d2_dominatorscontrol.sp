@@ -21,7 +21,7 @@ Address
 ConVar
 	g_hCvarDominators = null;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Dominators Control",
 	author = "vintik, A1m`",
@@ -47,12 +47,12 @@ public void OnPluginStart()
 		g_hCvarDominators.SetInt(DOMINATORS_DEFAULT);
 		iCvarValue = DOMINATORS_DEFAULT;
 	}
-	
+
 	if (g_iDominators != iCvarValue) {
 		g_iDominators = iCvarValue;
 		SetDominators();
 	}
-	
+
 	g_hCvarDominators.AddChangeHook(OnCvarDominatorsChange);
 	IsCvarHooked = true;
 }
@@ -77,11 +77,11 @@ void InitGameData()
 	if (!g_pDominatorsAddress) {
 		SetFailState("Can't find 'bIsDominator' signature!");
 	}
-	
+
 	#if DEBUG
 	PrintToServer("[DEBUG] bIsDominator's signature is found. Address: %08x", g_pDominatorsAddress);
 	#endif
-	
+
 	delete hDamedata;
 }
 
@@ -101,7 +101,7 @@ public void OnCvarDominatorsChange(ConVar hCvar, const char[] sOldVal, const cha
 	if (iNewVal == g_iDominators) {
 		return;
 	}
-	
+
 	if (IsValidCvarValue(iNewVal)) {
 		g_iDominators = iNewVal;
 		#if DEBUG
@@ -126,9 +126,9 @@ void SetDominators()
 		#if DEBUG
 		int ReadByte = LoadFromAddress(g_pDominatorsAddress + view_as<Address>(i), NumberType_Int8);
 		#endif
-		
+
 		StoreToAddress(g_pDominatorsAddress + view_as<Address>(i), view_as<int>(bIsDominator), NumberType_Int8);
-		
+
 		#if DEBUG
 		int ReadSetByte = LoadFromAddress(g_pDominatorsAddress + view_as<Address>(i), NumberType_Int8);
 		PrintToServer("[DEBUG] Class %d is %sdominator now. ReadByte: %x. SetByte: %x", i, bIsDominator ? "" : "NOT ", ReadByte, ReadSetByte);

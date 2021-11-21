@@ -25,28 +25,28 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 	if (iButtons & IN_RELOAD && !(iButtons & IN_USE)) {
 		char sWeaponName[ENTITY_MAX_NAME_LENGTH];
 		GetClientWeapon(iClient, sWeaponName, sizeof(sWeaponName));
-		
+
 		int iWeapId = WeaponNameToId(sWeaponName);
 		if (iWeapId == WEPID_PAIN_PILLS || iWeapId == WEPID_ADRENALINE) {
 			int iTarget = GetClientAimTarget(iClient, true);
-			
+
 			if (iTarget > 0 && GetClientTeam(iTarget) == L4D2Team_Survivor && !IsPlayerIncap(iTarget)) {
 				int iTargetWeaponIndex = GetPlayerWeaponSlot(iTarget, L4D2WeaponSlot_LightHealthItem);
-				
+
 				if (iTargetWeaponIndex == -1) {
 					float fClientOrigin[3], fTargetOrigin[3];
 					GetClientAbsOrigin(iClient, fClientOrigin);
 					GetClientAbsOrigin(iTarget, fTargetOrigin);
-					
+
 					if (GetVectorDistance(fClientOrigin, fTargetOrigin, true) < MAX_DIST_SQUARED) {
 						// Remove item
 						int iGiverWeaponIndex = GetPlayerWeaponSlot(iClient, L4D2WeaponSlot_LightHealthItem);
 						RemovePlayerItem(iClient, iGiverWeaponIndex);
-						
+
 						#if (SOURCEMOD_V_MINOR == 11) || USE_GIVEPLAYERITEM
 							RemoveEntity(iGiverWeaponIndex);
 							iGiverWeaponIndex = GivePlayerItem(iClient, sWeaponName); // Fixed only in the latest version of sourcemod 1.11
-							
+
 							// If the entity was not given to the player
 							if (iGiverWeaponIndex < 1) {
 								return Plugin_Continue;
@@ -54,14 +54,14 @@ public Action OnPlayerRunCmd(int iClient, int &iButtons, int &iImpulse, float fV
 						#else
 							EquipPlayerWeapon(iTarget, iGiverWeaponIndex);
 						#endif
-						
+
 						// Call Event
 						Handle hFakeEvent = CreateEvent("weapon_given");
 						SetEventInt(hFakeEvent, "userid", GetClientUserId(iTarget));
 						SetEventInt(hFakeEvent, "giver", GetClientUserId(iClient));
 						SetEventInt(hFakeEvent, "weapon", iWeapId);
 						SetEventInt(hFakeEvent, "weaponentid", iGiverWeaponIndex);
-						
+
 						FireEvent(hFakeEvent);
 					}
 				}

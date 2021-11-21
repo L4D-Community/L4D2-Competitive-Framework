@@ -32,11 +32,11 @@ public Action UpdateAvoid(Handle timer)
 	{
 		if(!IsClientInGame(i) || GetClientTeam(i) != 2 || !IsPlayerAlive(i) || IsFakeClient(i))
 			continue;
-		
+
 		flPropTime = GetEntPropFloat(i, Prop_Send, "m_noAvoidanceTimer", 1);
 		if(flPropTime > flTime + NOAVOID_ADDTIME)
 			continue;
-		
+
 		SetEntPropFloat(i, Prop_Send, "m_noAvoidanceTimer", flTime + NOAVOID_ADDTIME, 1);
 	}
 

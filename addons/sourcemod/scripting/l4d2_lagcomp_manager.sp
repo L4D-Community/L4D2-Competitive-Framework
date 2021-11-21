@@ -130,7 +130,7 @@ bool IsTankRock(int iEntity)
 	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
 		return false;
 	}
-	
+
 	char sClassname[MAX_ENTITY_NAME_SIZE];
 	GetEdictClassname(iEntity, sClassname, sizeof(sClassname));
 	return (strcmp(sClassname, "tank_rock") == 0);
@@ -143,7 +143,7 @@ bool IsFindEntity(int iEntity)
 	if (LagComp_FindEntity(iEntity, iFindEntity)) {
 		return (iFindEntity != 0 && iFindEntity == iEntity);
 	}
-	
+
 	return false;
 }
 

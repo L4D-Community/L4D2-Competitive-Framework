@@ -24,7 +24,7 @@ static void RemoveTankFromArray(int iClient)
 {
 	for (int i = 0; i < hTankClients.Length; ++i) {
 		if (hTankClients.Get(i) == iClient) {
-			hTankClients.Erase(i); 
+			hTankClients.Erase(i);
 		}
 	}
 }
@@ -32,7 +32,7 @@ static void RemoveTankFromArray(int iClient)
 static bool FindTankInArray(int iClient)
 {
 	int iSize = hTankClients.Length;
-	
+
 	for (int i = 0; i < iSize; ++i) {
 		if (hTankClients.Get(i) == iClient) {
 			return true;
@@ -50,7 +50,7 @@ void L4D2Util_Tanks_Init()
 void L4D2Util_Tanks_OnRoundStart()
 {
 	hTankClients.Clear();
-	
+
 	CreateTimer(0.1, Timer_HookProps, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
@@ -87,7 +87,7 @@ void L4D2Util_Tanks_TankSpawn(int iClient)
 
 	if (hTankClients.Length < iNumTanks) {
 		hTankClients.Push(iClient);
-		
+
 		Call_StartForward(hFwdOnTankSpawn);
 		Call_PushCell(iClient);
 		Call_Finish();
@@ -122,7 +122,7 @@ public Action L4D2Util_Tanks_TankDeathDelay(Handle hTimer, any iOldTankClient)
 
 	if (iTankClient != -1) {
 		hTankClients.Push(iClient);
-		
+
 		Call_StartForward(hFwdOnTankPass);
 		Call_PushCell(iTankClient);
 		Call_PushCell(iOldTankClient);

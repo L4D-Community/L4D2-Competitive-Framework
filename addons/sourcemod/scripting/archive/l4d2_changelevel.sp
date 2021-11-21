@@ -1,6 +1,6 @@
 // Not used now
 
-/*  
+/*
 *    Fixes for gamebreaking bugs and stupid gameplay aspects
 *    Copyright (C) 2019  LuxLuma		acceliacat@gmail.com
 *
@@ -41,7 +41,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 		strcopy(error, err_max, "Plugin only supports Left 4 Dead 2");
 		return APLRes_SilentFailure;
 	}
-	
+
 	RegPluginLibrary("l4d2_changelevel");
 	CreateNative("L4D2_ChangeLevel", L4D2_ChangeLevelNV);
 	return APLRes_Success;
@@ -59,34 +59,34 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	Handle hGamedata = LoadGameConfigFile("l4d2_changelevel");
-	if(hGamedata == null) 
+	if(hGamedata == null)
 		SetFailState("Failed to load \"l4d2_changelevel.txt\" gamedata.");
-	
+
 	StartPrepSDKCall(SDKCall_Raw);
 	if(!PrepSDKCall_SetFromConf(hGamedata, SDKConf_Signature, "CDirector::OnChangeChapterVote"))
 		SetFailState("Error finding the 'CDirector::OnChangeChapterVote' signature.");
 	PrepSDKCall_AddParameter(SDKType_String, SDKPass_Pointer);
-	
+
 	hDirectorChangeLevel = EndPrepSDKCall();
 	if(hDirectorChangeLevel == null)
 		SetFailState("Unable to prep SDKCall 'CDirector::OnChangeChapterVote'");
-	
+
 	TheDirector = GameConfGetAddress(hGamedata, "CDirector");
 	if(TheDirector == Address_Null)
 		SetFailState("Unable to get 'CDirector' Address");
-	
-	
+
+
 	StartPrepSDKCall(SDKCall_Raw);
 	if(!PrepSDKCall_SetFromConf(hGamedata, SDKConf_Signature, "CDirector::ClearTeamScores"))
 		SetFailState("Error finding the 'CDirector::ClearTeamScores' signature.");
 	PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
-	
+
 	hDirectorClearTeamScores = EndPrepSDKCall();
 	if(hDirectorClearTeamScores == null)
 		SetFailState("Unable to prep SDKCall 'CDirector::ClearTeamScores'");
-	
+
 	delete hGamedata;
-	
+
 	RegAdminCmd("sm_changelevel", Changelevel, ADMFLAG_ROOT, "L4D2 changelevel method to release all resources");
 }
 
@@ -94,7 +94,7 @@ public Action Changelevel(int iClient, int iArg)
 {
 	char sMapName[PLATFORM_MAX_PATH];
 	char temp[2];
-	
+
 	GetCmdArg(1, sMapName, sizeof(sMapName));
 	if(sMapName[0] == '\0' || FindMap(sMapName, temp, sizeof(temp)) == FindMap_NotFound)
 	{
@@ -107,7 +107,7 @@ public Action Changelevel(int iClient, int iArg)
 		GetCmdArg(2, temp, sizeof(temp));
 		bResetScores = view_as<bool>(StringToInt(temp));
 	}
-	
+
 	L4D2_ChangeLevel(sMapName, bResetScores);
 	return Plugin_Handled;
 }
@@ -126,18 +126,18 @@ public int L4D2_ChangeLevelNV(Handle plugin, int numParams)
 {
 	if(numParams < 1)
 		ThrowNativeError(SP_ERROR_PARAM, "Invalid numParams");
-	
+
 	char sMapName[PLATFORM_MAX_PATH];
 	GetNativeString(1, sMapName, sizeof(sMapName));
-	
+
 	char temp[1];
 	if(sMapName[0] == '\0' || FindMap(sMapName, temp, sizeof(temp)) == FindMap_NotFound)
 		ThrowNativeError(SP_ERROR_PARAM, "Unable to change to that map \"%s\"", sMapName);
-	
+
 	bool bResetScores = true;
 	if(numParams >= 2)
 		bResetScores = view_as<bool>(GetNativeCell(2));
-	
+
 	L4D2_ChangeLevel(sMapName, bResetScores);
 
 	return 1;

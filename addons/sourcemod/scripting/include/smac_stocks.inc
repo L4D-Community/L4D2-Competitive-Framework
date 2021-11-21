@@ -2,7 +2,7 @@
     SourceMod Anti-Cheat
     Copyright (C) 2011-2016 SMAC Development Team
     Copyright (C) 2007-2011 CodingDirect LLC
-	
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -160,8 +160,8 @@ stock int GetClientObserverTarget(int client)
  */
 stock bool DODS_IsPlayerProne(int client)
 {
-    return view_as<bool>(GetEntProp(client, Prop_Send, "m_bProne") || 
-        GetEntPropFloat(client, Prop_Send, "m_flGoProneTime") > 0.0 || 
+    return view_as<bool>(GetEntProp(client, Prop_Send, "m_bProne") ||
+        GetEntPropFloat(client, Prop_Send, "m_flGoProneTime") > 0.0 ||
         GetEntPropFloat(client, Prop_Send, "m_flUnProneTime") > 0.0);
 }
 
@@ -173,44 +173,44 @@ stock bool L4D_IsPlayerGhost(int client)
 // "Busy" implies that the client is not in their typical first-person state.
 stock bool L4D_IsSurvivorBusy(int client)
 {
-    return GetEntityFlags(client) & FL_FROZEN || 
-        GetClientHudFlags(client) & ~HIDEHUD_BONUS_PROGRESS || 
-        GetEntProp(client, Prop_Send, "m_isIncapacitated") > 0 || 
-        GetEntProp(client, Prop_Send, "m_knockdownReason") > 0 || 
-        GetEntPropFloat(client, Prop_Send, "m_staggerDist") > 0.0 || 
-        GetEntPropEnt(client, Prop_Send, "m_pounceAttacker") > 0 || 
+    return GetEntityFlags(client) & FL_FROZEN ||
+        GetClientHudFlags(client) & ~HIDEHUD_BONUS_PROGRESS ||
+        GetEntProp(client, Prop_Send, "m_isIncapacitated") > 0 ||
+        GetEntProp(client, Prop_Send, "m_knockdownReason") > 0 ||
+        GetEntPropFloat(client, Prop_Send, "m_staggerDist") > 0.0 ||
+        GetEntPropEnt(client, Prop_Send, "m_pounceAttacker") > 0 ||
         GetEntPropEnt(client, Prop_Send, "m_tongueOwner") > 0;
 }
 
 stock bool L4D_IsInfectedBusy(int client)
 {
-    return GetEntPropFloat(client, Prop_Send, "m_vomitFadeStart") > GetGameTime() || 
-        GetEntPropEnt(client, Prop_Send, "m_pounceVictim") > 0 || 
+    return GetEntPropFloat(client, Prop_Send, "m_vomitFadeStart") > GetGameTime() ||
+        GetEntPropEnt(client, Prop_Send, "m_pounceVictim") > 0 ||
         GetEntPropEnt(client, Prop_Send, "m_tongueVictim") > 0;
 }
 
 stock bool L4D2_IsSurvivorBusy(int client)
 {
-    return GetEntityFlags(client) & FL_FROZEN || 
-        GetClientHudFlags(client) & ~HIDEHUD_BONUS_PROGRESS || 
-        GetEntProp(client, Prop_Send, "m_isIncapacitated") > 0 || 
-        GetEntProp(client, Prop_Send, "m_knockdownReason") > 0 || 
-        GetEntPropFloat(client, Prop_Send, "m_staggerDist") > 0.0 || 
-        GetEntPropEnt(client, Prop_Send, "m_pummelAttacker") > 0 || 
-        GetEntPropEnt(client, Prop_Send, "m_carryAttacker") > 0 || 
-        GetEntPropEnt(client, Prop_Send, "m_pounceAttacker") > 0 || 
-        GetEntPropEnt(client, Prop_Send, "m_jockeyAttacker") > 0 || 
+    return GetEntityFlags(client) & FL_FROZEN ||
+        GetClientHudFlags(client) & ~HIDEHUD_BONUS_PROGRESS ||
+        GetEntProp(client, Prop_Send, "m_isIncapacitated") > 0 ||
+        GetEntProp(client, Prop_Send, "m_knockdownReason") > 0 ||
+        GetEntPropFloat(client, Prop_Send, "m_staggerDist") > 0.0 ||
+        GetEntPropEnt(client, Prop_Send, "m_pummelAttacker") > 0 ||
+        GetEntPropEnt(client, Prop_Send, "m_carryAttacker") > 0 ||
+        GetEntPropEnt(client, Prop_Send, "m_pounceAttacker") > 0 ||
+        GetEntPropEnt(client, Prop_Send, "m_jockeyAttacker") > 0 ||
         GetEntPropEnt(client, Prop_Send, "m_tongueOwner") > 0;
 }
 
 stock bool L4D2_IsInfectedBusy(int client)
 {
-    return GetEntProp(client, Prop_Send, "m_iGlowType") == 3 || 
-        GetEntPropFloat(client, Prop_Send, "m_vomitFadeStart") > GetGameTime() || 
-        GetEntPropEnt(client, Prop_Send, "m_pummelVictim") > 0 || 
-        GetEntPropEnt(client, Prop_Send, "m_carryVictim") > 0 || 
-        GetEntPropEnt(client, Prop_Send, "m_pounceVictim") > 0 || 
-        GetEntPropEnt(client, Prop_Send, "m_jockeyVictim") > 0 || 
+    return GetEntProp(client, Prop_Send, "m_iGlowType") == 3 ||
+        GetEntPropFloat(client, Prop_Send, "m_vomitFadeStart") > GetGameTime() ||
+        GetEntPropEnt(client, Prop_Send, "m_pummelVictim") > 0 ||
+        GetEntPropEnt(client, Prop_Send, "m_carryVictim") > 0 ||
+        GetEntPropEnt(client, Prop_Send, "m_pounceVictim") > 0 ||
+        GetEntPropEnt(client, Prop_Send, "m_jockeyVictim") > 0 ||
         GetEntPropEnt(client, Prop_Send, "m_tongueVictim") > 0;
 }
 
@@ -234,8 +234,8 @@ stock bool IsVectorZero(const float vec[3])
 
 stock bool IsVectorAlmostZero(const float vec[3], const float tolerance=0.1)
 {
-    return view_as<bool>(FloatAbs(vec[0]) <= tolerance && 
-        FloatAbs(vec[1]) <= tolerance && 
+    return view_as<bool>(FloatAbs(vec[0]) <= tolerance &&
+        FloatAbs(vec[1]) <= tolerance &&
         FloatAbs(vec[2]) <= tolerance);
 }
 
@@ -246,8 +246,8 @@ stock bool AreVectorsEqual(const float vec1[3], const float vec2[3])
 
 stock bool AreVectorsAlmostEqual(const float vec1[3], const float vec2[3], const float tolerance=0.1)
 {
-    return view_as<bool>(FloatAbs(vec1[0] - vec2[0]) <= tolerance && 
-        FloatAbs(vec1[1] - vec2[1]) <= tolerance && 
+    return view_as<bool>(FloatAbs(vec1[0] - vec2[0]) <= tolerance &&
+        FloatAbs(vec1[1] - vec2[1]) <= tolerance &&
         FloatAbs(vec1[2] - vec2[2]) <= tolerance);
 }
 
@@ -283,9 +283,9 @@ stock int IPToLong(const char[] ip)
         return 0;
     }
 
-    return StringToInt(pieces[0]) << 24 | 
-        StringToInt(pieces[1]) << 16 | 
-        StringToInt(pieces[2]) << 8 | 
+    return StringToInt(pieces[0]) << 24 |
+        StringToInt(pieces[1]) << 16 |
+        StringToInt(pieces[2]) << 8 |
         StringToInt(pieces[3]);
 }
 

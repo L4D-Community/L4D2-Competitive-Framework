@@ -70,7 +70,7 @@ public Action Hook_OnTakeDamage(int iVictim, int& iAttacker, int& iInflictor, fl
 			return Plugin_Handled;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -82,7 +82,7 @@ bool IsValidSI(int iClient)
 		if (iZClass == BOOMER_ZOMBIE_CLASS || iZClass == SPITTER_ZOMBIE_CLASS) {
 			return false;
 		}
-		
+
 		return true;
 	}
 

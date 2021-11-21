@@ -55,7 +55,7 @@ public Action CH_PassFilter(int iEntity1, int iEntity2, bool &bResult)
 		GetEdictClassname(iEntity1, sClassName1, sizeof(sClassName1));
 		GetEdictClassname(iEntity2, sClassName2, sizeof(sClassName2));
 		PrintToChatAll("iEntity1: %d (%s), iEntity2: %d (%s), fix: %s", iEntity1, sClassName1, iEntity2, sClassName2, (g_hCvarLedgeLaggerFix.BoolValue) ? "enabled" : "disabled");
-		
+
 		if (!g_hCvarLedgeLaggerFix.BoolValue) {
 			return Plugin_Continue;
 		}

@@ -131,7 +131,7 @@ int CreateEntityAtLocation(int iClient, const char[] sEntityName)
 	if (iEntity == -1) {
 		return -1;
 	}
-	
+
 	float fClientOrigin[3];
 	GetClientAbsOrigin(iClient, fClientOrigin);
 	fClientOrigin[2] += 10.0;

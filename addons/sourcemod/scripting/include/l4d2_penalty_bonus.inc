@@ -4,7 +4,7 @@
 */
 
 /**
- *  Called when a round is about to end. 
+ *  Called when a round is about to end.
  *  The update value is passed by reference and increased by any plugin using this forward
  *  before the next. Do an update += <update value> and return the new update.
  *  PBonus will apply the last value of that update to the round's penalty bonus (without reporting).

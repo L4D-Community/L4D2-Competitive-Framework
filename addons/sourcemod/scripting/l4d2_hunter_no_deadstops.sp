@@ -11,14 +11,14 @@
 
 bool bIsPouncing[MAXPLAYERS + 1]; // whether hunter player is currently pouncing/lunging
 
-float 
-	bIsPouncingStartTime[MAXPLAYERS + 1],  // Pouncing stop time 
-	bIsPouncingStopTime[MAXPLAYERS + 1];  // Pouncing stop time 
+float
+	bIsPouncingStartTime[MAXPLAYERS + 1],  // Pouncing stop time
+	bIsPouncingStopTime[MAXPLAYERS + 1];  // Pouncing stop time
 
 ConVar
 	cvarHunterGroundM2Godframes;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "[L4D2] No Hunter Deadstops",
 	author = "Spoon, Luckylock, A1m`",
@@ -57,7 +57,7 @@ Action Shove_Handler(int shover, int shovee)
 	if (bIsPouncing[shovee]) {
 		return Plugin_Handled;
 	}
-	
+
 	// If the hunter is on a survivor, allow m2s
 	if (HasTarget(shovee)) {
 		return Plugin_Continue;
@@ -68,9 +68,9 @@ Action Shove_Handler(int shover, int shovee)
 	//{
 	//	return Plugin_Handled;
 	//}
-	
+
 	return Plugin_Continue;
-} 
+}
 
 // check if client is on survivor team
 bool IsSurvivor(int client)
@@ -85,24 +85,24 @@ bool IsInfected(int client)
 }
 
 // check if client is a hunter
-bool IsHunter(int client)  
+bool IsHunter(int client)
 {
 	if (!IsInfected(client)) {
 		return false;
 	}
-	
+
 	if (!IsPlayerAlive(client)) {
 		return false;
 	}
-	
+
 	if (GetEntProp(client, Prop_Send, "m_zombieClass") != Z_HUNTER) {
 		return false;
 	}
-	
+
 	return true;
 }
 
-// check if the hunter is on a survivor 
+// check if the hunter is on a survivor
 bool HasTarget(int hunter)
 {
 	int target = GetEntPropEnt(hunter, Prop_Send, "m_pounceVictim");
@@ -123,9 +123,9 @@ public void Event_PlayerDeath(Event hEvent, const char[] name, bool dontBroadcas
 {
 	int victim = GetClientOfUserId(hEvent.GetInt("userid"));
 
-	if (victim <= 0 
+	if (victim <= 0
 	|| victim > MaxClients
-	|| !IsClientInGame(victim)) 
+	|| !IsClientInGame(victim))
 		return;
 
 	bIsPouncing[victim] = false;
@@ -137,13 +137,13 @@ public void Event_AbilityUse(Event hEvent, const char[] name, bool dontBroadcast
 	// track hunters pouncing
 	char abilityName[64];
 	hEvent.GetString("ability", abilityName, sizeof(abilityName));
-	
+
 	if (strcmp(abilityName, "ability_lunge", false) == 0) {
 		int client = GetClientOfUserId(hEvent.GetInt("userid"));
-		
-		if (client <= 0 
-		|| client > MaxClients 
-		|| !IsClientInGame(client) 
+
+		if (client <= 0
+		|| client > MaxClients
+		|| !IsClientInGame(client)
 		|| GetClientTeam(client) != TEAM_INFECTED)
 			return;
 
@@ -167,7 +167,7 @@ public void OnGameFrame()
 				if (bIsPouncingStopTime[client] == 0.0) {
 					if (GetEntityFlags(client) & FL_ONGROUND) {
 						// PrintToChatAll("Hunter grounded (buffer = %.0f ms)", cvarHunterGroundM2Godframes.FloatValue * 1000);
-						bIsPouncingStopTime[client] = fNow;    
+						bIsPouncingStopTime[client] = fNow;
 					}
 				} else if (fNow - bIsPouncingStopTime[client] > cvarHunterGroundM2Godframes.FloatValue) {
 					// PrintToChatAll("Not pouncing anymore.");
@@ -175,5 +175,5 @@ public void OnGameFrame()
 				}
 			}
 		}
-	} 
+	}
 }

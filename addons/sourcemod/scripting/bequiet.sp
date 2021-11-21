@@ -95,7 +95,7 @@ public Action Event_ServerConVar(Event event, const char[] name, bool dontBroadc
 public Action Event_NameChange(Event event, const char[] name, bool dontBroadcast)
 {
 	int clientid = event.GetInt("userid");
-	int client = GetClientOfUserId(clientid); 
+	int client = GetClientOfUserId(clientid);
 
 	if (IsValidClient(client))
 	{
@@ -115,6 +115,6 @@ public void cvarChanged(Handle convar, const char[] oldValue, const char[] newVa
 
 stock bool IsValidClient(int client)
 {
-	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || !IsClientInGame(client)) return false; 
+	if (client <= 0 || client > MaxClients || !IsClientConnected(client) || !IsClientInGame(client)) return false;
 	return true;
 }

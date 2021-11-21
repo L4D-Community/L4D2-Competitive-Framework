@@ -74,7 +74,7 @@ public OnMapStart()
 		Patch();
 		return;
 	}
-	
+
 	decl String:mapname[64];
 	GetCurrentMap(mapname, sizeof(mapname));
 
@@ -131,20 +131,20 @@ Address:FindPatchTarget(Handle:hGamedata)
 	new Address:pTarget = GameConfGetAddress(hGamedata, "SaferoomCheck_Sig");
 	if (!pTarget)
 		SetFailState("Couldn't find the 'SaferoomCheck_Sig' address");
-	
+
 	new iOffset = GameConfGetOffset(hGamedata, "UpdateZombieFrustration_SaferoomCheck");
-	
+
 	pTarget = pTarget + (Address:iOffset);
-	
+
 	if(LoadFromAddress(pTarget, NumberType_Int8) != CALL_OPCODE)
 		SetFailState("Saferoom Check Offset or signature seems incorrect");
-	
+
 	ORIGINAL_BYTES[0] = CALL_OPCODE;
-	
+
 	for(new i =1; i < sizeof(ORIGINAL_BYTES); i++)
 	{
 		ORIGINAL_BYTES[i] = LoadFromAddress(pTarget + Address:i, NumberType_Int8);
 	}
-	
+
 	return pTarget;
 }

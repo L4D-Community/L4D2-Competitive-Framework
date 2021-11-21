@@ -11,7 +11,7 @@ Handle:CreateConVarEx(const String:name[], const String:defaultValue[], const St
 	Format(sBuffer,sizeof(sBuffer),"%s%s",CVAR_PREFIX,name);
 	flags = flags | CVAR_FLAGS;
 	cvar = CreateConVar(sBuffer,defaultValue,description,flags,hasMin,min,hasMax,max);
-	
+
 	return cvar;
 }
 
@@ -112,16 +112,16 @@ stock GetURandomIntRange(min, max) { return RoundToNearest((GetURandomFloat() * 
  *
  * @param str			String to search in.
  * @param pattern		String pattern to search for
- * @param reverse		False (default) to search forward, true to search 
+ * @param reverse		False (default) to search forward, true to search
  *						backward.
- * @return				The index of the first character of the first 
- *						occurrence of the pattern in the string, or -1 if the 
+ * @return				The index of the first character of the first
+ *						occurrence of the pattern in the string, or -1 if the
  *						character was not found.
  */
 stock FindPatternInString(const String:str[], const String:pattern[], bool:reverse = false)
 {
 	new i, c, len;
-	
+
 	len = strlen(pattern);
 	c = pattern[0];
 	while(i < len && (i = FindCharInString(str[i], c, reverse)) != -1)
@@ -135,7 +135,7 @@ stock FindPatternInString(const String:str[], const String:pattern[], bool:rever
  *
  * @param str			String to search in.
  * @param pattern		String pattern to search for
- * @param overlap		False (default) to count only non-overlapping  
+ * @param overlap		False (default) to count only non-overlapping
  *						occurences, true to count matches within other
  *						occurences.
  * @return				The number of occurences of the pattern in the string

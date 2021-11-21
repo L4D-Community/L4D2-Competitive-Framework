@@ -23,20 +23,20 @@ public void OnPluginStart()
 	if (g_hGameConf == INVALID_HANDLE) {
 		SetFailState("[Stagger Solver] Could not load game config file '%s'.", GAMEDATA_FILE);
 	}
-	
+
 	StartPrepSDKCall(SDKCall_Player);
 
 	if (!PrepSDKCall_SetFromConf(g_hGameConf, SDKConf_Signature, SIGNATURE_NAME)) {
 		SetFailState("[Stagger Solver] Could not find signature '%s' in gamedata.", SIGNATURE_NAME);
 	}
-	
+
 	PrepSDKCall_SetReturnInfo(SDKType_PlainOldData, SDKPass_Plain);
 	g_hIsStaggering = EndPrepSDKCall();
-	
+
 	if (g_hIsStaggering == INVALID_HANDLE) {
 		SetFailState("[Stagger Solver] Failed to load signature '%s'", SIGNATURE_NAME);
 	}
-	
+
 	delete g_hGameConf;
 }
 
@@ -44,7 +44,7 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 {
 	if (IsClientInGame(client) && IsPlayerAlive(client) && SDKCall(g_hIsStaggering, client)) {
 		/*
-			* if you shoved the infected player with the butt while moving on the ladder, 
+			* if you shoved the infected player with the butt while moving on the ladder,
 			* he will not be able to move until he is killed
 		*/
 		if (GetEntityMoveType(client) != MOVETYPE_LADDER) {

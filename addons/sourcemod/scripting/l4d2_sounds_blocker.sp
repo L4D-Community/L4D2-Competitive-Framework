@@ -46,7 +46,7 @@ NOT ALL SOUNDS WILL BE BLOCKED!!! Some sounds are client-side only, for example 
 #include <sdktools>
 
 // Convars
-ConVar 
+ConVar
 	h_FireWorks,
 	h_Coaster,
 	h_CarAlarms,
@@ -58,7 +58,7 @@ ConVar
 	h_Lifts,
 	h_Laughs;
 
-char 
+char
 	a_customSoundPaths[255][255],
 	a_whitelistSoundPaths[255][255];
 
@@ -83,10 +83,10 @@ public void OnPluginStart()
 	h_AmbientExplosions = CreateConVar("ssb_block_ambient_explosions", "1", "Enable/Disable Ambient Explosion Sound Blocking", _, true, 0.0, true, 1.0);
 	h_Lifts = CreateConVar("ssb_block_lifts", "1", "Enable/Disable lift Sound Blocking", _, true, 0.0, true, 1.0);
 	h_Laughs = CreateConVar("ssb_block_laughs", "1", "Enable/Disable laugh Sound Blocking", _, true, 0.0, true, 1.0);
-	
+
 	RegServerCmd("ssb_custom_path", CustomPath_Cmd); // Simply put this command in one of your .cfg files along with the custom sound path. Ex: ssb_custom_path "player/survivor/swing/Swish_WeaponSwing_Swipe6"
 	RegServerCmd("ssb_whitelist_path", WhitelistPath_Cmd); // Simply put this command in one of your .cfg files along with the custom sound path. Ex: ssb_whitelist_path "player/survivor/swing/Swish_WeaponSwing_Swipe6"
-	
+
 	AddNormalSoundHook(OnNormalSound);
 	AddAmbientSoundHook(OnAmbientSound);
 }
@@ -128,70 +128,70 @@ public Action checkSound(char sample[256])
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Laughs
 	if (h_Laughs.BoolValue) {
 		if (((StrContains(sample, "laugh", true) > -1) && !(StrContains(sample, "not_a_", true) > -1))) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Coaster
 	if (h_Coaster.BoolValue) {
 		if ((StrContains(sample, "coaster", true) > -1) || (StrContains(sample, "loud/climb_", true) > -1) || (StrContains(sample, "downhill", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Car Alarms
 	if (h_CarAlarms.BoolValue) {
 		if ((StrContains(sample, "car_alarm", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Other Alarms
 	if (h_Alarms.BoolValue) {
 		if ((StrContains(sample, "alarm1", true) > -1) || (StrContains(sample, "rackmove1", true) > -1) || (StrContains(sample, "perimeter_alarm", true) > -1) || (StrContains(sample, "churchbell_begin_loop", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Horde
 	if (h_Horde.BoolValue) {
 		if (StrContains(sample, "mega_mob_incoming", true) > -1) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Misc Vehicles -- There's a lot :D
 	if (h_MiscVehicles.BoolValue) {
 		if ((StrContains(sample, "chainlink_fence_open", true) > -1) || (StrContains(sample, "riverbarge_", true) > -1) || ((StrContains(sample, "van_inside", true) > -1) && !(StrContains(sample, "_start", true))) || (StrContains(sample, "tractor", true) > -1) || (StrContains(sample, "airport_rough_crash", true) > -1) || (StrContains(sample, "fuel_truck", true) > -1) || (StrContains(sample, "c130", true) > -1) || (StrContains(sample, "jet", true) > -1) || (StrContains(sample, "c1_intro_chopper_leave", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Generator
 	if (h_Generators.BoolValue) {
 		if ((StrContains(sample, "generator", true) > -1) && !(StrContains(sample, "_stop", true) > -1) && !(StrContains(sample, "_sputter", true) > -1) && !(StrContains(sample, "nostart_loop", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Ambient Explosions
 	if (h_AmbientExplosions.BoolValue) {
 		if (((StrContains(sample, "explode_", true) > -1) && !(StrContains(sample, "player", true) > -1)) || (StrContains(sample, "timeddebris_", true) > -1) || (StrContains(sample, "timeddebris_", true) > -1) || (StrContains(sample, "bombing_run", true) > -1) || (StrContains(sample, "bridge_destruct_swt_01", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Lifts / Event
 	if (h_Lifts.BoolValue) {
 		if ((StrContains(sample, "c6_bridgelower_seg01", true) > -1) || (StrContains(sample, "garage_lift_loop", true) > -1) || (StrContains(sample, "floodgate", true) > -1)) {
 			return checkWhitelist(sample);
 		}
 	}
-	
+
 	// Custom
 	int itemsInArray = CountValidItemsInArray(a_customSoundPaths) + 1;
 	if (itemsInArray > 0) {
@@ -199,7 +199,7 @@ public Action checkSound(char sample[256])
 			if (StrContains(sample, ")", false) > -1) {
 				ReplaceString(sample, sizeof(sample), ")", "", false);
 			}
-			
+
 			if (StrEqual(sample, a_customSoundPaths[i], false)) {
 				return checkWhitelist(sample);
 			}
@@ -227,7 +227,7 @@ public Action checkWhitelist(char sample[256]) {
 	if (itemsInArray > 0) {
 		for (int i = 0; i < itemsInArray; i++) {
 			if (StrContains(a_whitelistSoundPaths[i], sample, false) > -1) {
-				return Plugin_Continue; 
+				return Plugin_Continue;
 			}
 		}
 	}

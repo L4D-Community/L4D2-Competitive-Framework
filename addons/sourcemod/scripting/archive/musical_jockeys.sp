@@ -11,7 +11,7 @@
 #define Z_JOCKEY 5
 #define TEAM_INFECTED 3
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Musical Jockeys",
 	author = "Jacob",

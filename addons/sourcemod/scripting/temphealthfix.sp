@@ -61,7 +61,7 @@ public void PlayerChange_Event(Event event, const char[] name, bool dontBroadcas
 	if (!isLedged(bot) && !isLedged(player)) {
 		return;
 	}
-	
+
 	// Player replaced by bot
 	if (name[0] == 'p')
 	{

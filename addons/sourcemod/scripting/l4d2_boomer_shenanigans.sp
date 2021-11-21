@@ -28,7 +28,7 @@ public Action L4D_OnShovedBySurvivor(int iClient, int iVictim, const float fVecD
 	if (!IsValidClient(iClient)) {
 		return Plugin_Continue;
 	}
-	
+
 	// Get the Ability
 	int iAbility = GetEntPropEnt(iVictim, Prop_Send, "m_customAbility");
 

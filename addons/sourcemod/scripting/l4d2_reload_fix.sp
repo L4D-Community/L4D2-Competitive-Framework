@@ -172,7 +172,7 @@ public void OnFrame(DataPack dPack)
 		delete dPack;
 		return;
 	}
-	
+
 	int weapon = dPack.ReadCell();
 	weapon = EntRefToEntIndex(weapon);
 	if( weapon == INVALID_ENT_REFERENCE )

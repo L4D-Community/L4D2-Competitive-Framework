@@ -36,7 +36,7 @@ stock bool IsSurvivorAttacked(int survivor)
 }
 
 /**
- * Returns true if the client is currently on the survivor team. 
+ * Returns true if the client is currently on the survivor team.
  *
  * @param client client ID
  * @return bool
@@ -58,7 +58,7 @@ stock bool IsValidSurvivor(int client)
 }
 
 /**
- * Returns true if the player is incapacitated. 
+ * Returns true if the player is incapacitated.
  *
  * @param client client ID
  * @return bool
@@ -69,7 +69,7 @@ stock bool IsIncapacitated(int client)
 }
 
 /**
- * Returns the amount of permanent health a survivor has. 
+ * Returns the amount of permanent health a survivor has.
  *
  * @param client client ID
  * @return int
@@ -80,7 +80,7 @@ stock int GetSurvivorPermanentHealth(int client)
 }
 
 /**
- * Returns the amount of temporary health a survivor has. 
+ * Returns the amount of temporary health a survivor has.
  *
  * @param client client ID
  * @return int
@@ -92,12 +92,12 @@ stock int GetSurvivorTemporaryHealth(int client)
 	{
 		pain_pills_decay_rate = FindConVar("pain_pills_decay_rate");
 	}
-	
+
 	float fDecayRate = pain_pills_decay_rate.FloatValue;
 
 	float fHealthBuffer = GetEntPropFloat(client, Prop_Send, "m_healthBuffer");
 	float fHealthBufferTimeStamp = GetEntPropFloat(client, Prop_Send, "m_healthBufferTime");
-	
+
 	float fHealthBufferDuration = GetGameTime() - fHealthBufferTimeStamp;
 
 	int iTempHp = RoundToCeil(fHealthBuffer - (fHealthBufferDuration * fDecayRate)) - 1;
@@ -124,7 +124,7 @@ stock int GetSurvivorIncapCount(int client)
  */
 stock bool IsHangingFromLedge(int client)
 {
-	return (view_as<bool>(GetEntProp(client, Prop_Send, "m_isHangingFromLedge")) 
+	return (view_as<bool>(GetEntProp(client, Prop_Send, "m_isHangingFromLedge"))
 		|| view_as<bool>(GetEntProp(client, Prop_Send, "m_isFallingFromLedge")));
 }
 
@@ -173,7 +173,7 @@ stock SurvivorCharacter ClientModelToSC(const char[] model)
 	if (hSurvivorModelsTrie == null) {
 		InitSurvivorModelTrie();
 	}
-	
+
 	SurvivorCharacter sc;
 	if (hSurvivorModelsTrie.GetValue(model, sc)) {
 		return sc;
@@ -183,9 +183,9 @@ stock SurvivorCharacter ClientModelToSC(const char[] model)
 }
 
 /**
- * Get the name of a survivor character. 
+ * Get the name of a survivor character.
  * Will write to string 'None' in case of error.
- * 
+ *
  * @param character     SurvivorCharacter to get the name of
  * @param buffer        buffer to store name
  * @param length        length of buffer

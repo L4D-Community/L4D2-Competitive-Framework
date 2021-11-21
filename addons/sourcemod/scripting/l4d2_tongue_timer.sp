@@ -23,7 +23,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Tongue Timer",
 	author = "Sir",
@@ -90,7 +90,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 	// Duration will be used as the new "m_timestamp"
 	// If the smoker's pull delay is already longer than what we want it to be, don't bother.
 	duration = time + fTongueDelayTank;
-	if (duration > timestamp) 
+	if (duration > timestamp)
 	{
 		SetInfectedAbilityTimer(iSmoker, duration, fTongueDelayTank);
 	}
@@ -184,7 +184,7 @@ public void OnSmokerSurvivorClear(any smoker)
 		// If the smoker's pull delay is already longer than what we want it to be, don't bother.
 		duration = time + fTongueDelaySurvivor;
 
-		if (duration > timestamp) 
+		if (duration > timestamp)
 		{
 			SetInfectedAbilityTimer(smoker, duration, fTongueDelaySurvivor);
 		}
@@ -204,11 +204,11 @@ public void ConvarChanged(ConVar convar, const char[] oldValue, const char[] new
 
 // ----------------------------------------------
 //
-//                 STOCKS 
+//                 STOCKS
 //
 // ----------------------------------------------
 bool IsValidClient(int client)
-{ 
+{
 	if (client <= 0
 		|| client > MaxClients
 		|| !IsClientInGame(client)
@@ -224,9 +224,9 @@ bool IsValidAliveSmoker(int client)
 	if (!IsValidClient(client)
 		|| GetClientTeam(client) != 3
 	) {
-		return false; 
+		return false;
 	}
-	return GetEntProp(client, Prop_Send, "m_zombieClass") == 1; 
+	return GetEntProp(client, Prop_Send, "m_zombieClass") == 1;
 }
 
 int FindSmoker()

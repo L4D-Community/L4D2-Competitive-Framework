@@ -90,7 +90,7 @@ public void OnPluginStart()
 	hCvarSdInwaterSurvivor = CreateConVar("l4d2_slowdown_water_survivors", "-1", "Maximum survivor speed in the water outside of Tank fights (-1: ignore setting; 0: default; 220: default Survivor speed)", _, true, -1.0);
 	hCvarSdInwaterDuringTank = CreateConVar("l4d2_slowdown_water_survivors_during_tank", "0", "Maximum survivor speed in the water during Tank fights (0: ignore setting; 220: default Survivor speed)", _, true, 0.0);
 	hCvarCrouchSpeedMod = CreateConVar("l4d2_slowdown_crouch_speed_mod", "1.0", "Modifier of player crouch speed when inside a designated trigger, 75 is the defualt for everyone (1: default speed)", _, true, 0.0);
-	
+
 	hCvarSdPistolMod = CreateConVar("l4d2_slowdown_pistol_percent", "0.0", "Pistols cause this much slowdown * l4d2_slowdown_gunfire at maximum damage.");
 	hCvarSdDeagleMod = CreateConVar("l4d2_slowdown_deagle_percent", "0.1", "Deagles cause this much slowdown * l4d2_slowdown_gunfire at maximum damage.");
 	hCvarSdUziMod = CreateConVar("l4d2_slowdown_uzi_percent", "0.8", "Unsilenced uzis cause this much slowdown * l4d2_slowdown_gunfire at maximum damage.");
@@ -108,7 +108,7 @@ public void OnPluginStart()
 	hCvarSurvivorLimpspeed = FindConVar("survivor_limp_health");
 	hCvarTankSpeedVS = FindConVar("z_tank_speed_vs");
 	hCvarJockeyMinMoundedSpeed = FindConVar("z_jockey_min_mounted_speed");
-	
+
 	hCvarSdInwaterTank.AddChangeHook(OnConVarChanged);
 	hCvarSdInwaterSurvivor.AddChangeHook(OnConVarChanged);
 	hCvarSdInwaterDuringTank.AddChangeHook(OnConVarChanged);
@@ -144,7 +144,7 @@ void CvarsToType()
 	fJockeyMinMountedSpeed = hCvarJockeyMinMoundedSpeed.FloatValue;
 }
 
-public void TankSpawn(Event event, const char[] name, bool dontBroadcast) 
+public void TankSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!tankInPlay) {
 		tankInPlay = true;
@@ -157,15 +157,15 @@ public void TankSpawn(Event event, const char[] name, bool dontBroadcast)
 public void TankDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (client > 0 && IsInfected(client) && IsTank(client)) {
+	if (client > 0 && IsInfected(client) && IsTankZClass(client)) {
 		CreateTimer(0.1, Timer_CheckTank);
 	}
 }
 
 public Action Timer_CheckTank(Handle timer)
 {
-	int tankclient = FindTankClient();
-	if (!tankclient || !IsPlayerAlive(tankclient)) {
+	int tankclient = FindAliveTankClient();
+	if (tankclient < 1) {
 		tankInPlay = false;
 		if (fSurvWaterSpeedDuringTank > 0.0) {
 			PrintToChatAll("\x05Water Slowdown\x01 has been restored to normal.");
@@ -229,7 +229,7 @@ public void PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if (client > 0 && IsInfected(client)) {
-		float slowdown = IsTank(client) ? GetActualValue(hCvarSdGunfireTank) : GetActualValue(hCvarSdGunfireSi);
+		float slowdown = IsTankZClass(client) ? GetActualValue(hCvarSdGunfireTank) : GetActualValue(hCvarSdGunfireSi);
 		if (slowdown == 1.0) {
 			ApplySlowdown(client, slowdown);
 		} else if (slowdown > 0.0) {
@@ -252,14 +252,14 @@ public void PlayerHurt(Event event, const char[] name, bool dontBroadcast)
 **/
 public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 {
-	if (!IsClientInGame(client)) { 
+	if (!IsClientInGame(client)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (~GetEntityFlags(client) & FL_INWATER) {
 		return Plugin_Continue;
 	}
-	
+
 	switch (GetClientTeam(client)) {
 		case TEAM_SURVIVORS: {
 			// Speed of tongue victim isn't affected by water,
@@ -267,14 +267,14 @@ public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 			if (GetEntPropEnt(client, Prop_Send, "m_tongueOwner") != -1) {
 				return Plugin_Continue;
 			}
-			
+
 			float fHealth = GetSurvivorTemporaryHealthFloat(client) + GetClientHealth(client);
-			
+
 			// Jockey victim gets slowdown by water, while we're not slowing down them.
 			if (GetEntPropEnt(client, Prop_Send, "m_jockeyAttacker") != -1) {
 				// Additionally check for g_pGameRules->m_bWaterSlowdownEnabled?
 				// Perhaps unnecessary due to what's going to be done.
-				
+
 				if ((tankInPlay && fSurvWaterSpeedDuringTank != 0.0) || fSurvWaterSpeed != -1.0) {
 					// TODO: As a reminder when we decide to normalize speed of jockeyed survivors
 					// Speed = 220.0 * max(HP Rate, z_jockey_min_mounted_speed)
@@ -282,10 +282,10 @@ public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 					retVal = SURVIVOR_RUNSPEED * (fRate > fJockeyMinMountedSpeed ? fRate : fJockeyMinMountedSpeed);
 					return Plugin_Handled;
 				}
-				
+
 				return Plugin_Continue;
 			}
-			
+
 			// Adrenaline = Don't care, don't mess with it.
 			// Limping = 260 speed (both in water and on the ground)
 			// Healthy = 260 speed (both in water and on the ground)
@@ -293,7 +293,7 @@ public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 			if (bAdrenaline || RoundToFloor(fHealth) < iSurvLimpHealth) {
 				return Plugin_Continue;
 			}
-			
+
 			// speed of survivors in water during Tank fights
 			if (tankInPlay) {
 				if (fSurvWaterSpeedDuringTank == 0.0) {
@@ -314,7 +314,7 @@ public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 			}
 		}
 		case TEAM_INFECTED: {
-			if (IsTank(client)) {
+			if (IsTankZClass(client)) {
 				// Only bother the actual speed if player is a tank moving in water
 				if (fTankWaterSpeed != -1.0) {
 					// slowdown off
@@ -329,7 +329,7 @@ public Action L4D_OnGetRunTopSpeed(int client, float &retVal)
 			}
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -361,11 +361,11 @@ float GetActualValue(ConVar cvar)
 	if (value == -1.0) { // native slowdown
 		return -1.0;
 	}
-	
+
 	if (value == 0.0) { // slowdown off
 		return 1.0;
 	}
-	
+
 	return L4D2Util_ClampFloat(value, 0.01, 2.0); // slowdown multiplier
 }
 
@@ -374,7 +374,7 @@ void ApplySlowdown(int client, float value)
 	if (value == -1.0) {
 		return;
 	}
-	
+
 	SetEntPropFloat(client, Prop_Send, "m_flVelocityModifier", value);
 }
 
@@ -454,24 +454,7 @@ void GetScaleAndModifier(float &scale, float &modifier, const char[] weapon, int
 	}
 }
 
-int FindTankClient()
-{
-	for (int i = 1; i <= MaxClients; i++) {
-		if (!IsInfected(i) || !IsTank(i) || !IsPlayerAlive(i)) {
-			continue;
-		}
-		
-		return i; // Found tank, return
-	}
-	return 0;
-}
-
-bool IsInfected(int client)
-{
-	return (IsClientInGame(client) && GetClientTeam(client) == TEAM_INFECTED);
-}
-
-bool IsTank(int client)
+bool IsTankZClass(int client)
 {
 	return (GetEntProp(client, Prop_Send, "m_zombieClass") == Z_TANK);
 }

@@ -11,7 +11,7 @@
 
 static const int deadstopSequences[] = {64, 67, 11, 8};
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 No Hunter Deadstops",
 	author = "Visor, A1m",
@@ -35,17 +35,17 @@ Action Shove_Handler(int shover, int shovee)
 	if (!IsSurvivor(shover) || !IsHunter(shovee)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (HasTarget(shovee)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (IsPlayingDeadstopAnimation(shovee)) {
 		return Plugin_Handled;
 	}
-	
+
 	return Plugin_Continue;
-} 
+}
 
 bool IsSurvivor(int client)
 {
@@ -62,15 +62,15 @@ bool IsHunter(int client)
 	if (!IsInfected(client)) {
 		return false;
 	}
-	
+
 	if (!IsPlayerAlive(client)) {
 		return false;
 	}
-	
+
 	if (GetEntProp(client, Prop_Send, "m_zombieClass") != Z_HUNTER) {
 		return false;
 	}
-	
+
 	return true;
 }
 

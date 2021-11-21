@@ -4,7 +4,7 @@
 #define LEFT4FRAMEWORK_INCLUDE 1
 #include <left4framework>
 
-public Plugin:myinfo = 
+public Plugin:myinfo =
 {
 	name = "L4D2 No Post-Jockeyed Shoves",
 	author = "Sir",
@@ -17,7 +17,7 @@ public Action L4D_OnShovedBySurvivor(int client, int victim, const float vecDir[
 {
 	if (!IsSurvivor(client) || !IsJockey(victim))
 		return Plugin_Continue;
-	
+
 	if (IsJockeyed(client)) return Plugin_Handled;
 	return Plugin_Continue;
 }
@@ -26,7 +26,7 @@ public Action L4D2_OnEntityShoved(int client, int entity, int weapon, float vecD
 {
 	if (!IsSurvivor(client) || !IsJockey(entity))
 		return Plugin_Continue;
-	
+
 	if (IsJockeyed(client)) return Plugin_Handled;
 	return Plugin_Continue;
 }
@@ -41,11 +41,11 @@ bool IsInfected(int client)
 	return client > 0 && client <= MaxClients && IsClientInGame(client) && GetClientTeam(client) == 3;
 }
 
-bool IsJockey(int client)  
+bool IsJockey(int client)
 {
 	if (!IsInfected(client))
 		return false;
-		
+
 	if (!IsPlayerAlive(client))
 		return false;
 

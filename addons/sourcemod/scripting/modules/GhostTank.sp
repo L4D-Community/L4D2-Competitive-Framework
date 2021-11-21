@@ -82,8 +82,8 @@ Action:GT_OnSpawnMob_Forward(&amount)
 	{
 		if(IsDebugEnabled())
 		{
-			LogMessage("[GT] SpawnMob(%d), HordesDisabled: %d TimerDuration: %f Minimum: %f Remaining: %f", 
-			amount, g_bGT_HordesDisabled, L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer), 
+			LogMessage("[GT] SpawnMob(%d), HordesDisabled: %d TimerDuration: %f Minimum: %f Remaining: %f",
+			amount, g_bGT_HordesDisabled, L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer),
 			GetConVarFloat(FindConVar("z_mob_spawn_min_interval_normal")), L4D2_CTimerGetRemainingTime(L4D2CT_MobSpawnTimer));
 		}
 		if(g_bGT_HordesDisabled)
@@ -96,7 +96,7 @@ Action:GT_OnSpawnMob_Forward(&amount)
 				mob_spawn_size_min = FindConVar("z_mob_spawn_min_size");
 				mob_spawn_size_max = FindConVar("z_mob_spawn_max_size");
 			}
-			
+
 			new minsize = GetConVarInt(mob_spawn_size_min), maxsize = GetConVarInt(mob_spawn_size_max);
 			if (amount < minsize || amount > maxsize)
 			{
@@ -106,13 +106,13 @@ Action:GT_OnSpawnMob_Forward(&amount)
 			{
 				return Plugin_Continue;
 			}
-			
+
 			new Float:duration = L4D2_CTimerGetCountdownDuration(L4D2CT_MobSpawnTimer);
 			if (duration < GetConVarFloat(mob_spawn_interval_min) || duration > GetConVarFloat(mob_spawn_interval_max))
 			{
 				return Plugin_Continue;
 			}
-			
+
 			return Plugin_Handled;
 		}
 	}
@@ -148,7 +148,7 @@ public GT_ItemPickup(Handle:event, const String:name[], bool:dontBroadcast)
 	decl String:item[64];
 	GetEventString(event, "item", item, sizeof(item));
 
-	if (StrEqual(item, "tank_claw")) 
+	if (StrEqual(item, "tank_claw"))
 	{
 		g_iGT_TankClient = GetClientOfUserId(GetEventInt(event, "userid"));
 		if(g_hGT_TankDeathTimer != INVALID_HANDLE)
@@ -350,16 +350,16 @@ GT_SpecHUD_Update()
 	decl team;
 	for(new client = 1;client < MaxClients+1;client++)
 	{
-		
+
 		if(!IsValidClient(client)) continue;
 		team = GetClientTeam(client);
-		if(team == 2 || IsFakeClient(client) || !g_bGT_SpecHUD_ShowPanel[client] 
-			|| client == g_iGT_TankClient) 
-			//|| (team == 1 && IsClientUsingSpecHud(client)) || client == g_iGT_TankClient) 
-		continue; 
-		
+		if(team == 2 || IsFakeClient(client) || !g_bGT_SpecHUD_ShowPanel[client]
+			|| client == g_iGT_TankClient)
+			//|| (team == 1 && IsClientUsingSpecHud(client)) || client == g_iGT_TankClient)
+		continue;
+
 		SendPanelToClient(g_hGT_SpecHUD, client, GT_SpecHUD_MenuHandler, 3);
-		
+
 		if(g_bGT_SpecHUD_ShowHint[client])
 		{
 			g_bGT_SpecHUD_ShowHint[client] = false;
@@ -395,7 +395,7 @@ GT_SpecHUD_Draw()
 	if(IsValidClient(g_iGT_TankClient) && !IsFakeClient(g_iGT_TankClient))
 	{
 		GetClientName(g_iGT_TankClient,sNameString,sizeof(sNameString));
-		
+
 		if(strlen(sNameString) > 25)
 		{
 			sNameString[22] = '.';
@@ -403,7 +403,7 @@ GT_SpecHUD_Draw()
 			sNameString[24] = '.';
 			sNameString[25] = 0;
 		}
-		
+
 		Format(sTempString, sizeof(sTempString), "  Control : %s (Pass #%i)", sNameString, passes);
 	}
 	else

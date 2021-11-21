@@ -13,25 +13,25 @@ methodmap MemoryPatch < Handle {
 	 * Loads a memory patch from a game config handle.
 	 */
 	public static native MemoryPatch CreateFromConf(Handle gameconf, const char[] name);
-	
+
 	/**
 	 * Returns true if the contents at the memory location for the patch matches the contents
 	 * specified in the game config.  If the game config does not specify any verify section,
 	 * this always returns true.
 	 */
 	public native bool Validate();
-	
+
 	/**
 	 * Enables the memory patch.  Returns false if the validation check fails or the patch has
 	 * already been applied.
 	 */
 	public native bool Enable();
-	
+
 	/**
 	 * Disables a memory patch.
 	 */
 	public native void Disable();
-	
+
 	/**
 	 * Returns the starting address of the patch, equivalent to the address of the patch's
 	 * dependent signature plus the patch offset.
@@ -47,30 +47,30 @@ methodmap MemoryBlock < Handle {
 	 * Size is in bytes.
 	 */
 	public native MemoryBlock(int size);
-	
+
 	/**
 	 * Disowns the associated memory block, allowing it to remain allocated even when the handle
 	 * is deleted.  Disowning the memory does not invalidate the handle.
-	 * 
+	 *
 	 * Only use this if you are certain that something else will free (or has freed) the memory
 	 * block.
 	 */
 	public native void Disown();
-	
+
 	/**
 	 * Returns the address of the allocated memory block.
 	 */
 	property Address Address {
 		public native get();
 	}
-	
+
 	/**
 	 * Returns the size of the allocated memory block.
 	 */
 	property int Size {
 		public native get();
 	}
-	
+
 	/**
 	 * Load up to 4 bytes from an offset to the memory block, performing bounds checks to ensure
 	 * reads are contained within the block.
@@ -82,7 +82,7 @@ methodmap MemoryBlock < Handle {
 		}
 		return LoadFromAddress(this.Address + view_as<Address>(offset), size);
 	}
-	
+
 	/**
 	 * Store up to 4 bytes to an offset to the memory block, performing bounds checks to ensure
 	 * writes are contained within the block.

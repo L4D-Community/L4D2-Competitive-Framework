@@ -20,41 +20,41 @@ SI_OnModuleStart()
 SI_BuildIndex()
 {
 	if (!IsServerProcessing() || !IsPluginEnabled()){return;}
-	
+
 	new ifoundsurvivors = 0;
 	decl charz;
-	
+
 	// Make sure kicked survivors don't freak us out.
 	for(new i = 0; i < NUM_OF_SURVIVORS;i++)
 		iSurvivorIndex[i]=0;
-	
+
 	for (new client = 1; client <= MaxClients; client++)
 	{
 		if (ifoundsurvivors == NUM_OF_SURVIVORS)
 		{
 			break;
 		}
-		
+
 		if (!IsClientInGame(client) || GetClientTeam(client) != 2)
 		{
 			continue;
 		}
-		
+
 		charz = GetEntProp(client,Prop_Send,"m_survivorCharacter");
 		ifoundsurvivors++;
-		
+
 		if (charz > 3 || charz < 0)
 		{
 			continue;
 		}
-		
+
 		iSurvivorIndex[charz] = 0;
-		
+
 		if (!IsPlayerAlive(client))
 		{
 			continue;
 		}
-		
+
 		iSurvivorIndex[charz] = client;
 	}
 }
@@ -80,7 +80,7 @@ GetSurvivorIndex(index)
 	{
 		return 0;
 	}
-	
+
 	return iSurvivorIndex[index];
 }
 

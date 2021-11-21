@@ -28,9 +28,9 @@ public BS_OnModuleStart()
 {
 	BS_hEnabled = CreateConVarEx("lock_boss_spawns", "1", "Enables forcing same coordinates for tank and witch spawns");
 	HookConVarChange(BS_hEnabled, BS_ConVarChange);
-	
+
 	BS_bEnabled = GetConVarBool(BS_hEnabled);
-	
+
 	HookEvent("tank_spawn", BS_TankSpawn);
 	HookEvent("witch_spawn", BS_WitchSpawn);
 	HookEvent("round_end", BS_RoundEnd, EventHookMode_PostNoCopy);
@@ -46,7 +46,7 @@ public BS_OnMapStart()
 	BS_iTankCount[1] = 0;
 	BS_iWitchCount[0] = 0;
 	BS_iWitchCount[1] = 0;
-	
+
 	GetCurrentMap(BS_sMap, sizeof(BS_sMap));
 }
 
@@ -58,19 +58,19 @@ public BS_ConVarChange(Handle:convar, const String:oldValue[], const String:newV
 public Action:BS_WitchSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if (!BS_bEnabled || !IsPluginEnabled()) return;
-	
+
 	new iWitch = GetEventInt(event, "witchid");
-	
+
 	if (BS_bDeleteWitches)
 	{
 		// Used to delete round2 extra witches, which spawn on round start instead of by flow
 		AcceptEntityInput(iWitch, "Kill");
 		return;
 	}
-	
+
 	// Can't track more witches if our witch array is full
 	if (BS_iWitchCount[!BS_bIsFirstRound] >= MAX_WITCHES) return;
-	
+
 	if (BS_bIsFirstRound)
 	{
 		// If it's the first round, track our witch.
@@ -102,44 +102,44 @@ public Action:BS_TankSpawn(Handle:event, const String:name[], bool:dontBroadcast
 	if(!BS_bExpectTankSpawn) return;
 	BS_bExpectTankSpawn = false;
 	// Don't track tank spawns on c5m5 or tank can spawn behind other team.
-	if(StrEqual(BS_sMap, "c5m5_bridge")) return; 
-	
+	if(StrEqual(BS_sMap, "c5m5_bridge")) return;
+
 	new iTankClient = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+
 	if (GetMapValueInt("tank_z_fix")) FixZDistance(iTankClient); // fix stuck tank spawns, ex c1m1
-	
+
 	// If we reach MAX_TANKS, we don't have any room to store their locations
 	if (BS_iTankCount[!BS_bIsFirstRound] >= MAX_TANKS) return;
-	
+
 	if(DEBUG_BS || IsDebugEnabled())
 		LogMessage("[BS] Tracking this tank spawn. Currently, %d tanks", BS_iTankCount[!BS_bIsFirstRound]);
-	
+
 	if (BS_bIsFirstRound)
 	{
 		GetClientAbsOrigin(iTankClient, BS_fTankSpawn[BS_iTankCount[0]]);
 		if(DEBUG_BS || IsDebugEnabled())
-			LogMessage("[BS] Saving tank at %f %f %f", 
-				BS_fTankSpawn[BS_iTankCount[0]][0],  
-				BS_fTankSpawn[BS_iTankCount[0]][1],  
+			LogMessage("[BS] Saving tank at %f %f %f",
+				BS_fTankSpawn[BS_iTankCount[0]][0],
+				BS_fTankSpawn[BS_iTankCount[0]][1],
 				BS_fTankSpawn[BS_iTankCount[0]][2]);
-		
+
 		BS_iTankCount[0]++;
 	}
 	else if (BS_iTankCount[0] > BS_iTankCount[1])
 	{
 		TeleportEntity(iTankClient, BS_fTankSpawn[BS_iTankCount[1]], NULL_VECTOR, NULL_VECTOR);
 		if(DEBUG_BS || IsDebugEnabled())
-			LogMessage("[BS] Teleporting tank to tank at %f %f %f", 
-				BS_fTankSpawn[BS_iTankCount[1]][0],  
-				BS_fTankSpawn[BS_iTankCount[1]][1],  
+			LogMessage("[BS] Teleporting tank to tank at %f %f %f",
+				BS_fTankSpawn[BS_iTankCount[1]][0],
+				BS_fTankSpawn[BS_iTankCount[1]][1],
 				BS_fTankSpawn[BS_iTankCount[1]][2]);
-				
+
 		BS_iTankCount[1]++;
 	}
 	else if(DEBUG_BS || IsDebugEnabled())
 	{
 		LogMessage("[BS] Not first round and not acceptable tank");
-		LogMessage("[BS] IsFirstRound: %d  R1Count: %d R2Count: %d", 
+		LogMessage("[BS] IsFirstRound: %d  R1Count: %d R2Count: %d",
 			BS_bIsFirstRound, BS_iTankCount[0], BS_iTankCount[1]);
 	}
 }
@@ -168,14 +168,14 @@ FixZDistance(iTankClient)
 	decl Float:TankLocation[3];
 	decl Float:TempSurvivorLocation[3];
 	decl index;
-	
+
 	GetClientAbsOrigin(iTankClient, TankLocation);
-	
+
 	if (DEBUG_BS || IsDebugEnabled())
 	{
 		LogMessage("[BS] tank z spawn check... Map: %s, Tank Location: %f, %f, %f", BS_sMap, TankLocation[0], TankLocation[1], TankLocation[2]);
 	}
-	
+
 	for (new i = 0; i < NUM_OF_SURVIVORS; i++)
 	{
 		new Float:distance = GetMapValueFloat("max_tank_z", 99999999999999.9);
@@ -183,9 +183,9 @@ FixZDistance(iTankClient)
 		if (index != 0 && IsValidEntity(index))
 		{
 			GetClientAbsOrigin(index, TempSurvivorLocation);
-			
+
 			if (DEBUG_BS || IsDebugEnabled()) LogMessage("[BS] Survivor %d Location: %f, %f, %f", i, TempSurvivorLocation[0], TempSurvivorLocation[1], TempSurvivorLocation[2]);
-			
+
 			if (FloatAbs(TempSurvivorLocation[2] - TankLocation[2]) > distance)
 			{
 				new Float:WarpToLocation[3];

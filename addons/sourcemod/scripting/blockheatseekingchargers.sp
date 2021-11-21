@@ -4,7 +4,7 @@
 
  1.1
  - Fixed possible non-changer infected detecting as heatseeking charger
- 
+
  1.0
  - Initial release
 ^^^^^^^^^^^^^^^^^^^^CHANGELOG^^^^^^^^^^^^^^^^^^^^ */
@@ -31,13 +31,13 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	CreateConVar("l4d2_block_heatseeking_chargers_version", PL_VERSION, "Block heatseeking chargers fix version");
-	
+
 	HookEvent("player_bot_replace", BotReplacesPlayer);
 	HookEvent("charger_charge_start", Event_ChargeStart);
 	HookEvent("charger_charge_end", Event_ChargeEnd);
 	HookEvent("player_spawn", Event_OnPlayerSpawn);
 	HookEvent("player_death", Event_OnPlayerDeath);
-	
+
 	HookEvent("round_start", Event_Reset, EventHookMode_PostNoCopy);
 	HookEvent("round_end", Event_Reset, EventHookMode_PostNoCopy);
 }
@@ -69,7 +69,7 @@ public void BotReplacesPlayer(Event hEvent, const char[] sEntityName, bool bDont
 	int iClient = GetClientOfUserId(hEvent.GetInt("player"));
 	if (iClient > 0 && IsInCharge[iClient]) {
 		int iBot = GetClientOfUserId(hEvent.GetInt("bot"));
-		
+
 		SetEntityFlags(iBot, GetEntityFlags(iBot) | FL_FROZEN);
 		IsInCharge[iClient] = false;
 	}

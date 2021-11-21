@@ -52,39 +52,39 @@ public void Event_PlayerHurt(Event hEvent, const char[] sEventName, bool bDontBr
 	if (fDamage < g_hCvarDmgThreshold.IntValue) {
 		return;
 	}
-	
+
 	int iAttacker = GetClientOfUserId(hEvent.GetInt("attacker"));
 	if (!IsClientAndInGame(iAttacker) || GetClientTeam(iAttacker) != L4D2Team_Infected) {
 		return;
 	}
-	
+
 	int iZclass = GetEntProp(iAttacker, Prop_Send, "m_zombieClass");
-	
+
 	if (iZclass < L4D2Infected_Smoker || iZclass > L4D2Infected_Charger) {
 		return;
 	}
-	
+
 	int iVictim = GetClientOfUserId(hEvent.GetInt("userid"));
 	if (!IsClientAndInGame(iVictim) || GetClientTeam(iVictim) != L4D2Team_Survivor) {
 		return;
 	}
-	
+
 	int iRemainingHealth = GetClientHealth(iAttacker);
 
 	// [1v1] Player (Hunter) had 250 health remaining!
 	// [1v1] AI (Hunter) had 250 health remaining!
-	
+
 	char sName[MAX_NAME_LENGTH];
 	if (IsFakeClient(iAttacker)) {
 		Format(sName, sizeof(sName), "AI");
 	} else {
 		GetClientName(iAttacker, sName, sizeof(sName));
 	}
-	
+
 	CPrintToChatAll("[{olive}1v1{default}] {red}%s{default} ({green}%s{default}) had {olive}%d{default} health remaining!", sName, L4D2_InfectedNames[iZclass], iRemainingHealth);
-	
+
 	ForcePlayerSuicide(iAttacker);
-	
+
 	if (iRemainingHealth == 1) {
 		CPrintToChat(iVictim, "You don't have to be mad...");
 	}

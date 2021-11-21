@@ -9,7 +9,7 @@
 ConVar
 	si_restore_ratio = null;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "Despawn Health",
 	author = "Jacob",

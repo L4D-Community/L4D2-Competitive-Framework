@@ -42,10 +42,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnPluginStart()
 {
 	g_hSpitBlockSquares = new StringMap();
-	
+
 	RegServerCmd("spit_block_square", AddSpitBlockSquare);
 	RegServerCmd("spit_remove_block_square", RemoveSpitBlockSquare);
-	
+
 	if (g_bLateLoad) {
 		for (int i = 1; i <= MaxClients; i++) {
 			if (IsClientInGame(i)) {
@@ -59,27 +59,27 @@ public Action AddSpitBlockSquare(int iArgs)
 {
 	float fSquare[4];
 	char sMapName[MAX_MAP_NAME_SIZE], sBuffer[32], sGetCmd[128];
-	
+
 	if (iArgs != 5) {
 		GetCmdArgString(sGetCmd, sizeof(sGetCmd));
 		ErrorAnnounce("[%s] You entered the wrong number of arguments '%f'. Need 5 arguments.", PLUGIN_TAG, sGetCmd);
 		ErrorAnnounce("[%s] Usage: spit_block_square <mapname> <x1> <y1> <x2> <y2>.", PLUGIN_TAG);
 		return Plugin_Handled;
 	}
-	
+
 	GetCmdArg(1, sMapName, sizeof(sMapName));
 
 	for (int i = 0; i < 4; i++) {
 		GetCmdArg(2 + i, sBuffer, sizeof(sBuffer));
 		fSquare[i] = StringToFloat(sBuffer);
 	}
-	
+
 	g_hSpitBlockSquares.SetArray(sMapName, fSquare, sizeof(fSquare), true);
 
 	OnMapStart();
-	
+
 	//PrintToServer("[%s] Spit block square added on this map '%s'.", PLUGIN_TAG, sMapName);
-	
+
 	return Plugin_Handled;
 }
 
@@ -87,14 +87,14 @@ public Action RemoveSpitBlockSquare(int iArgs)
 {
 	float fSquare[4];
 	char sMapName[MAX_MAP_NAME_SIZE], sGetCmd[128];
-	
+
 	if (iArgs != 1) {
 		GetCmdArgString(sGetCmd, sizeof(sGetCmd));
 		ErrorAnnounce("[%s] You entered the wrong number of arguments '%f'. Need 1 argument.", PLUGIN_TAG, sGetCmd);
 		ErrorAnnounce("[%s] Usage: spit_remove_block_square <mapname>.", PLUGIN_TAG);
 		return Plugin_Handled;
 	}
-	
+
 	GetCmdArg(1, sMapName, sizeof(sMapName));
 	if (g_hSpitBlockSquares.GetArray(sMapName, fSquare, sizeof(fSquare))) {
 		g_hSpitBlockSquares.Remove(sMapName);
@@ -102,7 +102,7 @@ public Action RemoveSpitBlockSquare(int iArgs)
 	} else {
 		PrintToServer("[%s] Сould not find the specified map '%s'.", PLUGIN_TAG, sMapName);
 	}
-	
+
 	OnMapStart();
 
 	return Plugin_Handled;
@@ -112,12 +112,12 @@ public void OnMapStart()
 {
 	char sMapName[MAX_MAP_NAME_SIZE];
 	GetCurrentMap(sMapName, sizeof(sMapName));
-	
+
 	if (g_hSpitBlockSquares.GetArray(sMapName, g_fBlockSquare, sizeof(g_fBlockSquare))) {
 		g_bIsBlockEnable = true;
 		return;
 	}
-	
+
 	for (int i = 0; i < sizeof(g_fBlockSquare); i++) {
 		g_fBlockSquare[i] = 0.0;
 	}
@@ -135,7 +135,7 @@ public Action stop_spit_dmg(int iVictim, int &iAttacker, int &iInflictor, float 
 	if (!g_bIsBlockEnable || !(iDamageType & DMG_TYPE_SPIT)) { //for performance
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsInsectSwarm(iInflictor) || !IsValidClient(iVictim)) {
 		return Plugin_Continue;
 	}
@@ -188,7 +188,7 @@ void ErrorAnnounce(const char[] szFormat, any ...)
 	int iLen = strlen(szFormat) + 255;
 	char[] szBuffer = new char[iLen];
 	VFormat(szBuffer, iLen, szFormat, 2);
- 
+
 	LogError(szBuffer);
 	PrintToServer(szBuffer);
 }

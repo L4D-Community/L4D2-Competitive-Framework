@@ -1,6 +1,6 @@
 /*        L4D_TANK_DAMAGE_ANNOUNCE
 *         L4D_TANK_DAMAGE_ANNOUNCE
-*/        
+*/
 
 #pragma semicolon 1
 
@@ -33,7 +33,7 @@ new Handle:fwdOnTankDeath                = INVALID_HANDLE;
 * Version 0.6.6
 * - Better looking Output.
 * - Added Tank Name display when Tank dies, normally it only showed the Tank's name if the Tank survived
-* 
+*
 * Version 0.6.6b
 * - Fixed Printing Two Tanks when last map Tank survived.
 * Added by; Sir
@@ -41,7 +41,7 @@ new Handle:fwdOnTankDeath                = INVALID_HANDLE;
 * Version 0.6.7
 * - Added Campaign Difficulty Support.
 * Added by; Sir
-*/    
+*/
 
 public Plugin:myinfo =
 {
@@ -62,12 +62,12 @@ public OnPluginStart()
 	HookEvent("round_start", Event_RoundStart);
 	HookEvent("round_end", Event_RoundEnd);
 	HookEvent("player_hurt", Event_PlayerHurt);
-	
+
 	g_hCvarEnabled = CreateConVar("l4d_tankdamage_enabled", "1", "Announce damage done to tanks when enabled", FCVAR_NONE|FCVAR_SPONLY|FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_hCvarSurvivorLimit = FindConVar("survivor_limit");
 	g_hCvarTankHealth = FindConVar("z_tank_health");
 	g_hCvarDifficulty = FindConVar("z_difficulty");
-	
+
 	HookConVarChange(g_hCvarEnabled, Cvar_Enabled);
 	HookConVarChange(g_hCvarSurvivorLimit, Cvar_SurvivorLimit);
 	HookConVarChange(g_hCvarTankHealth, Cvar_TankHealth);
@@ -75,7 +75,7 @@ public OnPluginStart()
 	HookConVarChange(FindConVar("mp_gamemode"), Cvar_TankHealth);
 	g_bEnabled = GetConVarBool(g_hCvarEnabled);
 	CalculateTankHealth();
-	
+
 	g_iOffset_Incapacitated = FindSendPropInfo("Tank", "m_isIncapacitated");
 	fwdOnTankDeath = CreateGlobalForward("OnTankDeath", ET_Event);
 }
@@ -122,7 +122,7 @@ CalculateTankHealth()
 		g_fMaxTankHealth *= 1.5;
 
 	// Anything else (should be fine...?)
-	else 
+	else
 	{
 		g_fMaxTankHealth = GetConVarFloat(g_hCvarTankHealth);
 
@@ -138,12 +138,12 @@ CalculateTankHealth()
 public Event_PlayerHurt(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if (!g_bIsTankInPlay) return; // No tank in play; no damage to record
-	
+
 	new victim = GetClientOfUserId(GetEventInt(event, "userid"));
 	if (victim != GetTankClient() ||        // Victim isn't tank; no damage to record
 	IsTankDying()                                   // Something buggy happens when tank is dying with regards to damage
 	) return;
-	
+
 	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
 	// We only care about damage dealt by survivors, though it can be funny to see
 	// claw/self inflicted hittable damage, so maybe in the future we'll do that
@@ -151,7 +151,7 @@ public Event_PlayerHurt(Handle:event, const String:name[], bool:dontBroadcast)
 	!IsClientInGame(attacker) ||                            // Not sure if this happens
 	GetClientTeam(attacker) != TEAM_SURVIVOR
 	) return;
-	
+
 	g_iDamage[attacker] += GetEventInt(event, "dmg_health");
 	g_iLastTankHealth = GetEventInt(event, "health");
 }
@@ -159,16 +159,16 @@ public Event_PlayerHurt(Handle:event, const String:name[], bool:dontBroadcast)
 public Event_PlayerKilled(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	if (!g_bIsTankInPlay) return; // No tank in play; no damage to record
-	
+
 	new victim = GetClientOfUserId(GetEventInt(event, "userid"));
 	if (victim != g_iTankClient) return;
-	
+
 	// Award the killing blow's damage to the attacker; we don't award
 	// damage from player_hurt after the tank has died/is dying
 	// If we don't do it this way, we get wonky/inaccurate damage values
 	new attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
 	if (attacker && IsClientInGame(attacker)) g_iDamage[attacker] += g_iLastTankHealth;
-	
+
 	//Player was Tank
 	if(!IsFakeClient(victim)) g_iWasTank[victim] = 1;
 	else g_iWasTankAI = 1;
@@ -180,9 +180,9 @@ public Event_TankSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	g_iTankClient = client;
-	
+
 	if (g_bIsTankInPlay) return; // Tank passed
-	
+
 	EmitSoundToAll("ui/pickup_secret01.wav", _, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, 0.8);
 	// New tank, damage has not been announced
 	g_bAnnounceTankDamage = true;
@@ -214,15 +214,15 @@ public Event_RoundEnd(Handle:event, const String:name[], bool:dontBroadcast)
 public Action:Timer_CheckTank(Handle:timer, any:oldtankclient)
 {
 	if (g_iTankClient != oldtankclient) return; // Tank passed
-	
+
 	new tankclient = FindTankClient();
 	if (tankclient && tankclient != oldtankclient)
 	{
 		g_iTankClient = tankclient;
-		
+
 		return; // Found tank, done
 	}
-	
+
 	if (g_bAnnounceTankDamage) PrintTankDamage();
 	ClearTankDamage();
 	g_bIsTankInPlay = false; // No tank in play
@@ -234,7 +234,7 @@ bool:IsTankDying()
 {
 	new tankclient = GetTankClient();
 	if (!tankclient) return false;
-	
+
 	return bool:GetEntData(tankclient, g_iOffset_Incapacitated);
 }
 
@@ -244,7 +244,7 @@ PrintRemainingHealth()
 	if (!g_bEnabled) return;
 	new tankclient = GetTankClient();
 	if (!tankclient) return;
-	
+
 	decl String:name[MAX_NAME_LENGTH];
 	if (IsFakeClient(tankclient)) name = "AI";
 	else GetClientName(tankclient, name, sizeof(name));
@@ -254,7 +254,7 @@ PrintRemainingHealth()
 PrintTankDamage()
 {
 	if (!g_bEnabled) return;
-	
+
 	if (!bPrintedHealth)
 	{
 		for (new i = 1; i <= MaxClients; i++)
@@ -266,12 +266,12 @@ PrintTankDamage()
 				CPrintToChatAll("{default}[{green}!{default}] {blue}Damage {default}dealt to {blue}Tank {default}({olive}%s{default})", name);
 				g_iWasTank[i] = 0;
 			}
-			else if(g_iWasTankAI > 0) 
+			else if(g_iWasTankAI > 0)
 				CPrintToChatAll("{default}[{green}!{default}] {blue}Damage {default}dealt to {blue}Tank {default}({olive}AI{default})");
 			g_iWasTankAI = 0;
 		}
 	}
-	
+
 	new client;
 	new percent_total; // Accumulated total of calculated percents, for fudging out numbers at the end
 	new damage_total; // Accumulated total damage dealt by survivors, to see if we need to fudge upwards to 100%
@@ -289,14 +289,14 @@ PrintTankDamage()
 		percent_total += percent_damage;
 	}
 	SortCustom1D(survivor_clients, g_iSurvivorLimit, SortByDamageDesc);
-	
+
 	new percent_adjustment;
 	// Percents add up to less than 100% AND > 99.5% damage was dealt to tank
 	if ((percent_total < 100 && float(damage_total) > (g_fMaxTankHealth - (g_fMaxTankHealth / 200.0))))
 	{
 		percent_adjustment = 100 - percent_total;
 	}
-	
+
 	new last_percent = 100; // Used to store the last percent in iteration to make sure an adjusted percent doesn't exceed the previous percent
 	decl adjusted_percent_damage;
 	for (new k; k <= survivor_index; k++)
@@ -333,9 +333,9 @@ ClearTankDamage()
 {
 	g_iLastTankHealth = 0;
 	g_iWasTankAI = 0;
-	for (new i = 1; i <= MaxClients; i++) 
-	{ 
-		g_iDamage[i] = 0; 
+	for (new i = 1; i <= MaxClients; i++)
+	{
+		g_iDamage[i] = 0;
 		g_iWasTank[i] = 0;
 	}
 	g_bAnnounceTankDamage = false;
@@ -345,16 +345,16 @@ ClearTankDamage()
 GetTankClient()
 {
 	if (!g_bIsTankInPlay) return 0;
-	
+
 	new tankclient = g_iTankClient;
-	
+
 	if (!IsClientInGame(tankclient)) // If tank somehow is no longer in the game (kicked, hence events didn't fire)
 	{
 		tankclient = FindTankClient(); // find the tank client
 		if (!tankclient) return 0;
 		g_iTankClient = tankclient;
 	}
-	
+
 	return tankclient;
 }
 
@@ -367,7 +367,7 @@ FindTankClient()
 		!IsPlayerAlive(client) ||
 		GetEntProp(client, Prop_Send, "m_zombieClass") != ZOMBIECLASS_TANK)
 		continue;
-		
+
 		return client; // Found tank, return
 	}
 	return 0;

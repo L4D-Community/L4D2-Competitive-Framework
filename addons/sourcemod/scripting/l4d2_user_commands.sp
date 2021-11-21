@@ -29,35 +29,35 @@ enum CUserCmd
 	buttons = 32
 };
 
-methodmap CUserCommand 
+methodmap CUserCommand
 {
 	public CUserCommand (int command)
 	{
 		return view_as<CUserCommand>(command);
 	}
-	
+
 	public int Get (CUserCmd propertie)
 	{
-		return LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie), NumberType_Int32); 
+		return LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie), NumberType_Int32);
 	}
-	
+
 	public void GetVector (CUserCmd propertie, float vVec[3])
 	{
-		vVec[0] = view_as<float>(LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie), NumberType_Int32)); 
-		vVec[1] = view_as<float>(LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie + tick_count), NumberType_Int32)); 
+		vVec[0] = view_as<float>(LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie), NumberType_Int32));
+		vVec[1] = view_as<float>(LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie + tick_count), NumberType_Int32));
 		vVec[2] = view_as<float>(LoadFromAddress(view_as<Address>(this) + view_as<Address>(propertie + viewangles), NumberType_Int32));
 	}
-	
+
 	public void Set (CUserCmd propertie, any data)
 	{
-		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie), data, NumberType_Int32); 
+		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie), data, NumberType_Int32);
 	}
-	
+
 	public void SetVector (CUserCmd propertie, float vVec[3])
 	{
-		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie), view_as<int>(vVec[0]), NumberType_Int32); 
-		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie + tick_count), view_as<int>(vVec[1]), NumberType_Int32); 
-		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie + viewangles), view_as<int>(vVec[2]), NumberType_Int32); 
+		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie), view_as<int>(vVec[0]), NumberType_Int32);
+		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie + tick_count), view_as<int>(vVec[1]), NumberType_Int32);
+		StoreToAddress(view_as<Address>(this) + view_as<Address>(propertie + viewangles), view_as<int>(vVec[2]), NumberType_Int32);
 	}
 }
 
@@ -83,20 +83,20 @@ int g_iNull;
 public void OnPluginStart()
 {
 	m_nTickBase = FindSendPropInfo("CBasePlayer", "m_nTickBase");
-	
+
 	sm_usercmd_null_invalid_commands = CreateConVar("sm_usercmd_null_invalid_commands", "0", "Null invalid commands");
 	sm_usercmd_null_invalid_commands.AddChangeHook(OnConVarChanged);
-	
+
 	AutoExecConfig(true, "l4d2_user_commands");
-	
+
 	g_iNull = sm_usercmd_null_invalid_commands.IntValue;
-	
+
 	GameData data = new GameData("l4d2_user_commands");
 
 	g_hProcessCommand = DynamicHook.FromConf(data, "ProcessUsercmds");
-	
+
 	delete data;
-	
+
 	for (int i = 1; i <= MaxClients; i++)
 	{
 		if ( IsClientConnected(i) )
@@ -124,36 +124,36 @@ public MRESReturn ProcessUsercmds (int client, DHookParam params)
 {
 	if ( gCommandContext[client].ignored_commands-- > 0 )
 		return MRES_Ignored;
-		
+
 	//int numcmds = params.Get(2);
 	int totalcmds = params.Get(3);
 	int dropped_packets = params.Get(4);
-	
+
 	int i;
 	for ( i = totalcmds - 1; i >= 0; i-- )
 	{
 		int numcommand = totalcmds - 1 - i;
 		CUserCommand command = CUserCommand(params.Get(1) + numcommand * 88);
-		
+
 		if ( !IsUserCommandValid(client, command) )
 		{
 			if ( g_iNull )
 			{
 				float vAngle[3];
-		
+
 				command.SetVector(viewangles, vAngle);
-				
+
 				command.Set(forwardmove, 0.0);
 				command.Set(sidemove, 0.0);
 				command.Set(upmove, 0.0);
-				
+
 				command.Set(buttons, 0);
 			}
-			
+
 			if ( GetEngineTime() - gCommandContext[client].detection >= 5.0 )
 			{
 				gCommandContext[client].detection = GetEngineTime();
-				
+
 				if ( !g_bSMAC )
 				{
 					LogMessage("Player %L is suspected in using invalid user commands (dropped packets %i)", client, dropped_packets);
@@ -165,7 +165,7 @@ public MRESReturn ProcessUsercmds (int client, DHookParam params)
 			}
 		}
 	}
-	
+
 	return MRES_Ignored;
 }
 
@@ -179,14 +179,14 @@ bool IsUserCommandValid (int client, CUserCommand command)
 	float flForwardmove, flSidemove, flUpmove;
 	float vAngles[3];
 	int tick;
-	
+
 	flForwardmove = view_as<float>(command.Get(forwardmove));
 	flSidemove = view_as<float>(command.Get(sidemove));
 	flUpmove = view_as<float>(command.Get(upmove));
-	
+
 	tick = GetEntData(client, m_nTickBase);
 	command.GetVector(viewangles, vAngles);
-	
+
 	bool bValid = ( tick >= nMinDelta && tick < nMaxDelta ) &&
 				  ( IsFinite(vAngles[0]) && IsFinite(vAngles[1]) && IsFinite(vAngles[2]) && IsEntityQAngleReasonable( vAngles ) ) &&
 				  ( IsFinite( flForwardmove ) && IsEntityCoordinateReasonable( flForwardmove ) ) &&
@@ -217,12 +217,12 @@ public void OnLibraryAdded (const char[] name) { if ( strcmp(name, "smac") == 0 
 public void OnLibraryRemoved (const char[] name) { if ( strcmp(name, "smac") == 0 ) g_bSMAC = false; }
 
 /* Some notes:
-	
+
 	Maybe in future i will add tickbase shifting check to be actually sure in someone cheats.
 	if player using invalid commands and have rounded or fixed dropped_packets. I am pretty much sure he is cheating.
 	g_iIgnoredCommands here is only for remove false positive results. Since when map changes server tickbase also changes but client sided doesnt and becomes synced with server only on second tick
 	Perhaps for an additional check, I can add check for the number of commands sent and if they differ from the expected value then player possibly cheating or have a bad performance.
-	
+
 	⠄⠄⠄⠄⠄⡇⠄⠄⠄⠄⠄⢠⡀⠄⠄⢀⡬⠛⠁⠄⠄⠄⠄⠄⠄⠄⠉⠻⣿⣿⣿⣽⣿⣿⣿⣿⣿⣿⣿⣿⣧⠄⠄⠙⢦
 	⠄⠄⠄⠄⠄⡇⠄⠄⠄⠄⢰⠼⠙⢀⡴⠋⠄⠄⠄⠄⠄⠄⠄⠄⠄⡠⠖⠄⠄⠙⠿⢿⣿⣿⣿⣿⣿⣿⣿⣿⣯⣀⡀⠄⠄⠄⡀
 	⠄⠄⠄⠄⠄⡇⠄⠄⠄⠄⠄⠄⡴⠋⠄⠄⠄⠄⠄⠄⠄⠄⠄⢠⠞⠄⠄⠄⠄⠄⠄⠄⠄⠄⠉⠉⠉⠙⠋⠙⠋⠙⠻⠦⠤⣤⣼⣆⣀⣀⣀⣀⡀
@@ -247,5 +247,5 @@ public void OnLibraryRemoved (const char[] name) { if ( strcmp(name, "smac") == 
 	⣿⣿⣿⣿⣿⣿⣷⠎⠄⢠⠏⠄⠹⣄⢣⢠⠃⠄⠄⢤⠤⠄⠄⠠⠤⢶⡏⠄⡎⢠⠞⠋⠁⠄⠄⠄⣸⠁⠄⠄⠄⠄⠄⠄⠈⣧⠄⠄⠄⠄⠄⠄⠄⠄⠻
 	⣿⣿⣿⣿⣿⣿⣃⡀⢠⠏⠄⠄⠄⠄⣨⠇⠄⣠⠴⠚⠁⠄⠄⠄⠄⠈⡇⢰⠃⠄⠄⠄⠄⠄⠄⢰⠇⠄⠄⠄⠄⠄⠄⠄⠄⢹⡀
 	⣿⣿⣿⣿⣿⡿⢉⣇⡎⠄⠄⠄⠄⢰⠇⠄⢨⠇⠄⠄⠄⠄⠄⠄⠄⠄⠘⢾⡀⠄⠄⠄⠄⠄⠄⡞⢀⠄⠄⠄⠄⠄⠄⠄⠄⢸⡇
-	
+
 */

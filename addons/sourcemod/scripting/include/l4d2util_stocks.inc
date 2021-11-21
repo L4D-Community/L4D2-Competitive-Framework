@@ -49,7 +49,7 @@ stock int L4D2Util_IntToPercentInt(int iVar, int iVarMax)
 	} else if (iVar < 1) {
 		return 0;
 	}
-	
+
 	return RoundToNearest((float(iVar) / float(iVarMax)) * 100.0);
 }
 
@@ -60,7 +60,7 @@ stock float L4D2Util_IntToPercentFloat(int iVar, int iVarMax)
 	} else if (iVar < 1) {
 		return 0.0;
 	}
-	
+
 	return ((float(iVar) / float(iVarMax)) * 100.0);
 }
 
@@ -71,7 +71,7 @@ stock float L4D2Util_FloatToPercentFloat(float iVar, float iVarMax)
 	} else if (iVar < 1) {
 		return 0.0;
 	}
-	
+
 	return ((iVar / iVarMax) * 100.0);
 }
 
@@ -82,7 +82,7 @@ stock int L4D2Util_FloatToPercentInt(float iVar, float iVarMax)
 	} else if (iVar < 1) {
 		return 0;
 	}
-	
+
 	return RoundToNearest((iVar / iVarMax) * 100.0);
 }
 

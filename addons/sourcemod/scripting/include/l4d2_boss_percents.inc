@@ -73,7 +73,7 @@ native bool RefreshBossPercentReadyUp();
 native bool IsDarkCarniRemix();
 
 
-public SharedPlugin __pl_l4d2_boss_percents = 
+public SharedPlugin __pl_l4d2_boss_percents =
 {
 	name = "l4d_boss_percent",
 	file = "l4d_boss_percent.smx",

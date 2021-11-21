@@ -124,7 +124,7 @@ public void Event_PlayerTeam(Event hEvent, const char[] sEventName, bool bDontBr
 		if (iIndex != -1) {
 			g_hInfectedPlayersArray.Erase(iIndex);
 		}
-		
+
 		if (g_hCvarApdebug.BoolValue) {
 			LogMessage("[AutoPause] Removed player %s from infected team.", sSteamId);
 		}
@@ -192,7 +192,7 @@ public Action Event_PlayerDisconnect(Event hEvent, const char[] sEventName, bool
 		if (cSpawnTimer != CTimer_Null) {
 			float fTimeLeft = CTimer_GetRemainingTime(cSpawnTimer);
 			g_hCrashedPlayersTrie.SetValue(sSteamId, fTimeLeft);
-			
+
 			LogMessage("[AutoPause] Player %s left the game with %f time until spawn.", sSteamId, fTimeLeft);
 		}
 	}

@@ -7,8 +7,6 @@
 #include <sourcemod>
 #include <sdktools>
 
-
-
 public Plugin myinfo =
 {
 	name = "[L4D2] Script Command Swap - Mem Leak Fix",

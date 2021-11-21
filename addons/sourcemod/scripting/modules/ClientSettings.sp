@@ -104,7 +104,7 @@ public _EnforceCliSettings_QueryReply(QueryCookie:cookie, client, ConVarQueryRes
 	new clsetting_index = value;
 	decl clsetting[CLSEntry];
 	GetArrayArray(ClientSettingsArray, clsetting_index, clsetting[0]);
-	
+
 	if((clsetting[CLSE_hasMin] && fCvarVal < clsetting[CLSE_min])
 		|| (clsetting[CLSE_hasMax] && fCvarVal > clsetting[CLSE_max]))
 	{
@@ -130,7 +130,7 @@ public _EnforceCliSettings_QueryReply(QueryCookie:cookie, client, ConVarQueryRes
 			}
 		}
 	}
-	
+
 }
 
 public Action:_ClientSettings_Cmd(client, args)
@@ -212,9 +212,9 @@ public Action:_TrackClientCvar_Cmd(args)
 		GetCmdArg(6, sBuffer, sizeof(sBuffer));
 		action = CLSAction:StringToInt(sBuffer);
 	}
-	
-	_AddClientCvar(cvar, hasMin, min, hasMax, max, action);	
-	
+
+	_AddClientCvar(cvar, hasMin, min, hasMax, max, action);
+
 	return Plugin_Handled;
 }
 
@@ -277,7 +277,7 @@ static _AddClientCvar(const String:cvar[], bool:hasMin, Float:min, bool:hasMax, 
 		LogError("[Confogl] ClientSettings: CVar Specified (%s) is longer than max cvar length (%d)", cvar, CLS_CVAR_MAXLEN);
 		return;
 	}
-	
+
 	decl newEntry[CLSEntry];
 	for(new i = 0; i < GetArraySize(ClientSettingsArray); i++)
 	{
@@ -288,18 +288,18 @@ static _AddClientCvar(const String:cvar[], bool:hasMin, Float:min, bool:hasMax, 
 			return;
 		}
 	}
-		
+
 	newEntry[CLSE_hasMin]=hasMin;
 	newEntry[CLSE_min]=min;
 	newEntry[CLSE_hasMax]=hasMax;
 	newEntry[CLSE_max]=max;
 	newEntry[CLSE_action]=action;
 	strcopy(newEntry[CLSE_cvar], CLS_CVAR_MAXLEN, cvar);
-	
+
 	if(IsDebugEnabled())
 	{
 		LogMessage("[Confogl] ClientSettings: Tracking Cvar %s Min %d %f Max %d %f Action %d", cvar, hasMin, min, hasMax, max, action);
 	}
-	
+
 	PushArrayArray(ClientSettingsArray, newEntry[0]);
 }

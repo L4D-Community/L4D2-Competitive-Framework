@@ -13,11 +13,11 @@
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
 
-int 
+int
 	m_tongueDragDamageTimerDuration,
 	m_tongueDragDamageTimerTimeStamp;
 
-ConVar 
+ConVar
 	tongue_drag_damage_interval,
 	tongue_drag_first_damage_interval,
 	tongue_drag_first_damage;
@@ -36,11 +36,11 @@ public void OnPluginStart()
 	InitGameData();
 
 	HookEvent("tongue_grab", OnTongueGrab);
-	
+
 	char value[32];
 	ConVar tongue_choke_damage_interval = FindConVar("tongue_choke_damage_interval");
 	tongue_choke_damage_interval.GetString(value, sizeof(value));
-	
+
 	tongue_drag_damage_interval = CreateConVar("tongue_drag_damage_interval", value, "How often the drag does damage.");
 	tongue_drag_first_damage_interval = CreateConVar("tongue_drag_first_damage_interval", "-1.0", "After how many seconds do we apply our first tick of damage? | 0.0 to Disable.");
 	tongue_drag_first_damage = CreateConVar("tongue_drag_first_damage", "3.0", "How much damage do we apply on the first tongue hit? | Only applies when first_damage_interval is used");
@@ -56,12 +56,12 @@ void InitGameData()
 	if (!hGamedata) {
 		SetFailState("Gamedata '%s.txt' missing or corrupt.", GAMEDATA);
 	}
-	
+
 	int m_tongueDragDamageTimer = GameConfGetOffset(hGamedata, "CTerrorPlayer->m_tongueDragDamageTimer");
 	if (m_tongueDragDamageTimer == -1) {
 		SetFailState("Failed to get offset 'CTerrorPlayer->m_tongueDragDamageTimer'.");
 	}
-	
+
 	m_tongueDragDamageTimerDuration = m_tongueDragDamageTimer + DURATION_OFFSET;
 	m_tongueDragDamageTimerTimeStamp = m_tongueDragDamageTimer + TIMESTAMP_OFFSET;
 
@@ -83,7 +83,7 @@ public void OnTongueGrab(Event hEvent, const char[] name, bool dontBroadcast)
 		FixDragInterval(client, userid);
 		return;
 	}
-	
+
 	SetDragDamageInterval(client, tongue_drag_first_damage_interval);
 	CreateTimer(fFirst, FirstDamage, userid, TIMER_FLAG_NO_MAPCHANGE);
 }
@@ -109,7 +109,7 @@ public Action FirstDamage(Handle hTimer, any userid)
 		FixDragInterval(client, userid);
 		return Plugin_Continue;
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -127,7 +127,7 @@ void SetDragDamageInterval(int client, ConVar hConvar)
 {
 	float fCvarValue = hConvar.FloatValue;
 	float fTimeStamp = GetGameTime() + fCvarValue;
-	
+
 	SetEntDataFloat(client, m_tongueDragDamageTimerDuration, fCvarValue); //duration
 	SetEntDataFloat(client, m_tongueDragDamageTimerTimeStamp, fTimeStamp); //timestamp
 }

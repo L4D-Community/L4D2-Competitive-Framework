@@ -46,7 +46,7 @@ public void OnMapStart()
 	char sMap[64];
 	GetCurrentMap(sMap, sizeof(sMap));
 	String_ToLower(sMap, sizeof(sMap));
-	
+
 	g_bPluginActive = (strncmp(sMap, PARISH_PREFIX, 3) == 0);
 }
 
@@ -55,7 +55,7 @@ public void OnEntityCreated(int iEntity, const char[] sClassName)
 	if (sClassName[0] != 'i' || !g_bPluginActive) {
 		return;
 	}
-	
+
 	if (strcmp("infected", sClassName) == 0) {
 		SDKHook(iEntity, SDKHook_SpawnPost, RiotCopSpawn);
 	}
@@ -74,11 +74,11 @@ public Action RiotCopTraceAttack(int iVictim, int &iAttacker, int &iInflictor, f
 	if (iHitGroup != HITGROUP_HEAD || !IsRiotCop(iVictim)) {
 		return Plugin_Continue;
 	}
-	
+
 	if (!IsValidSurvivor(iAttacker)) {
 		return Plugin_Continue;
 	}
-	
+
 	SDKHooks_TakeDamage(iVictim, iInflictor, iAttacker, fDamage, DMG_GENERIC);
 	return Plugin_Continue;
 }
