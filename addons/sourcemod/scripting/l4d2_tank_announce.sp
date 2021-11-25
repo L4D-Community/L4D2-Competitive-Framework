@@ -3,100 +3,73 @@
 
 #include <sourcemod>
 #include <sdktools_sound>
-#include <dhooks>
 #include <colors>
-#define L4D2UTIL_STOCKS_ONLY 1
-#include <l4d2util>
+#include <l4d2util_constants>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#include <left4framework>
 #undef REQUIRE_PLUGIN
 #include <l4d_tank_control_eq>
 
-#define LEFT4FRAMEWORK_GAMEDATA "left4dhooks.l4d2"
-#define SECTION_NAME "L4DD::ZombieManager::SpawnTank"
-
-#define PLUGIN_VERSION "1.3b"
 #define DANG "ui/pickup_secret01.wav"
-
-Handle g_hDetour;
 
 public Plugin myinfo =
 {
 	name = "L4D2 Tank Announcer",
 	author = "Visor, Forgetest, xoxo",
 	description = "Announce in chat and via a sound when a Tank has spawned",
-	version = PLUGIN_VERSION,
+	version = "1.5",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
-
-public void OnPluginStart()
-{
-	Handle hGameData = LoadGameConfigFile(LEFT4FRAMEWORK_GAMEDATA);
-	if (hGameData == null) {
-		SetFailState("Missing gamedata \"%s\".", LEFT4FRAMEWORK_GAMEDATA);
-	}
-
-	g_hDetour = DHookCreateFromConf(hGameData, SECTION_NAME);
-	if (g_hDetour == null) {
-		SetFailState("Failed to create detour '" ... SECTION_NAME ..."' from gamedata.");
-	}
-
-	if (!DHookEnableDetour(g_hDetour, true, OnSpawnTank)) {
-		SetFailState("Failed to enable detour '" ... SECTION_NAME ... "'.");
-	}
-
-	delete hGameData;
-}
-
-public void OnPluginEnd()
-{
-	if (!DHookDisableDetour(g_hDetour, true, OnSpawnTank)) {
-		SetFailState("Failed to disable detour '"... SECTION_NAME ..."'.");
-	}
-}
 
 public void OnMapStart()
 {
 	PrecacheSound(DANG);
 }
 
-public MRESReturn OnSpawnTank(Handle hReturn, Handle hParams)
-{
-	bool ret = DHookGetReturn(hReturn) != 0; // left4dhooks sets it 0 to disable tank spawns
-
-	if (ret == true) {
-		RequestFrame(OnNextFrame, 0);	// seems it occurs often that prints with wrong teamcolors
-									// make a slight delay here to try fixing this
-	}
-	return MRES_Ignored;
-}
-
-public void OnNextFrame(any data)
+// This forward is always fired only for bots.
+public void L4D_OnSpawnTank_Post(int iClient, const float fVecPos[3], const float fVecAng[3])
 {
 	char nameBuf[MAX_NAME_LENGTH];
+
 	if (IsTankSelection()) {
-		int tankClient = FindAliveTankClient();
-
-		if (tankClient > 0 && !IsFakeClient(tankClient)) {
-			FormatEx(nameBuf, sizeof(nameBuf), "%N", tankClient);
-		} else {
-			tankClient = GetTankSelection();
-			if (tankClient > 0 && IsClientInGame(tankClient)) {
-				FormatEx(nameBuf, sizeof(nameBuf), "%N", tankClient);
-			} else {
-				FormatEx(nameBuf, sizeof(nameBuf), "AI");
-			}
-		}
-	} else {
-		int tankClient = FindAliveTankClient();
-
-		if (tankClient > 0 && !IsFakeClient(tankClient)) {
-			FormatEx(nameBuf, sizeof(nameBuf), "%N", tankClient);
+		iClient = GetTankSelection();
+		if (iClient > 0 && IsClientInGame(iClient)) {
+			FormatEx(nameBuf, sizeof(nameBuf), "%N", iClient);
 		} else {
 			FormatEx(nameBuf, sizeof(nameBuf), "AI");
 		}
+	} else {
+		HookEvent("player_spawn", Event_PlayerSpawn);
+		return;
 	}
 
-	CPrintToChatAll("{red}[{default}!{red}] {olive}Tank{default}({red}Control: %s{default}) has spawned!", nameBuf);
+	CPrintToChatAll("{red}[{default}!{red}] {olive}Tank {default}({red}Control: %s{default}) has spawned!", nameBuf);
 	EmitSoundToAll(DANG);
+}
+
+public void Event_PlayerSpawn(Event hEvent, char[] sEventName, bool bDontBroadcast)
+{
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+
+	// Tanky Client?
+	if (IsTank(iClient) && !IsFakeClient(iClient)) {
+		CPrintToChatAll("{red}[{default}!{red}] {olive}Tank {default}({red}Control: %N{default}) has spawned!", iClient);
+		EmitSoundToAll(DANG);
+		UnhookEvent("player_spawn", Event_PlayerSpawn);
+	}
+}
+
+/**
+ * Is the player the tank?
+ *
+ * @param client client ID
+ * @return bool
+ */
+bool IsTank(int iClient)
+{
+	return (IsClientInGame(iClient)
+		&& GetClientTeam(iClient) == L4D2Team_Infected
+		&& GetEntProp(iClient, Prop_Send, "m_zombieClass") == L4D2Infected_Tank);
 }
 
 /*
