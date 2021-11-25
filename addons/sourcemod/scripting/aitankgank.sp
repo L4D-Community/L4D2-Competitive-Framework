@@ -7,8 +7,7 @@
 #define TEAM_INFECTED 3
 #define Z_TANK 8
 
-ConVar
-	g_hKillOnCrash = null;
+ConVar g_hKillOnCrash = null;
 
 public Plugin myinfo =
 {
@@ -21,12 +20,7 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	g_hKillOnCrash = CreateConVar( \
-		"tankgank_killoncrash", \
-		"0", \
-		"If 0, tank will not be killed if the player that controlled it crashes.", \
-		_, true, 0.0, true, 1.0 \
-	);
+	g_hKillOnCrash = CreateConVar("tankgank_killoncrash", "0", "If 0, tank will not be killed if the player that controlled it crashes.", _, true, 0.0, true, 1.0);
 
 	HookEvent("player_bot_replace", OnTankGoneAi);
 }

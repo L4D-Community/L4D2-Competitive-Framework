@@ -1,13 +1,12 @@
 /*
-    Idea:
-    -----
-    Pure camping bonus, when survivors have no choice.
-    Example: Swamp Fever 1 ferry:
-        Survivors press button, the clock starts. It ends when the ferry
-        actually arrives (not when they press the ferry button!).
-        If they lived long enough for the ferry to arrive, they get
-        the full holdout bonus.
-
+	Idea:
+	-----
+	Pure camping bonus, when survivors have no choice.
+	Example: Swamp Fever 1 ferry:
+		Survivors press button, the clock starts. It ends when the ferry
+		actually arrives (not when they press the ferry button!).
+		If they lived long enough for the ferry to arrive, they get
+		the full holdout bonus.
 */
 
 #pragma semicolon 1
@@ -22,30 +21,30 @@
 #include <readyup>
 #define REQUIRE_PLUGIN
 
-#define IS_VALID_CLIENT(%1)     (%1 > 0 && %1 <= MaxClients)
-#define IS_SURVIVOR(%1)         (GetClientTeam(%1) == 2)
-#define IS_INFECTED(%1)         (GetClientTeam(%1) == 3)
-#define IS_VALID_INGAME(%1)     (IS_VALID_CLIENT(%1) && IsClientInGame(%1))
-#define IS_VALID_SURVIVOR(%1)   (IS_VALID_INGAME(%1) && IS_SURVIVOR(%1))
-#define IS_VALID_INFECTED(%1)   (IS_VALID_INGAME(%1) && IS_INFECTED(%1))
-#define IS_SURVIVOR_ALIVE(%1)   (IS_VALID_SURVIVOR(%1) && IsPlayerAlive(%1))
-#define IS_INFECTED_ALIVE(%1)   (IS_VALID_INFECTED(%1) && IsPlayerAlive(%1))
+#define IS_VALID_CLIENT(%1)		(%1 > 0 && %1 <= MaxClients)
+#define IS_SURVIVOR(%1)			(GetClientTeam(%1) == 2)
+#define IS_INFECTED(%1)			(GetClientTeam(%1) == 3)
+#define IS_VALID_INGAME(%1)		(IS_VALID_CLIENT(%1) && IsClientInGame(%1))
+#define IS_VALID_SURVIVOR(%1)	(IS_VALID_INGAME(%1) && IS_SURVIVOR(%1))
+#define IS_VALID_INFECTED(%1)	(IS_VALID_INGAME(%1) && IS_INFECTED(%1))
+#define IS_SURVIVOR_ALIVE(%1)	(IS_VALID_SURVIVOR(%1) && IsPlayerAlive(%1))
+#define IS_INFECTED_ALIVE(%1)	(IS_VALID_INFECTED(%1) && IsPlayerAlive(%1))
 
-#define TEAM_SPECTATOR          1
-#define TEAM_SURVIVOR           2
-#define TEAM_INFECTED           3
+#define TEAM_SPECTATOR			1
+#define TEAM_SURVIVOR			2
+#define TEAM_INFECTED			3
 
-#define TEAM_SIZE               4
+#define TEAM_SIZE				4
 
-#define MAXCHARACTERS           4
-#define MAXGAME                 24
-#define MAXSTR                  32
+#define MAXCHARACTERS			4
+#define MAXGAME					24
+#define MAXSTR					32
 
-#define PMODE_OFF               0
-#define PMODE_NODIST            1
-#define PMODE_DIST              2
+#define PMODE_OFF				0
+#define PMODE_NODIST			1
+#define PMODE_DIST				2
 
-#define REPORT_ONLYEVENT        4
+#define REPORT_ONLYEVENT		4
 
 new     Handle: g_hForwardSet           = INVALID_HANDLE;
 new     Handle: g_hForwardStart         = INVALID_HANDLE;
@@ -100,12 +99,11 @@ public Plugin: myinfo =
 
 public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
-	RegPluginLibrary("holdout_bonus");
-
 	g_hForwardSet =     CreateGlobalForward("OnHoldOutBonusSet", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
 	g_hForwardStart =   CreateGlobalForward("OnHoldOutBonusStart", ET_Ignore, Param_Cell );
 	g_hForwardEnd =     CreateGlobalForward("OnHoldOutBonusEnd", ET_Ignore, Param_Cell, Param_Cell );
 
+	RegPluginLibrary("holdout_bonus");
 	return APLRes_Success;
 }
 
@@ -541,26 +539,26 @@ CalculateHoldOutBonus()
 // death / revival tracking
 public void Event_PlayerDeath ( Handle:event, const String:name[], bool:dontBroadcast )
 {
-    if ( !g_bPlayersLeftStart || !g_bHoldoutActive ) { return; }
+	if ( !g_bPlayersLeftStart || !g_bHoldoutActive ) { return; }
 
-    new client = GetClientOfUserId( GetEventInt(event, "userid") );
-    if ( !IS_VALID_SURVIVOR(client) ) { return; }
+	new client = GetClientOfUserId( GetEventInt(event, "userid") );
+	if ( !IS_VALID_SURVIVOR(client) ) { return; }
 
-    // stop progress for this character
-    new chr = GetPlayerCharacter(client);
-    g_iCharProgress[chr] = g_iProgress;
+	// stop progress for this character
+	new chr = GetPlayerCharacter(client);
+	g_iCharProgress[chr] = g_iProgress;
 }
 
 public void Event_DefibUsed (Handle:event, const String:name[], bool:dontBroadcast)
 {
-    if ( !g_bPlayersLeftStart || !g_bHoldoutActive ) { return; }
+	if ( !g_bPlayersLeftStart || !g_bHoldoutActive ) { return; }
 
-    new client = GetClientOfUserId( GetEventInt(event, "subject") );
-    if ( !IS_VALID_SURVIVOR(client) ) { return; }
+	new client = GetClientOfUserId( GetEventInt(event, "subject") );
+	if ( !IS_VALID_SURVIVOR(client) ) { return; }
 
-    // reset progress so it will be matched to g_iProgress
-    new chr = GetPlayerCharacter(client);
-    g_iCharProgress[chr] = 0;
+	// reset progress so it will be matched to g_iProgress
+	new chr = GetPlayerCharacter(client);
+	g_iCharProgress[chr] = 0;
 }
 
 /*  Command

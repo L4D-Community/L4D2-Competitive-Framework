@@ -32,7 +32,8 @@ public Plugin myinfo =
 	name = "L4D2 Infected Friendly Fire Disable",
 	author = "ProdigySim, Don, Visor, A1m`",
 	description = "Disables friendly fire between infected players.",
-	version = "2.1"
+	version = "2.1",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()

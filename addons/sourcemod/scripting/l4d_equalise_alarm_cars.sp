@@ -18,17 +18,19 @@
 	You should have received a copy of the GNU General Public License along
 	with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <sdktools>
 
-public Plugin:myinfo =
+public Plugin myinfo =
 {
-	name        = "L4D2 Equalise Alarm Cars",
-	author      = "Jahze",
-	version     = "1.2",
-	description = "Make the alarmed car spawns the same for each team in versus"
+	name = "L4D2 Equalise Alarm Cars",
+	author = "Jahze",
+	version = "1.2",
+	description = "Make the alarmed car spawns the same for each team in versus",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 new bool:bHooked = false;
@@ -52,7 +54,7 @@ public OnPluginStart()
 	HookEvents();
 }
 
-public OnPluginStop()
+public OnPluginEnd()
 {
 	UnhookEvents();
 }

@@ -93,7 +93,7 @@ public Plugin myinfo =
 	author = "Darkid, Jacob",
 	description = "Fixes the problem when, after completing a getup animation, you have another one.",
 	version = "3.8",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()
