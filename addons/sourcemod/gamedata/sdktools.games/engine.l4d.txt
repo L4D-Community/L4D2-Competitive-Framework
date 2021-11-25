@@ -216,6 +216,12 @@
 	{
 		"Offsets"
 		{
+			"SetOwnerEntity"
+			{
+				"windows"	"16"
+				"linux"		"17"
+				"mac"		"17"
+			}
 			"GiveNamedItem"
 			{
 				"windows"	"482"
