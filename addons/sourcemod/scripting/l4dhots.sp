@@ -3,34 +3,26 @@
 
 #include <sourcemod>
 
-public Plugin myinfo =
-{
-	name = "L4D HOTs",
-	author = "ProdigySim, CircleSquared, Forgetest",
-	description = "Pills and Adrenaline heal over time",
-	version = "2.3",
-	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
-};
-
 ArrayList
-	g_aReplacePair;
+	g_aHOTPair = null;
 
 bool
-	g_bLeft4Dead2;
+	g_bLeft4Dead2 = false;
 
 ConVar
-	hCvarPillHot,
-	hCvarPillInterval,
-	hCvarPillIncrement,
-	hCvarPillTotal,
-	pain_pills_health_value;
+	g_hCvar_PillsDecay = null,
+	hCvarPillHot = null,
+	hCvarPillInterval = null,
+	hCvarPillIncrement = null,
+	hCvarPillTotal = null,
+	pain_pills_health_value = null;
 
 ConVar
-	hCvarAdrenHot,
-	hCvarAdrenInterval,
-	hCvarAdrenIncrement,
-	hCvarAdrenTotal,
-	adrenaline_health_buffer;
+	hCvarAdrenHot = null,
+	hCvarAdrenInterval = null,
+	hCvarAdrenIncrement = null,
+	hCvarAdrenTotal = null,
+	adrenaline_health_buffer = null;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
@@ -46,9 +38,18 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	return APLRes_Success;
 }
 
+public Plugin myinfo =
+{
+	name = "L4D HOTs",
+	author = "ProdigySim, CircleSquared, Forgetest",
+	description = "Pills and Adrenaline heal over time",
+	version = "2.4",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
+
 public void OnPluginStart()
 {
-	g_aReplacePair = new ArrayList(2);
+	g_aHOTPair = new ArrayList(2);
 
 	char buffer[16];
 	pain_pills_health_value = FindConVar("pain_pills_health_value");
@@ -75,6 +76,8 @@ public void OnPluginStart()
 
 	if (hCvarAdrenHot.BoolValue) EnableAdrenHot();
 	hCvarAdrenHot.AddChangeHook(AdrenHotChanged);
+
+	g_hCvar_PillsDecay = FindConVar("pain_pills_decay_rate");
 }
 
 public void OnPluginEnd()
@@ -85,7 +88,7 @@ public void OnPluginEnd()
 
 public void OnMapStart()
 {
-	g_aReplacePair.Clear();
+	g_aHOTPair.Clear();
 }
 
 public void Player_BotReplace_Event(Event event, const char[] name, bool dontBroadcast)
@@ -100,13 +103,20 @@ public void Bot_PlayerReplace_Event(Event event, const char[] name, bool dontBro
 
 void HandleSurvivorTakeover(int replacee, int replacer)
 {
-	// if the replacee happened to be a replacer, override it.
-	int index = g_aReplacePair.FindValue(replacee, 1);
-	if (index == -1)
+	// There can be multiple HOTs happening at the same time
+	// so cannot just use FindValue here.
+	int size = g_aHOTPair.Length;
+	for (int i = 0; i < size; ++i)
 	{
-		index = g_aReplacePair.Push(replacee);
+		if (replacee == g_aHOTPair.Get(i, 0))
+		{
+			g_aHOTPair.Set(i, replacer, 0);
+
+			DataPack dp = g_aHOTPair.Get(i, 1);
+			dp.Reset();
+			dp.WriteCell(replacer);
+		}
 	}
-	g_aReplacePair.Set(index, replacer, 1);
 }
 
 public void PillsUsed_Event(Event event, const char[] name, bool dontBroadcast)
@@ -132,7 +142,7 @@ public void AdrenalineUsed_Event(Event event, const char[] name, bool dontBroadc
 void HealEntityOverTime(int userid, float interval, int increment, int total)
 {
 	int client = GetClientOfUserId(userid);
-	if (!client || !IsClientInGame(client) || !IsPlayerAlive(client))
+	if (client < 1 || !IsClientInGame(client) || !IsPlayerAlive(client))
 		return;
 
 	int iMaxHP = GetEntProp(client, Prop_Send, "m_iMaxHealth", 2);
@@ -151,6 +161,8 @@ void HealEntityOverTime(int userid, float interval, int increment, int total)
 		myDP.WriteCell(increment);
 		myDP.WriteCell(total-increment);
 		myDP.WriteCell(iMaxHP);
+
+		g_aHOTPair.Set(g_aHOTPair.Push(userid), myDP, 1);
 	}
 }
 
@@ -158,63 +170,53 @@ public Action __HOT_ACTION(Handle timer, DataPack pack)
 {
 	pack.Reset();
 
-	DataPackPos pos = pack.Position;
 	int userid = pack.ReadCell();
 	int client = GetClientOfUserId(userid);
 
-	// disconnection, team flipping or team changing
-	if (!client || GetClientTeam(client) != 2)
-	{
-		// search for any replacement
-		int index = g_aReplacePair.FindValue(userid, 0);
-		if (index != -1)
-		{
-			userid = g_aReplacePair.Get(index, 1);
-			g_aReplacePair.Erase(index);
-			pack.Position = pos;
-			pack.WriteCell(userid);
-
-			client = GetClientOfUserId(userid);
-		}
-	}
-
-	if (!client || !IsPlayerAlive(client))
-	{
+	if (client < 1 || !IsPlayerAlive(client)) {
 		return Plugin_Stop;
 	}
 
-	if ((GetEntProp(client, Prop_Send, "m_isIncapacitated", 1) > 0) || (GetEntProp(client, Prop_Send, "m_isHangingFromLedge", 1) > 0)) {
+	if ((GetEntProp(client, Prop_Send, "m_isIncapacitated", 1) > 0)
+		|| (GetEntProp(client, Prop_Send, "m_isHangingFromLedge", 1) > 0)
+	) {
 		return Plugin_Stop;
 	}
 
 	int increment = pack.ReadCell();
-	pos = pack.Position;
+	DataPackPos pos = pack.Position;
 	int remaining = pack.ReadCell();
 	int maxhp = pack.ReadCell();
 
-	//PrintToChatAll("HOT: %d %d %d %d", client, increment, remaining, maxhp);
+	//PrintToChatAll("HOT: %N %d %d %d", client, increment, remaining, maxhp);
+	if (increment < remaining)
+	{
+		__HealTowardsMax(client, increment, maxhp);
+		pack.Position = pos;
+		pack.WriteCell(remaining-increment);
 
-	if (increment >= remaining)
+		return Plugin_Continue;
+	}
+	else
 	{
 		__HealTowardsMax(client, remaining, maxhp);
-		return Plugin_Stop;
 	}
-	__HealTowardsMax(client, increment, maxhp);
-	pack.Position = pos;
-	pack.WriteCell(remaining-increment);
 
-	return Plugin_Continue;
+	g_aHOTPair.Erase(g_aHOTPair.FindValue(pack, 1));
+	return Plugin_Stop;
 }
 
 void __HealTowardsMax(int client, int amount, int max)
 {
-	float hb = GetEntPropFloat(client, Prop_Send, "m_healthBuffer") + amount;
+	float hb = GetTempHealth(client) + amount;
 	float overflow = hb + GetClientHealth(client) - max;
 	if (overflow > 0)
 	{
 		hb -= overflow;
 	}
-	SetEntPropFloat(client, Prop_Send, "m_healthBuffer", hb);
+
+	SetEntPropFloat(client, Prop_Send, "m_healthBuffer", (hb < 0.0) ? 0.0 : hb);
+	SetEntPropFloat(client, Prop_Send, "m_healthBufferTime", GetGameTime());
 }
 
 /**
@@ -333,4 +335,14 @@ void SwitchGeneralEventHooks(bool hook)
 
 		hooked = false;
 	}
+}
+
+float GetTempHealth(int client)
+{
+	float fGameTime = GetGameTime();
+	float fHealthTime = GetEntPropFloat(client, Prop_Send, "m_healthBufferTime");
+	float fHealth = GetEntPropFloat(client, Prop_Send, "m_healthBuffer");
+	fHealth -= (fGameTime - fHealthTime) * g_hCvar_PillsDecay.FloatValue;
+
+	return (fHealth < 0.0) ? 0.0 : fHealth;
 }
