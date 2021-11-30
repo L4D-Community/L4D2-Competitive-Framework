@@ -332,8 +332,6 @@ public void Event_PlayerDeath(Event hEvent, const char[] sEventName, bool bDontB
 			int damage = g_iDamageDealt[victim][attacker];
 			int shots = g_iShotsDealt[victim][attacker];
 
-			char plural = (shots == 1) ? 0 : 's';
-
 			for (i = 1; i <= MaxClients; i++) {
 				if (i == attacker) {
 					continue;
@@ -398,42 +396,42 @@ public void Event_PlayerDeath(Event hEvent, const char[] sEventName, bool bDontB
 				/*
 				// Print to assisters
 				for (i = 0; i < assister_count; i++) {
-					CPrintToChat(assisters[i][0], "{green}★ {olive}%N {default}teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%c{default}. Assisted by: {olive}%s", \
-														attacker, victim, damage, shots, plural, assister_string);
+					CPrintToChat(assisters[i][0], "{green}★ {olive}%N {default}teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%s{default}. Assisted by: {olive}%s", \
+														attacker, victim, damage, shots, (shots == 1) ? "" : "s", assister_string);
 				}
 
 				// Print to victim
-				CPrintToChat(victim, "{green}★ {default}You were teamskeeted by {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%c{default}. Assisted by: {olive}%s", \
-															attacker, damage, shots, plural, assister_string);
+				CPrintToChat(victim, "{green}★ {default}You were teamskeeted by {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%s{default}. Assisted by: {olive}%s", \
+															attacker, damage, shots, (shots == 1) ? "" : "s", assister_string);
 
 				// Finally print to attacker
-				CPrintToChat(attacker, "{green}★ {default}You teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%c{default}. Assisted by: {olive}%s", \
-															victim, damage, shots, plural, assister_string);
+				CPrintToChat(attacker, "{green}★ {default}You teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%s{default}. Assisted by: {olive}%s", \
+															victim, damage, shots, (shots == 1) ? "" : "s", assister_string);
 
 				//Print to Specs!
 				for (int b = 1; b <= MaxClients; b++) {
 					if (IsClientInGame(b) && GetClientTeam(b) == TEAM_SPECTATOR) {
-						CPrintToChat(b, "{green}★ {olive}%N {default}teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%c{default}. Assisted by: {olive}%s", \
-															attacker, victim, damage, shots, plural, assister_string);
+						CPrintToChat(b, "{green}★ {olive}%N {default}teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d shot%s{default}. Assisted by: {olive}%s", \
+															attacker, victim, damage, shots, (shots == 1) ? "" : "s", assister_string);
 					}
 				}*/
 
-				CPrintToChatAll("{green}★ {olive}%N {default}teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d {default}shot%c. Assisted by: {olive}%s", \
-															attacker, victim, damage, shots, plural, assister_string);
+				CPrintToChatAll("{green}★ {olive}%N {default}teamskeeted {olive}%N {default}for {blue}%d damage {default}in {blue}%d {default}shot%s. Assisted by: {olive}%s", \
+															attacker, victim, damage, shots, (shots == 1) ? "" : "s", assister_string);
 			} else {
-				/*CPrintToChat(victim, "{green}★ {default}You were skeeted by {olive}%N {default}in {blue}%d shot%c", attacker, shots, plural);
+				/*CPrintToChat(victim, "{green}★ {default}You were skeeted by {olive}%N {default}in {blue}%d shot%s", attacker, shots, (shots == 1) ? "" : "s");
 
-				CPrintToChat(attacker, "{green}★ {default}You skeeted {olive}%N {default}in {blue}%d shot%c", victim, shots, plural);
+				CPrintToChat(attacker, "{green}★ {default}You skeeted {olive}%N {default}in {blue}%d shot%s", victim, shots, (shots == 1) ? "" : "s");
 
 				for (int b = 1; b <= MaxClients; b++) {
 					//Print to Everyone Else!
 					if (IsClientInGame(b) && (victim != b) && attacker != b) {
-						CPrintToChat(b, "{green}★ {olive}%N {default}skeeted {olive}%N {default}in {blue}%d shot%c", attacker, victim, shots, plural);
+						CPrintToChat(b, "{green}★ {olive}%N {default}skeeted {olive}%N {default}in {blue}%d shot%s", attacker, victim, shots, (shots == 1) ? "" : "s");
 					}
 				}*/
 
-				CPrintToChatAll("{green}★ {olive}%N {default}skeeted {olive}%N {default}in {blue}%d {default}shot%c.", \
-															attacker, victim, shots, plural);
+				CPrintToChatAll("{green}★ {olive}%N {default}skeeted {olive}%N {default}in {blue}%d {default}shot%s.", \
+															attacker, victim, shots, (shots == 1) ? "" : "s");
 			}
 		}
 	}
