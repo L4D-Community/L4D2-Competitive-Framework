@@ -36,51 +36,20 @@ public Plugin myinfo =
 	name = "LerpMonitor++",
 	author = "ProdigySim, Die Teetasse, vintik, A1m`",
 	description = "Keep track of players' lerp settings",
-	version = "2.3",
+	version = "2.4",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	IsLateLoad = late;
+
 	CreateNative("LM_GetLerpTime", LM_GetLerpTime);
 	CreateNative("LM_GetCurrentLerpTime", LM_GetCurrentLerpTime);
+	CreateNative("LM_GetStoredLerpTime", LM_GetStoredLerpTime);
+
 	RegPluginLibrary("lerpmonitor");
 	return APLRes_Success;
-}
-
-public int LM_GetLerpTime(Handle plugin, int numParams)
-{
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index %d!", client);
-	}
-
-	if (!IsClientInGame(client)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d is not in game!", client);
-	}
-
-	float fLerpValue = -1.0;
-	char sSteamID[STEAMID_SIZE];
-	GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID));
-	if (ArrLerpsValue.GetValue(sSteamID, fLerpValue)) {
-		return view_as<int>(fLerpValue);
-	}
-	return view_as<int>(-1.0);
-}
-
-public int LM_GetCurrentLerpTime(Handle plugin, int numParams)
-{
-	int client = GetNativeCell(1);
-	if (client < 1 || client > MaxClients) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index %d!", client);
-	}
-
-	if (!IsClientConnected(client)) {
-		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d not connected!", client);
-	}
-
-	return view_as<int>(GetLerpTime(client));
 }
 
 public void OnPluginStart()
@@ -157,7 +126,7 @@ public void Event_RoundGoesLive(Event hEvent, const char[] name, bool dontBroadc
 
 public void OnClientSettingsChanged(int client)
 {
-	if (IsValidEntity(client) && !IsFakeClient(client)) {
+	if (IsValidEdict(client) && !IsFakeClient(client)) {
 		ProcessPlayerLerp(client);
 	}
 }
@@ -194,6 +163,7 @@ public Action OnTeamChangeDelay(Handle hTimer, int userid)
 	if (client > 0) {
 		ProcessPlayerLerp(client, false, true);
 	}
+
 	return Plugin_Stop;
 }
 
@@ -216,7 +186,7 @@ public Action Timer_RoundEndDelay(Handle hTimer)
 
 public Action Lerps_Cmd(int client, int args)
 {
-	bool isEmpty = true;
+	int iCount = 0;
 	if (ArrLerpsValue.Size > 0) {
 		ReplyToCommand(client, "[!] Lerp setting list:");
 
@@ -228,15 +198,16 @@ public Action Lerps_Cmd(int client, int args)
 
 				if (ArrLerpsValue.GetValue(sSteamID, fLerpValue)) {
 					ReplyToCommand(client, "%N [%s]: %.01f", i, sSteamID, fLerpValue * 1000);
-					isEmpty = false;
+					iCount++;
 				}
 			}
 		}
 	}
 
-	if (isEmpty) {
+	if (iCount == 0) {
 		ReplyToCommand(client, "There is nothing here!");
 	}
+
 	return Plugin_Handled;
 }
 
@@ -253,6 +224,7 @@ public void Event_RoundStart(Event hEvent, const char[] name, bool dontBroadcast
 public Action OnTransfer(Handle hTimer)
 {
 	isTransfer = false;
+
 	return Plugin_Stop;
 }
 
@@ -374,4 +346,68 @@ float maximum(float a, float b)
 float clamp(float inc, float low, float high)
 {
 	return (inc > high) ? high : ((inc < low) ? low : inc);
+}
+
+public int LM_GetLerpTime(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+
+	//'GetClientAuthId' - will abort the code on error (If the client is not connected or the index is invalid).
+	/*if (client < 1 || client > MaxClients) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index %d!", client);
+	}
+
+	if (!IsClientConnected(client)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d not connected!", client);
+	}*/
+
+	char sSteamID[STEAMID_SIZE];
+	GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID));
+
+	float fLerpValue = -1.0;
+	if (ArrLerpsValue.GetValue(sSteamID, fLerpValue)) {
+		return view_as<int>(fLerpValue);
+	}
+
+	return view_as<int>(GetLerpTime(client));
+}
+
+public int LM_GetCurrentLerpTime(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+
+	//'GetClientInfo' - will abort the code on error (If the client is not connected or the index is invalid).
+	/*if (client < 1 || client > MaxClients) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index %d!", client);
+	}
+
+	if (!IsClientConnected(client)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d not connected!", client);
+	}*/
+
+	return view_as<int>(GetLerpTime(client));
+}
+
+public int LM_GetStoredLerpTime(Handle plugin, int numParams)
+{
+	int client = GetNativeCell(1);
+
+	//'GetClientAuthId' - will abort the code on error (If the client is not connected or the index is invalid).
+	/*if (client < 1 || client > MaxClients) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index %d!", client);
+	}
+
+	if (!IsClientConnected(client)) {
+		return ThrowNativeError(SP_ERROR_NATIVE, "Client %d not connected!", client);
+	}*/
+
+	char sSteamID[STEAMID_SIZE];
+	GetClientAuthId(client, AuthId_Steam2, sSteamID, sizeof(sSteamID));
+
+	float fLerpValue = -1.0;
+	if (ArrLerpsValue.GetValue(sSteamID, fLerpValue)) {
+		return view_as<int>(fLerpValue);
+	}
+
+	return view_as<int>(-1.0);
 }

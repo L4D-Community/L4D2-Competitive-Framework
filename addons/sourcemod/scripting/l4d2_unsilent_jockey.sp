@@ -34,16 +34,16 @@
 #define SNDCHAN_VOICE			2
 
 ConVar
-	hJockeyVoiceInterval;
+	hJockeyVoiceInterval = null;
 
 
 Handle
-	hJockeySoundTimer[MAXPLAYERS + 1];
+	hJockeySoundTimer[MAXPLAYERS + 1] = {null, ...};
 
 float
-	fJockeyVoiceInterval;
+	fJockeyVoiceInterval = 0.0;
 
-char sJockeySound[MAX_JOCKEYSOUND + 1][] =
+public const char sJockeySound[MAX_JOCKEYSOUND + 1][] =
 {
 	"player/jockey/voice/idle/jockey_recognize02.wav",
 	"player/jockey/voice/idle/jockey_recognize06.wav",
@@ -68,7 +68,7 @@ public Plugin myinfo =
 	name = "Unsilent Jockey",
 	author = "Tabun, robex, Sir",
 	description = "Makes jockeys emit sound constantly.",
-	version = "0.5",
+	version = "0.6",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -112,7 +112,7 @@ public void PlayerSpawn_Event(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(event.GetInt("userid"));
 
 	// Valve
-	if (!IsClientAndInGame(client)) {
+	if (client < 1 || !IsClientInGame(client)) {
 		return;
 	}
 
@@ -136,7 +136,7 @@ public void PlayerDeath_Event(Event event, const char[] name, bool dontBroadcast
 	int client = GetClientOfUserId(event.GetInt("userid"));
 
 	// Valve
-	if (!IsClientAndInGame(client)) {
+	if (client < 1 || !IsClientInGame(client)) {
 		return;
 	}
 
@@ -149,7 +149,7 @@ public void PlayerTeam_Event(Event event, const char[] name, bool dontBroadcast)
 	int client = GetClientOfUserId(event.GetInt("userid"));
 
 	// Valve
-	if (!IsClientAndInGame(client)) {
+	if (client < 1 || !IsClientInGame(client)) {
 		return;
 	}
 
@@ -177,7 +177,7 @@ public void JockeyRideEnd_NextFrame(any userid)
 {
 	int client = GetClientOfUserId(userid);
 
-	if (IsClientAndInGame(client) && IsPlayerAlive(client)) {
+	if (client > 0 && IsClientInGame(client) && IsPlayerAlive(client)) {
 		// Resume our sound spam as the Jockey is still alive
 		ChangeJockeyTimerStatus(client, true);
 	}
@@ -188,22 +188,17 @@ public Action delayedJockeySound(Handle timer, any client)
 	int rndPick = GetRandomInt(0, MAX_JOCKEYSOUND);
 	EmitSoundToAll(sJockeySound[rndPick], client, SNDCHAN_VOICE);
 
-	return Plugin_Stop;
-}
-
-bool IsClientAndInGame(int index)
-{
-	return (index > 0/* && index <= MaxClients*/ && IsClientInGame(index));
+	return Plugin_Continue;
 }
 
 void ChangeJockeyTimerStatus(int client, bool bEnable)
 {
-	if (!bEnable) {
-		if (hJockeySoundTimer[client] != null) {
-			KillTimer(hJockeySoundTimer[client], false);
-			hJockeySoundTimer[client] = null;
-		}
-	} else {
+	if (hJockeySoundTimer[client] != null) {
+		KillTimer(hJockeySoundTimer[client], false);
+		hJockeySoundTimer[client] = null;
+	}
+
+	if (bEnable) {
 		hJockeySoundTimer[client] = CreateTimer(fJockeyVoiceInterval, delayedJockeySound, client, TIMER_REPEAT);
 	}
 }
