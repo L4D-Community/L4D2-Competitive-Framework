@@ -12,7 +12,7 @@
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
  * details.
  *
  * You should have received a copy of the GNU General Public License along with
@@ -28,10 +28,11 @@
  * or <http://www.sourcemod.net/license.php>.
  *
  */
-#if defined _confogl_Included
+
+#if defined _confogl_included
 	#endinput
 #endif
-#define _confogl_Included
+#define _confogl_included
 
 /* Forwards */
 
@@ -142,6 +143,18 @@ native void LGO_GetMapValueString(const char[] key, char[] value, int maxlength,
  */
 native void LGO_CopyMapSubsection(KeyValues kv, const char[] section);
 
+/**
+ * @brief Informs if the module 'ScoreMod' is activated now (confogl activated and scoremod activated)
+ * @return (bool) returns true if activated, false otherwise
+ */
+native bool LGO_IsScoremodEnabled();
+
+/**
+ * @brief Returns the amount of bonus if the module 'Scoremod' is activated
+ * @return (int) bonus amount, or return -1 if confogl disable or scoremod disable
+ */
+native int LGO_GetHealthScore();
+
 public SharedPlugin __pl_confogl =
 {
 	name = "confogl",
@@ -165,5 +178,7 @@ public void __pl_confogl_SetNTVOptional()
 	MarkNativeAsOptional("LGO_GetMapValueString");
 	MarkNativeAsOptional("LGO_CopyMapSubsection");
 	MarkNativeAsOptional("LGO_IsMatchModeLoaded");
+	MarkNativeAsOptional("LGO_IsScoremodEnabled");
+	MarkNativeAsOptional("LGO_GetHealthScore");
 }
 #endif
