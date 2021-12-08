@@ -1,6 +1,6 @@
 # **L4D2 Competitive Framework**
 
-<------------------ **LINUX AND WINDOWS SUPPORT** ------------------>
+<------------------ **LINUX AND WINDOWS SUPPORT** ------------------>  
 The repository supports Windows, but the collisionhook extension is not working yet. The extension is causing the server to crash on this platform.
 
 ## **About:**
@@ -28,24 +28,6 @@ It will contain both much needed fixes that are simply unable to be implemented 
     * **NOTE:** Plugin load locking and unlocking is no longer handled by the Configs themselves, so if you're using this project do **NOT** define plugin load locks/unlocks within the configs you're adding manually.
 
 ---
-
-## **Fixes/Changes Integrated into Confogl & Sourcemod:**
-
-> **Plugins/Extensions**
-* [Tank Rock Lag Compensation](https://forums.alliedmods.net/showthread.php?p=2646073)
-  * Like the title says, you now simply just aim at the rock. You no longer have to "lead" your shots.
-* [Buffer Overflow Fix](https://forums.alliedmods.net/showthread.php?p=2607757)
-  * Prevents large .cfg files from causing a Buffer Overflow.
-* Tank Hittable Glow.
-  * This plugin adds a constant Glow to Hittables the Tank has punched.
-    * This is such a big QoL Fix and is implemented so smoothly that people often think it's part of the game, why not load it in every config?
-* Tons of Jockey Fixes:
-  * Fixed Jockeys and Chargers from capping the same Survivors at the same time.
-  * Fixed jockeyed Survivors going down ladders slowly.
-  * Fixed an issue where Survivors could selfclear themselves by just spamming M2 while holding a melee (while being jockeyed)
-  * Fixed an issue that allowed Jockeys to be able to pounce Survivors when spamming jump while their ability isn't ready and/or just got shoved.
-* L4D2 Ghost Anti-Cheat: A safe plugin that prevents 3rd party programs from being able to lock and see Infected Ghosts.
-* Shadow Fix: This prevents shadows showing through buildings, which would allow Survivors to know exactly where an infected was.
 
 ## **Credits:**
 
@@ -112,5 +94,5 @@ It will contain both much needed fixes that are simply unable to be implemented 
 * Too many to list, keep up the great work in reporting issues!
 
 
-**NOTE:** If your work is being used and I forgot to credit you, my sincere apologies.
+**NOTE:** If your work is being used and I forgot to credit you, my sincere apologies.  
 I've done my best to include everyone on the list, simply create an issue and name the plugin/extension you've made/contributed to and I'll make sure to credit you properly.
