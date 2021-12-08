@@ -1,11 +1,28 @@
 #pragma semicolon 1
+#pragma newdecls required
 
 #include <sourcemod>
 #include <sdktools>
 #undef REQUIRE_PLUGIN
 #include <caster_system>
 
-enum L4D2Team
+#define MAX_NETVARS_STRING_LENGTH 8
+
+enum
+{
+	eSvMinCmdRate = 0,
+	eSvMaxCmdRate,
+	eSvMinUpdateRate,
+	eSvMaxUpdateRate,
+	eSvMinRate,
+	eSvMaxRate,
+	eSvClientMinInterpRatio,
+	eSvClientMaxInterpRatio,
+
+	eNetVars_Size
+};
+
+enum
 {
 	L4D2Team_None = 0,
 	L4D2Team_Spectator,
@@ -13,30 +30,32 @@ enum L4D2Team
 	L4D2Team_Infected
 };
 
-new bool:readyUpIsAvailable;
-new Handle:sv_mincmdrate;
-new Handle:sv_maxcmdrate;
-new Handle:sv_minupdaterate;
-new Handle:sv_maxupdaterate;
-new Handle:sv_minrate;
-new Handle:sv_maxrate;
-new Handle:sv_client_min_interp_ratio;
-new Handle:sv_client_max_interp_ratio;
+bool readyUpIsAvailable = false;
 
-new String:netvars[8][8];
+char g_sNetVarsValues[eNetVars_Size][MAX_NETVARS_STRING_LENGTH];
 
-new Float:fLastAdjusted[MAXPLAYERS + 1];
+float fLastAdjusted[MAXPLAYERS + 1] = {0.0, ...};
 
-public Plugin:myinfo =
+ConVar
+	sv_mincmdrate = null,
+	sv_maxcmdrate = null,
+	sv_minupdaterate = null,
+	sv_maxupdaterate = null,
+	sv_minrate = null,
+	sv_maxrate = null,
+	sv_client_min_interp_ratio = null,
+	sv_client_max_interp_ratio = null;
+
+public Plugin myinfo =
 {
 	name = "Lightweight Spectating",
 	author = "Visor",
 	description = "Forces low rates on spectators",
-	version = "1.2.1",
+	version = "1.3",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
-public OnPluginStart()
+public void OnPluginStart()
 {
 	sv_mincmdrate = FindConVar("sv_mincmdrate");
 	sv_maxcmdrate = FindConVar("sv_maxcmdrate");
@@ -47,121 +66,127 @@ public OnPluginStart()
 	sv_client_min_interp_ratio = FindConVar("sv_client_min_interp_ratio");
 	sv_client_max_interp_ratio = FindConVar("sv_client_max_interp_ratio");
 
-	HookEvent("player_team", OnTeamChange);
+	HookEvent("player_team", Event_OnTeamChange);
 }
 
-public OnPluginEnd()
+public void OnPluginEnd()
 {
-	SetConVarString(sv_minupdaterate, netvars[2]);
-	SetConVarString(sv_mincmdrate, netvars[0]);
+	sv_minupdaterate.SetString(g_sNetVarsValues[eSvMinUpdateRate]);
+	sv_mincmdrate.SetString(g_sNetVarsValues[eSvMinCmdRate]);
 }
 
-public OnAllPluginsLoaded()
+public void OnAllPluginsLoaded()
 {
 	readyUpIsAvailable = LibraryExists("caster_system");
 }
 
-public OnLibraryRemoved(const String:name[])
+public void OnLibraryRemoved(const char[] sPluginName)
 {
-	if (StrEqual(name, "caster_system", true))
-	{
+	if (strcmp(sPluginName, "caster_system", true) == 0) {
 		readyUpIsAvailable = false;
 	}
 }
 
-public OnLibraryAdded(const String:name[])
+public void OnLibraryAdded(const char[] sPluginName)
 {
-	if (StrEqual(name, "caster_system", true))
-	{
+	if (strcmp(sPluginName, "caster_system", true) == 0) {
 		readyUpIsAvailable = true;
 	}
 }
 
-public OnConfigsExecuted()
+public void OnConfigsExecuted()
 {
-	GetConVarString(sv_mincmdrate, netvars[0], 8);
-	GetConVarString(sv_maxcmdrate, netvars[1], 8);
-	GetConVarString(sv_minupdaterate, netvars[2], 8);
-	GetConVarString(sv_maxupdaterate, netvars[3], 8);
-	GetConVarString(sv_minrate, netvars[4], 8);
-	GetConVarString(sv_maxrate, netvars[5], 8);
-	GetConVarString(sv_client_min_interp_ratio, netvars[6], 8);
-	GetConVarString(sv_client_max_interp_ratio, netvars[7], 8);
+	sv_mincmdrate.GetString(g_sNetVarsValues[eSvMinCmdRate], MAX_NETVARS_STRING_LENGTH);
+	sv_maxcmdrate.GetString(g_sNetVarsValues[eSvMaxCmdRate], MAX_NETVARS_STRING_LENGTH);
+	sv_minupdaterate.GetString(g_sNetVarsValues[eSvMinUpdateRate], MAX_NETVARS_STRING_LENGTH);
+	sv_maxupdaterate.GetString(g_sNetVarsValues[eSvMaxUpdateRate], MAX_NETVARS_STRING_LENGTH);
+	sv_minrate.GetString(g_sNetVarsValues[eSvMinRate], MAX_NETVARS_STRING_LENGTH);
+	sv_maxrate.GetString(g_sNetVarsValues[eSvMaxRate], MAX_NETVARS_STRING_LENGTH);
+	sv_client_min_interp_ratio.GetString(g_sNetVarsValues[eSvClientMinInterpRatio], MAX_NETVARS_STRING_LENGTH);
+	sv_client_max_interp_ratio.GetString(g_sNetVarsValues[eSvClientMaxInterpRatio], MAX_NETVARS_STRING_LENGTH);
 
-	SetConVarInt(sv_minupdaterate, 30);
-	SetConVarInt(sv_mincmdrate, 30);
+	sv_minupdaterate.SetInt(30);
+	sv_mincmdrate.SetInt(30);
 }
 
-public OnClientPutInServer(client)
+public void OnClientPutInServer(int iClient)
 {
-	fLastAdjusted[client] = 0.0;
+	fLastAdjusted[iClient] = 0.0;
 }
 
-public OnTeamChange(Handle:event, String:name[], bool:dontBroadcast)
+public void Event_OnTeamChange(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	new client = GetClientOfUserId(GetEventInt(event, "userid"));
-	CreateTimer(10.0, TimerAdjustRates, client, TIMER_FLAG_NO_MAPCHANGE);
+	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
+
+	CreateTimer(10.0, TimerAdjustRates, iClient, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public Action:TimerAdjustRates(Handle:timer, any:client)
+public Action TimerAdjustRates(Handle hTimer, int iClient)
 {
-	AdjustRates(client);
-	return Plugin_Handled;
+	AdjustRates(iClient);
+
+	return Plugin_Stop;
 }
 
-public OnClientSettingsChanged(client)
+public void OnClientSettingsChanged(int iClient)
 {
-	AdjustRates(client);
+	AdjustRates(iClient);
 }
 
-AdjustRates(client)
+void AdjustRates(int iClient)
 {
-	if (!IsValidClient(client))
+	if (!IsValidClient(iClient)) {
 		return;
+	}
 
-	if (fLastAdjusted[client] < GetEngineTime() - 1.0)
-	{
-		fLastAdjusted[client] = GetEngineTime();
+	float fTime = GetEngineTime();
 
-		new L4D2Team:team = L4D2Team:GetClientTeam(client);
-		if (team == L4D2Team_Survivor || team == L4D2Team_Infected || (readyUpIsAvailable && IsClientCaster(client)))
-		{
-			ResetRates(client);
-		}
-		else if (team == L4D2Team_Spectator)
-		{
-			SetSpectatorRates(client);
+	if (fLastAdjusted[iClient] < fTime - 1.0) {
+		fLastAdjusted[iClient] = fTime;
+
+		int iTeam = GetClientTeam(iClient);
+
+		if (iTeam == L4D2Team_Survivor
+			|| iTeam == L4D2Team_Infected
+			|| (readyUpIsAvailable && IsClientCaster(iClient))
+		) {
+			ResetRates(iClient);
+		} else if (iTeam == L4D2Team_Spectator) {
+			SetSpectatorRates(iClient);
 		}
 	}
 }
 
-SetSpectatorRates(client)
+void SetSpectatorRates(int iClient)
 {
-	SendConVarValue(client, sv_mincmdrate, "30");
-	SendConVarValue(client, sv_maxcmdrate, "30");
-	SendConVarValue(client, sv_minupdaterate, "30");
-	SendConVarValue(client, sv_maxupdaterate, "30");
-	SendConVarValue(client, sv_minrate, "10000");
-	SendConVarValue(client, sv_maxrate, "10000");
+	sv_mincmdrate.ReplicateToClient(iClient, "30");
+	sv_maxcmdrate.ReplicateToClient(iClient, "30");
+	sv_minupdaterate.ReplicateToClient(iClient, "30");
+	sv_maxupdaterate.ReplicateToClient(iClient, "30");
+	sv_minrate.ReplicateToClient(iClient, "10000");
+	sv_maxrate.ReplicateToClient(iClient, "10000");
 
-	SetClientInfo(client, "cl_updaterate", "30");
-	SetClientInfo(client, "cl_cmdrate", "30");
+	SetClientInfo(iClient, "cl_updaterate", "30");
+	SetClientInfo(iClient, "cl_cmdrate", "30");
 }
 
-ResetRates(client)
+void ResetRates(int iClient)
 {
-	SendConVarValue(client, sv_mincmdrate, netvars[0]);
-	SendConVarValue(client, sv_maxcmdrate, netvars[1]);
-	SendConVarValue(client, sv_minupdaterate, netvars[2]);
-	SendConVarValue(client, sv_maxupdaterate, netvars[3]);
-	SendConVarValue(client, sv_minrate, netvars[4]);
-	SendConVarValue(client, sv_maxrate, netvars[5]);
+	sv_mincmdrate.ReplicateToClient(iClient, g_sNetVarsValues[eSvMinCmdRate]);
+	sv_maxcmdrate.ReplicateToClient(iClient, g_sNetVarsValues[eSvMaxCmdRate]);
+	sv_minupdaterate.ReplicateToClient(iClient, g_sNetVarsValues[eSvMinUpdateRate]);
+	sv_maxupdaterate.ReplicateToClient(iClient, g_sNetVarsValues[eSvMaxUpdateRate]);
+	sv_minrate.ReplicateToClient(iClient, g_sNetVarsValues[eSvMinRate]);
+	sv_maxrate.ReplicateToClient(iClient, g_sNetVarsValues[eSvMaxRate]);
 
-	SetClientInfo(client, "cl_updaterate", netvars[3]);
-	SetClientInfo(client, "cl_cmdrate", netvars[1]);
+	SetClientInfo(iClient, "cl_updaterate", g_sNetVarsValues[eSvMaxUpdateRate]);
+	SetClientInfo(iClient, "cl_cmdrate", g_sNetVarsValues[eSvMaxCmdRate]);
 }
 
-bool:IsValidClient(client)
+bool IsValidClient(int iClient)
 {
-	return client > 0 && client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client);
+	return (iClient > 0
+		&& iClient <= MaxClients
+		&& IsClientInGame(iClient)
+		&& !IsFakeClient(iClient));
 }
