@@ -28,16 +28,36 @@
 
 #define TEAM_SURVIVOR 2
 
-bool g_bIsSewers = false;
+bool
+	g_bLateLoad = false,
+	g_bIsSewers = false;
 
 public Plugin myinfo =
 {
 	name = "No Mercy 3 Ladder Fix",
 	author = "Jacob",
 	description = "Blocks players getting incapped from full hp on the ladder.",
-	version = "1.1",
+	version = "1.3",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
+
+public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)
+{
+	g_bLateLoad = bLate;
+
+	return APLRes_Success;
+}
+
+public void OnPluginStart()
+{
+	if (g_bLateLoad) {
+		for (int i = 1; i <= MaxClients; i++) {
+			if (IsClientInGame(i)) {
+				OnClientPutInServer(i);
+			}
+		}
+	}
+}
 
 public void OnMapStart()
 {
@@ -46,7 +66,7 @@ public void OnMapStart()
 	g_bIsSewers = (strcmp(sMapName, "c8m3_sewers") == 0);
 }
 
-public void OnClientPostAdminCheck(int iClient)
+public void OnClientPutInServer(int iClient)
 {
 	SDKHook(iClient, SDKHook_OnTakeDamage, Hook_OnTakeDamage);
 }
@@ -58,23 +78,23 @@ public void OnClientPostAdminCheck(int iClient)
 
 public Action Hook_OnTakeDamage(int iVictim, int &iAttacker, int &iInflictor, float &fDamage, int &iDamagetype)
 {
-	int iPounceVictim = GetEntProp(iVictim, Prop_Send, "m_pounceAttacker");
-	int iJockeyVictim = GetEntProp(iVictim, Prop_Send, "m_jockeyAttacker");
-
-	if (iPounceVictim <= 0 && iJockeyVictim <= 0) {
+	if (iDamagetype != DMG_FALL || !g_bIsSewers || fDamage <= 30.0) {
 		return Plugin_Continue;
 	}
 
-	if (!g_bIsSewers){
+	if (!IsSurvivor(iVictim)) {
 		return Plugin_Continue;
 	}
 
-	if (IsSurvivor(iVictim) && fDamage > 30.0 && iDamagetype == DMG_FALL) {
-		fDamage = 30.0;
-		return Plugin_Changed;
+	int iPounceVictim = GetEntPropEnt(iVictim, Prop_Send, "m_pounceAttacker");
+	int iJockeyVictim = GetEntPropEnt(iVictim, Prop_Send, "m_jockeyAttacker");
+
+	if (iPounceVictim < 1 && iJockeyVictim < 1) {
+		return Plugin_Continue;
 	}
 
-	return Plugin_Continue;
+	fDamage = 30.0;
+	return Plugin_Changed;
 }
 
 bool IsSurvivor(int iClient)
