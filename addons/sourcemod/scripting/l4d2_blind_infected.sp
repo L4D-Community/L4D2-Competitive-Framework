@@ -105,7 +105,7 @@ public Action RoundStartDelay_Timer(Handle hTimer)
 	int iWeapon;
 	int iBhTemp[eArray_Size], iEntityCount = GetEntityCount();
 
-	for (int i = (MaxClients + 1); i < iEntityCount; i++) {
+	for (int i = (MaxClients + 1); i <= iEntityCount; i++) {
 		iWeapon = IdentifyWeapon(i);
 		if (iWeapon) {
 			for (int j = 0; j < sizeof(g_iIdsToBlock); j++) {
