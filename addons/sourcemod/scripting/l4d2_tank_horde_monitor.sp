@@ -36,7 +36,7 @@ bool
 	announcedHordeMax,
 	tankInPlay;
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name = "L4D2 Tank Horde Monitor",
 	author = "Derpduck, Visor (l4d2_horde_equaliser)",
@@ -48,10 +48,10 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	InitGameData();
-	
+
 	g_hBypassFlowDistance = FindConVar("director_tank_bypass_max_flow_travel");
 	g_hBypassExtraFlowDistance = CreateConVar("l4d2_tank_bypass_extra_flow", "1500.0", "Extra allowed flow distance to bypass tanks during infinite events (0 = disabled)", FCVAR_NONE, true, 0.0);
-	
+
 	HookEvent("round_start", RoundStartEvent, EventHookMode_PostNoCopy);
 	HookEvent("round_end", RoundEndEvent, EventHookMode_PostNoCopy);
 	HookEvent("tank_spawn", TankSpawn, EventHookMode_PostNoCopy);
@@ -69,14 +69,14 @@ void InitGameData()
 	if (!pZombieManager) {
 		SetFailState("Couldn't find the 'ZombieManager' address");
 	}
-	
+
 	delete hDamedata;
 
 	Handle hDamedata2 = LoadGameConfigFile(ZOMBIEMANAGER_GAMEDATA);
 	if (!hDamedata2) {
 		SetFailState("%s gamedata missing or corrupt", ZOMBIEMANAGER_GAMEDATA);
 	}
-	
+
 	m_nPendingMobCount = GameConfGetOffset(hDamedata2, "ZombieManager->m_nPendingMobCount");
 	if (m_nPendingMobCount == -1) {
 		SetFailState("Failed to get offset 'ZombieManager->m_nPendingMobCount'.");
@@ -103,7 +103,7 @@ public void RoundEndEvent(Event hEvent, const char[] name, bool dontBroadcast)
 	TimerCleanUp();
 }
 
-public void TankSpawn(Event event, const char[] name, bool dontBroadcast) 
+public void TankSpawn(Event event, const char[] name, bool dontBroadcast)
 {
 	if (!tankInPlay){
 		tankInPlay = true;
@@ -233,7 +233,7 @@ public Action L4D_OnSpawnMob(int &amount)
 			return Plugin_Handled;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -276,7 +276,7 @@ int FindTankClient()
 		if (!IsInfected(i) || !IsTank(i) || !IsPlayerAlive(i)) {
 			continue;
 		}
-		
+
 		return i; // Found tank, return
 	}
 	return 0;
