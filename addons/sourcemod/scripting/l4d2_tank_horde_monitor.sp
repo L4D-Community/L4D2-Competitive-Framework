@@ -160,9 +160,8 @@ public void AnnounceTankSpawn()
 
 public Action FlowCheckTimer(Handle hTimer)
 {
-	g_hFlowCheckTimer = null;
-	
 	if (!tankInPlay || announcedHordeResume){
+		g_hFlowCheckTimer = null;
 		return Plugin_Stop;
 	}
 
@@ -300,5 +299,6 @@ public void TimerCleanUp()
 {
 	if (g_hFlowCheckTimer != null){
 		delete g_hFlowCheckTimer;
+		g_hFlowCheckTimer = null;
 	}
 }
