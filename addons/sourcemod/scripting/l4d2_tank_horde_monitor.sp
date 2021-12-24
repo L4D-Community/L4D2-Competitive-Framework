@@ -41,8 +41,8 @@ public Plugin myinfo =
 	name = "L4D2 Tank Horde Monitor",
 	author = "Derpduck, Visor (l4d2_horde_equaliser)",
 	description = "Monitors and changes state of infinite hordes during tanks",
-	version = "1",
-	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
+	version = "1.1",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()
@@ -105,14 +105,14 @@ public void RoundEndEvent(Event hEvent, const char[] name, bool dontBroadcast)
 
 public void TankSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-	if (!tankInPlay){
+	if (!tankInPlay) {
 		tankInPlay = true;
 
 		// Find current highest flow, and where the bypass point is
 		fFurthestFlow = L4D2_GetFurthestSurvivorFlow();
 		fBypassFlow = fFurthestFlow + g_hBypassFlowDistance.FloatValue;
 
-		if (IsInfiniteHordeActive() && !announcedTankSpawn){
+		if (IsInfiniteHordeActive() && !announcedTankSpawn) {
 			AnnounceTankSpawn();
 		}
 	}
@@ -160,7 +160,7 @@ public void AnnounceTankSpawn()
 
 public Action FlowCheckTimer(Handle hTimer)
 {
-	if (!tankInPlay || announcedHordeResume){
+	if (!tankInPlay || announcedHordeResume) {
 		g_hFlowCheckTimer = null;
 		return Plugin_Stop;
 	}
@@ -171,7 +171,7 @@ public Action FlowCheckTimer(Handle hTimer)
 	// Print warnings if approaching the bypass limit
 	float fWarningPercent = GetFlowUntilBypass(fFurthestFlow, fBypassFlow);
 
-	if (fProgressFlowPercent - fWarningPercent >= 1.0 && !announcedHordeResume){
+	if (fProgressFlowPercent - fWarningPercent >= 1.0 && !announcedHordeResume) {
 		fProgressFlowPercent = fWarningPercent;
 		CPrintToChatAll("<{olive}Horde{default}> {blue}%0.1f%%{default} left until horde starts...", fWarningPercent);
 	}
@@ -191,9 +191,9 @@ public Action L4D_OnSpawnMob(int &amount)
 	// - Not Called on z_spawn mob.
 	////////////////////////////////////
 
-	if (tankInPlay && IsInfiniteHordeActive()){
+	if (tankInPlay && IsInfiniteHordeActive()) {
 		// If survivors have already pushed past the extra bypass distance we can ignore this
-		if (announcedHordeMax){
+		if (announcedHordeMax) {
 			return Plugin_Continue;
 		} else {
 			// Calculate how far survivors have pushed
@@ -201,25 +201,25 @@ public Action L4D_OnSpawnMob(int &amount)
 			float fPushAmount = (fFurthestFlow - fBypassFlow) / (g_hBypassFlowDistance.FloatValue + g_hBypassExtraFlowDistance.FloatValue);
 
 			// Clamp values
-			if (fPushAmount < 0.0){
+			if (fPushAmount < 0.0) {
 				fPushAmount = 0.0;
-			} else if (fPushAmount > 1.0){
+			} else if (fPushAmount > 1.0) {
 				fPushAmount = 1.0;
 			}
 
 			// Announce tank spawn (if tank spawned before the horde)
-			//if (!announcedTankSpawn){
+			//if (!announcedTankSpawn) {
 			//	AnnounceTankSpawn();
 			//}
 
 			// Have survivors pushed past the bypass point?
-			if (!announcedHordeResume){
+			if (!announcedHordeResume) {
 				CPrintToChatAll("<{olive}Horde{default}> Survivors are pushing the tank, {green}ramping up{default} the horde as they push!");
 				announcedHordeResume = true;
 			}
 
 			// Have survivors have pushed past the extra distance we allow?
-			if (fPushAmount == 1.0){
+			if (fPushAmount == 1.0) {
 				CPrintToChatAll("<{olive}Horde{default}> Survivors have pushed too far, horde is now at {red}max{default}!");
 				announcedHordeMax = true;
 			}
@@ -288,7 +288,7 @@ float GetFlowUntilBypass(float fCurrentFlowValue, float fBypassFlowValue)
 	float fBypassFlowPercent = (fBypassFlowValue / L4D2Direct_GetMapMaxFlowDistance());
 	float result = (fBypassFlowPercent - fCurrentFlowPercent) * 100;
 
-	if (result < 0){
+	if (result < 0) {
 		result = 0.0;
 	}
 
@@ -297,7 +297,7 @@ float GetFlowUntilBypass(float fCurrentFlowValue, float fBypassFlowValue)
 
 public void TimerCleanUp()
 {
-	if (g_hFlowCheckTimer != null){
+	if (g_hFlowCheckTimer != null) {
 		delete g_hFlowCheckTimer;
 		g_hFlowCheckTimer = null;
 	}
