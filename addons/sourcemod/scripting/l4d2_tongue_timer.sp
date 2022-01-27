@@ -1,7 +1,9 @@
-#include <l4d2util_infected>
+#pragma semicolon 1
 #pragma newdecls required
+
 #include <sourcemod>
 #include <sdkhooks>
+#include <l4d2util_infected>
 
 /* NOTES:
 - Make bots/replacing players get hooked if they're currently pulled (bot_replace, player_replace)
@@ -28,7 +30,7 @@ public Plugin myinfo =
 	name = "Tongue Timer",
 	author = "Sir",
 	description = "Modify the Smoker's tongue ability timer in certain scenarios.",
-	version = "1.1",
+	version = "1.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
@@ -41,6 +43,7 @@ public void OnPluginStart()
 	convarTongueDelayTank.AddChangeHook(ConvarChanged);
 	convarTongueDelaySurvivor.AddChangeHook(ConvarChanged);
 
+	HookEvent("round_start", Event_TongueRelease);
 	HookEvent("player_bot_replace", Event_Replace);
 	HookEvent("bot_player_replace", Event_Replace);
 	HookEvent("tongue_grab", Event_TongueGrab);
@@ -57,9 +60,7 @@ public void OnPluginStart()
 }
 
 // ----------------------------------------------
-//
 //             SDKHOOKS STUFF
-//
 // ----------------------------------------------
 public void OnClientPutInServer(int client)
 {
@@ -77,7 +78,7 @@ public Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &dam
 
 	// Find and Store smoker.
 	int iSmoker = FindSmoker();
-	bPlayerPulled[victim] = false;
+	ClearPulls();
 	if (iSmoker == 0) return Plugin_Continue;
 
 	float time = GetGameTime();
@@ -125,12 +126,7 @@ public void Event_TonguePullStopped(Event event, const char[] name, bool dontBro
 
 public void Event_TongueRelease(Event event, const char[] name, bool dontBroadcast)
 {
-	int victim = GetClientOfUserId(event.GetInt("victim"))
-
-	if (IsValidClient(victim) && bPlayerPulled[victim])
-	{
-		RequestFrame(OnNextFrame, victim);
-	}
+	RequestFrame(OnNextFrame);
 }
 
 public void Event_Replace(Event event, const char[] name, bool dontBroadcast)
@@ -155,18 +151,20 @@ public void Event_Replace(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
+public void ClearPulls()
+{
+	for(int i = 1; i <= MaxClients; i++)
+	{
+		bPlayerPulled[i] = false;
+	}
+}
 
 // ----------------------------------------------
-//
 //             REQUESTFRAMES (Next Frame)
-//
 // ----------------------------------------------
 void OnNextFrame(any victim)
 {
-	if (IsValidClient(victim) && bPlayerPulled[victim])
-	{
-		bPlayerPulled[victim] = false;
-	}
+	ClearPulls();
 }
 
 public void OnSmokerSurvivorClear(any smoker)
