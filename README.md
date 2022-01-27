@@ -49,6 +49,7 @@ It will contain both much needed fixes that are simply unable to be implemented 
 * Arti
 * AtomicStryker
 * Backwards
+* BHaType
 * Blade
 * Buster
 * Canadarox

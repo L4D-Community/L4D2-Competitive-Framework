@@ -1,0 +1,49 @@
+"Games"
+{
+	"left4dead2"
+	{
+		"Addresses"
+		{
+			"CheckForLaddersAddress"
+			{
+				"linux"
+				{
+					"signature"		"CTerrorGameMovement::CheckForLadders"
+				}
+				"windows"
+				{
+					"signature"		"CTerrorGameMovement::CheckForLadders"
+				}
+			}
+		}
+
+		"Offsets"
+		{
+			"CheckForLaddersPatchOffset"
+			{
+				"linux"				"853" // 0F 84 C9 FE FF FF			jz	loc_4E9764
+				"windows"			"111" // 74 3B						jz	short loc_102CF09C
+			}
+			"Platform"
+			{
+				"linux"				"0"
+				"windows"			"1"
+			}
+		}
+
+		/*
+		 * How to find in windows:
+		 * We can find the function 'CTerrorGameMovement::HandleCustomCollision' by string 'pipe_bomb_projectile',
+		 * then we can find the desired function in the virtual table
+		*/
+		"Signatures"
+		{
+			"CTerrorGameMovement::CheckForLadders"
+			{
+				"windows"			"\x55\x8B\xEC\x56\x8B\xF1\x83\xBE\x10\x08\x00\x00\x00"
+				"linux"				"@_ZN19CTerrorGameMovement15CheckForLaddersEb"
+									/* 55 8B EC 56 8B F1 83 BE 10 08 00 00 00 */
+			}
+		}
+	}
+}
