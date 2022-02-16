@@ -1,9 +1,13 @@
 #pragma semicolon 1
+#pragma newdecls required
 
 #include <sourcemod>
 #define LEFT4FRAMEWORK_INCLUDE 1
 #include <left4framework>
 #include <colors>
+
+#define TEAM_INFECTED 3
+#define Z_TANK 8
 
 //throw sequences:
 //48 - (not used unless tank_rock_overhead_percent is changed)
@@ -12,141 +16,148 @@
 //50 - underhand (+use),
 //51 - 2handed overhand (+reload)
 
-new g_iQueuedThrow[MAXPLAYERS + 1];
-new Handle:g_hBlockPunchRock = INVALID_HANDLE;
-new Handle:g_hBlockJumpRock = INVALID_HANDLE;
-new Handle:hOverhandOnly;
+int
+	g_iZombieClassOffset = -1,
+	g_iQueuedThrow[MAXPLAYERS + 1];
 
-new Float:throwQueuedAt[MAXPLAYERS + 1];
+float
+	throwQueuedAt[MAXPLAYERS + 1];
 
-public Plugin:myinfo =
+ConVar
+	g_hBlockPunchRock = null,
+	g_hBlockJumpRock = null,
+	g_hOverhandOnly = null;
+
+public Plugin myinfo =
 {
 	name = "Tank Attack Control",
 	author = "vintik, CanadaRox, Jacob, Visor",
 	description = "",
-	version = "0.7.1",
+	version = "0.7.3",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
+
+public APLRes AskPluginLoad2(Handle hMyself, bool bLate, char[] sError, int iErrMax)
+{
+	if (GetEngineVersion() != Engine_Left4Dead2) {
+		strcopy(sError, iErrMax, "Plugin supports Left 4 dead 2 only!");
+		return APLRes_SilentFailure;
+	}
+
+	return APLRes_Success;
 }
 
-public OnPluginStart()
+public void OnPluginStart()
 {
-	decl String:sGame[256];
-	GetGameFolderName(sGame, sizeof(sGame));
-	if (!StrEqual(sGame, "left4dead2", false))
-	{
-		SetFailState("Plugin supports Left 4 dead 2 only!");
+	g_iZombieClassOffset = FindSendPropInfo("CTerrorPlayer", "m_zombieClass");
+	if (g_iZombieClassOffset == -1) {
+		SetFailState("Failed to get offset from \"CTerrorPlayer::m_zombieClass\"");
 	}
 
 	//future-proof remake of the confogl feature (could be used with lgofnoc)
-	g_hBlockPunchRock = CreateConVar("l4d2_block_punch_rock", "1", "Block tanks from punching and throwing a rock at the same time");
-	g_hBlockJumpRock = CreateConVar("l4d2_block_jump_rock", "0", "Block tanks from jumping and throwing a rock at the same time");
-	hOverhandOnly = CreateConVar("tank_overhand_only", "0", "Force tank to only throw overhand rocks.");
+	g_hBlockPunchRock = CreateConVar("l4d2_block_punch_rock", "1", "Block tanks from punching and throwing a rock at the same time", _, true, 0.0, true, 1.0);
+	g_hBlockJumpRock = CreateConVar("l4d2_block_jump_rock", "0", "Block tanks from jumping and throwing a rock at the same time", _, true, 0.0, true, 1.0);
+	g_hOverhandOnly = CreateConVar("tank_overhand_only", "0", "Force tank to only throw overhand rocks.", _, true, 0.0, true, 1.0);
 
-	HookEvent("round_start", RoundStartEvent, EventHookMode_PostNoCopy);
-	HookEvent("tank_spawn", TankSpawn_Event);
+	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+	HookEvent("tank_spawn", Event_TankSpawn);
 }
 
-public void RoundStartEvent(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+public void Event_RoundStart(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
 	for (int i = 1; i <= MaxClients; i++) {
+		g_iQueuedThrow[i] = 3;
 		throwQueuedAt[i] = 0.0;
 	}
 }
 
-public TankSpawn_Event(Handle:event, const String:name[], bool:dontBroadcast)
+public void Event_TankSpawn(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	new tank = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (IsFakeClient(tank)) return;
+	int iTank = GetClientOfUserId(hEvent.GetInt("userid"));
 
-	bool hidemessage = false;
-
-	char buffer[3];
-	if (GetClientInfo(tank, "rs_hidemessage", buffer, sizeof(buffer)))
-	{
-		hidemessage = bool:StringToInt(buffer);
+	if (IsFakeClient(iTank)) {
+		return;
 	}
 
-	if (!hidemessage && (GetConVarBool(hOverhandOnly) == false))
-	{
-		CPrintToChat(tank, "{blue}[{default}Tank Rock Selector{blue}]");
-		CPrintToChat(tank, "{olive}Reload {default}= {blue}2 Handed Overhand");
-		CPrintToChat(tank, "{olive}Use {default}= {blue}Underhand");
-		CPrintToChat(tank, "{olive}M2 {default}= {blue}1 Handed Overhand");
+	bool bHidemessage = false;
+
+	char sBuffer[3];
+	if (GetClientInfo(iTank, "rs_hidemessage", sBuffer, sizeof(sBuffer))) {
+		bHidemessage = view_as<bool>(StringToInt(sBuffer));
+	}
+
+	if (!bHidemessage && !g_hOverhandOnly.BoolValue) {
+		CPrintToChat(iTank, "{blue}[{default}Tank Rock Selector{blue}]");
+		CPrintToChat(iTank, "{olive}Reload {default}= {blue}2 Handed Overhand");
+		CPrintToChat(iTank, "{olive}Use {default}= {blue}Underhand");
+		CPrintToChat(iTank, "{olive}M2 {default}= {blue}1 Handed Overhand");
 	}
 }
 
-public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
+public Action OnPlayerRunCmd(int iClient, int& iButtons, int& iImpulse, float fVel[3], float fAngles[3], int& iWeapon)
 {
-	if (!IsClientInGame(client) || IsFakeClient(client) || GetClientTeam(client) != 3
-		|| GetEntProp(client, Prop_Send, "m_zombieClass") != 8)
-			return Plugin_Continue;
-
-	//if tank
-	if ((buttons & IN_JUMP) && ShouldCancelJump(client))
-	{
-		buttons &= ~IN_JUMP;
-	}
-
-	if (GetConVarBool(hOverhandOnly) == false)
-	{
-		if (buttons & IN_RELOAD)
-		{
-			g_iQueuedThrow[client] = 3; //two hand overhand
-			buttons |= IN_ATTACK2;
-		}
-		else if (buttons & IN_USE)
-		{
-			g_iQueuedThrow[client] = 2; //underhand
-			buttons |= IN_ATTACK2;
-		}
-		else
-		{
-			g_iQueuedThrow[client] = 1; //one hand overhand
-		}
-	}
-	else
-	{
-		g_iQueuedThrow[client] = 3; // two hand overhand
-	}
-
-	return Plugin_Continue;
-}
-
-public Action:L4D_OnCThrowActivate(ability)
-{
-	if (!IsValidEntity(ability))
-	{
-		LogMessage("Invalid 'ability_throw' index: %d. Continuing throwing.", ability);
+	if (GetClientTeam(iClient) != TEAM_INFECTED
+		|| GetEntData(iClient, g_iZombieClassOffset, 4) != Z_TANK
+		|| IsFakeClient(iClient)
+		|| !IsPlayerAlive(iClient)
+	) {
 		return Plugin_Continue;
 	}
-	new client = GetEntPropEnt(ability, Prop_Data, "m_hOwnerEntity");
 
-	if (GetClientButtons(client) & IN_ATTACK)
-	{
-		if (GetConVarBool(g_hBlockPunchRock))
-			return Plugin_Handled;
+	//if tank
+	if ((iButtons & IN_JUMP) && ShouldCancelJump(iClient)) {
+		iButtons &= ~IN_JUMP;
 	}
 
-	throwQueuedAt[client] = GetGameTime();
+	if (g_hOverhandOnly.BoolValue) {
+		g_iQueuedThrow[iClient] = 3; // two hand overhand
+	} else {
+		if (iButtons & IN_RELOAD) {
+			g_iQueuedThrow[iClient] = 3; //two hand overhand
+			iButtons |= IN_ATTACK2;
+		} else if (iButtons & IN_USE) {
+			g_iQueuedThrow[iClient] = 2; //underhand
+			iButtons |= IN_ATTACK2;
+		} else {
+			g_iQueuedThrow[iClient] = 1; //one hand overhand
+		}
+	}
+
 	return Plugin_Continue;
 }
 
-public Action:L4D2_OnSelectTankAttack(client, &sequence)
+public Action L4D_OnCThrowActivate(int iAbility)
 {
-	if (sequence > 48 && g_iQueuedThrow[client])
-	{
-		//rock throw
-		sequence = g_iQueuedThrow[client] + 48;
+	int iOwner = GetEntPropEnt(iAbility, Prop_Data, "m_hOwnerEntity");
+	if (iOwner == -1) {
+		return Plugin_Continue;
+	}
+
+	if (g_hBlockPunchRock.BoolValue && (GetClientButtons(iOwner) & IN_ATTACK)) {
 		return Plugin_Handled;
 	}
+
+	throwQueuedAt[iOwner] = GetGameTime();
+
 	return Plugin_Continue;
 }
 
-bool:ShouldCancelJump(client)
+public Action L4D2_OnSelectTankAttack(int iClient, int &iSequence)
 {
-	if (!GetConVarBool(g_hBlockJumpRock))
-	{
+	if (iSequence > 48 && g_iQueuedThrow[iClient]) {
+		//rock throw
+		iSequence = g_iQueuedThrow[iClient] + 48;
+		return Plugin_Handled;
+	}
+
+	return Plugin_Continue;
+}
+
+bool ShouldCancelJump(int iClient)
+{
+	if (!g_hBlockJumpRock.BoolValue) {
 		return false;
 	}
-	return (1.5 > GetGameTime() - throwQueuedAt[client]);
+
+	return (1.5 > GetGameTime() - throwQueuedAt[iClient]);
 }
