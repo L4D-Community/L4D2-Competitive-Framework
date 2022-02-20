@@ -4,7 +4,7 @@
 #include <sourcemod>
 #include <sdkhooks>
 
-#define DEBUG 1
+#define DEBUG 0
 
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
