@@ -6,7 +6,6 @@
 #include <sdkhooks>
 #define L4D2UTIL_STOCKS_ONLY 1
 #include <l4d2util> //#include <weapons>
-#include <colors>
 
 #define MAX_WEAPON_NAME_LENGTH	32
 #define GAMEDATA_FILE			"l4d_wlimits"
@@ -235,7 +234,7 @@ public Action WeaponCanUse(int client, int weapon)
 						GiveDefaultAmmo(client);
 					}
 
-					CPrintToChat(client, "{blue}[{default}Weapon Limits{blue}]{default} This weapon group has reached its max of {green}%d", arrayEntry.LAE_iLimit);
+					PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry.LAE_iLimit);
 					EmitSoundToClient(client, "player/suit_denydevice.wav");
 					return Plugin_Handled;
 				}
@@ -253,7 +252,7 @@ public Action WeaponCanUse(int client, int weapon)
 						GiveDefaultAmmo(client);
 					}
 
-					CPrintToChat(client, "{blue}[{default}Weapon Limits{blue}]{default} This weapon group has reached its max of {green}%d", arrayEntry[LAE_iLimit]);
+					PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry[LAE_iLimit]);
 					EmitSoundToClient(client, "player/suit_denydevice.wav");
 					return Plugin_Handled;
 				}
