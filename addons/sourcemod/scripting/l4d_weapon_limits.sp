@@ -5,15 +5,14 @@
 #include <sdktools>
 #include <sdkhooks>
 #define L4D2UTIL_STOCKS_ONLY 1
-#include <l4d2util> //#include <weapons>
+#include <l4d2util>
 
-#define MAX_WEAPON_NAME_LENGTH	32
-#define GAMEDATA_FILE			"l4d_wlimits"
-#define GAMEDATA_USE_AMMO		"CWeaponAmmoSpawn_Use"
-
-#define MAX_PLAYER_WEAPON_SLOTS 5
-
-#define TEAM_SURVIVOR 2
+#define MAX_WEAPON_NAME_LENGTH		32
+#define GAMEDATA_FILE				"l4d_wlimits"
+#define GAMEDATA_USE_AMMO			"CWeaponAmmoSpawn_Use"
+#define MAX_PLAYER_WEAPON_SLOTS		5
+#define TEAM_SURVIVOR				2
+#define SOUND_NAME					"player/suit_denydevice.wav"
 
 #if SOURCEMOD_V_MINOR > 9
 enum struct LimitArrayEntry
@@ -46,40 +45,22 @@ public Plugin myinfo =
 	name = "L4D Weapon Limits",
 	author = "CanadaRox, Stabby, Forgetest, A1m`",
 	description = "Restrict weapons individually or together",
-	version = "1.3.7",
+	version = "1.3.9",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
 public void OnPluginStart()
 {
+	InitSDKCall();
 	L4D2Weapons_Init();
 
 #if SOURCEMOD_V_MINOR > 9
-	hLimitArray = new ArrayList(sizeof(LimitArrayEntry));
+	LimitArrayEntry arrayEntry;
 #else
-	hLimitArray = new ArrayList(view_as<int>(LimitArrayEntry));
+	LimitArrayEntry arrayEntry[LimitArrayEntry];
 #endif
 
-	/* Preparing SDK Call */
-	Handle conf = LoadGameConfigFile(GAMEDATA_FILE);
-
-	if (conf == null) {
-		SetFailState("Gamedata missing: %s", GAMEDATA_FILE);
-	}
-
-	StartPrepSDKCall(SDKCall_Entity);
-
-	if (!PrepSDKCall_SetFromConf(conf, SDKConf_Signature, GAMEDATA_USE_AMMO)) {
-		SetFailState("Gamedata missing signature: %s", GAMEDATA_USE_AMMO);
-	}
-
-	// Client that used the ammo spawn
-	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
-	hSDKGiveDefaultAmmo = EndPrepSDKCall();
-
-	if (hSDKGiveDefaultAmmo == null) {
-		SetFailState("Failed to finish SDKCall setup: %s", GAMEDATA_USE_AMMO);
-	}
+	hLimitArray = new ArrayList(sizeof(arrayEntry));
 
 	RegServerCmd("l4d_wlimits_add", AddLimit_Cmd, "Add a weapon limit");
 	RegServerCmd("l4d_wlimits_lock", LockLimits_Cmd, "Locks the limits to improve search speeds");
@@ -91,30 +72,54 @@ public void OnPluginStart()
 	HookEvent("player_death", OnDeath);
 	HookEvent("player_bot_replace", OnBotReplacedPlayer);
 	HookEvent("bot_player_replace", OnPlayerReplacedBot);
+}
 
-	delete conf;
+void InitSDKCall()
+{
+	/* Preparing SDK Call */
+	Handle hConf = LoadGameConfigFile(GAMEDATA_FILE);
+
+	if (hConf == null) {
+		SetFailState("Gamedata missing: %s", GAMEDATA_FILE);
+	}
+
+	StartPrepSDKCall(SDKCall_Entity);
+
+	if (!PrepSDKCall_SetFromConf(hConf, SDKConf_Signature, GAMEDATA_USE_AMMO)) {
+		SetFailState("Gamedata missing signature: %s", GAMEDATA_USE_AMMO);
+	}
+
+	// Client that used the ammo spawn
+	PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
+	hSDKGiveDefaultAmmo = EndPrepSDKCall();
+
+	if (hSDKGiveDefaultAmmo == null) {
+		SetFailState("Failed to finish SDKCall setup: %s", GAMEDATA_USE_AMMO);
+	}
+
+	delete hConf;
 }
 
 public void OnMapStart()
 {
-	PrecacheSound("player/suit_denydevice.wav");
+	PrecacheSound(SOUND_NAME);
 }
 
 public void ClearUp(Event hEvent, const char[] name, bool dontBroadcast)
 {
-	for (int i = 1; i <= MAXPLAYERS; i++) {
+	for (int i = 1; i <= MaxClients; i++) {
 		bIsIncappedWithMelee[i] = false;
 	}
 }
 
 public void OnClientPutInServer(int client)
 {
-	SDKHook(client, SDKHook_WeaponCanUse, WeaponCanUse);
+	SDKHook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 }
 
 public void OnClientDisconnect(int client)
 {
-	SDKUnhook(client, SDKHook_WeaponCanUse, WeaponCanUse);
+	SDKUnhook(client, SDKHook_WeaponCanUse, Hook_WeaponCanUse);
 }
 
 public Action AddLimit_Cmd(int args)
@@ -143,11 +148,12 @@ public Action AddLimit_Cmd(int args)
 
 	for (int i = 3; i <= args; ++i) {
 		GetCmdArg(i, sTempBuff, sizeof(sTempBuff));
+
 		wepid = WeaponNameToId(sTempBuff);
 		newEntry.LAE_WeaponArray[wepid / 32] |= (1 << (wepid % 32));
 	}
 
-	hLimitArray.PushArray(newEntry, sizeof(LimitArrayEntry));
+	hLimitArray.PushArray(newEntry, sizeof(newEntry));
 #else
 	LimitArrayEntry newEntry[LimitArrayEntry];
 
@@ -159,12 +165,14 @@ public Action AddLimit_Cmd(int args)
 
 	for (int i = 3; i <= args; ++i) {
 		GetCmdArg(i, sTempBuff, sizeof(sTempBuff));
+
 		wepid = WeaponNameToId(sTempBuff);
 		newEntry[LAE_WeaponArray][wepid / 32] |= (1 << (wepid % 32));
 	}
 
-	hLimitArray.PushArray(newEntry[0], view_as<int>(LimitArrayEntry));
+	hLimitArray.PushArray(newEntry[0], sizeof(newEntry));
 #endif
+
 	return Plugin_Handled;
 }
 
@@ -185,20 +193,16 @@ public Action ClearLimits_Cmd(int args)
 	if (bIsLocked) {
 		bIsLocked = false;
 		PrintToChatAll("[L4D Weapon Limits] Weapon limits cleared!");
-		ClearLimits();
+
+		if (hLimitArray != null) {
+			hLimitArray.Clear();
+		}
 	}
 
 	return Plugin_Handled;
 }
 
-void ClearLimits()
-{
-	if (hLimitArray != null) {
-		ClearArray(hLimitArray);
-	}
-}
-
-public Action WeaponCanUse(int client, int weapon)
+public Action Hook_WeaponCanUse(int client, int weapon)
 {
 	// TODO: There seems to be an issue that this hook will be constantly called
 	//       when client with no weapon on equivalent slot just eyes or walks on it.
@@ -222,7 +226,8 @@ public Action WeaponCanUse(int client, int weapon)
 	int iSize = hLimitArray.Length;
 	for (int i = 0; i < iSize; i++) {
 		#if SOURCEMOD_V_MINOR > 9
-			hLimitArray.GetArray(i, arrayEntry, sizeof(LimitArrayEntry));
+			hLimitArray.GetArray(i, arrayEntry, sizeof(arrayEntry));
+
 			if (arrayEntry.LAE_WeaponArray[wepid / 32] & (1 << (wepid % 32)) && GetWeaponCount(arrayEntry.LAE_WeaponArray) >= arrayEntry.LAE_iLimit) {
 				if (!player_wepid || wepid == player_wepid || !(arrayEntry.LAE_WeaponArray[player_wepid / 32] & (1 << (player_wepid % 32)))) {
 					// Swap melee, np
@@ -233,14 +238,16 @@ public Action WeaponCanUse(int client, int weapon)
 					if ((wep_slot == 0 && arrayEntry.LAE_iGiveAmmo == -1) || arrayEntry.LAE_iGiveAmmo != 0) {
 						GiveDefaultAmmo(client);
 					}
-
+			
 					PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry.LAE_iLimit);
-					EmitSoundToClient(client, "player/suit_denydevice.wav");
+					EmitSoundToClient(client, SOUND_NAME);
+
 					return Plugin_Handled;
 				}
 			}
 		#else
-			hLimitArray.GetArray(i, arrayEntry[0], view_as<int>(LimitArrayEntry));
+			hLimitArray.GetArray(i, arrayEntry[0], sizeof(arrayEntry));
+
 			if (arrayEntry[LAE_WeaponArray][wepid / 32] & (1 << (wepid % 32)) && GetWeaponCount(arrayEntry[LAE_WeaponArray]) >= arrayEntry[LAE_iLimit]) {
 				if (!player_wepid || wepid == player_wepid || !(arrayEntry[LAE_WeaponArray][player_wepid / 32] & (1 << (player_wepid % 32)))) {
 					// Swap melee, np
@@ -253,7 +260,8 @@ public Action WeaponCanUse(int client, int weapon)
 					}
 
 					PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry[LAE_iLimit]);
-					EmitSoundToClient(client, "player/suit_denydevice.wav");
+					EmitSoundToClient(client, SOUND_NAME);
+
 					return Plugin_Handled;
 				}
 			}
@@ -316,6 +324,7 @@ stock int GetWeaponCount(const int[] mask)
 		if (IsClientInGame(i) && GetClientTeam(i) == TEAM_SURVIVOR && IsPlayerAlive(i)) {
 			for (int j = 0; j < MAX_PLAYER_WEAPON_SLOTS; ++j) {
 				wepid = IdentifyWeapon(GetPlayerWeaponSlot(i, j));
+
 				if (mask[wepid / 32] & (1 << (wepid % 32)) || (j == 1 && queryMelee && bIsIncappedWithMelee[i])) {
 					count++;
 				}
