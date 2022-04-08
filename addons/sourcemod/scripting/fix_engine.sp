@@ -499,6 +499,8 @@ void EF_ToogleEvents(bool bHook)
 		HookEvent("heal_success", EF_ev_HealSuccess);
 		HookEvent("revive_success", EF_ev_HealSuccess);
 		HookEvent("player_incapacitated", EF_ev_HealSuccess);
+		
+		bIsHooked = true;
 	}
 	else if (bIsHooked && !bHook){
 
@@ -508,6 +510,8 @@ void EF_ToogleEvents(bool bHook)
 		UnhookEvent("heal_success", EF_ev_HealSuccess);
 		UnhookEvent("revive_success", EF_ev_HealSuccess);
 		UnhookEvent("player_incapacitated", EF_ev_HealSuccess);
+		
+		bIsHooked = false;
 	}
 }
 
