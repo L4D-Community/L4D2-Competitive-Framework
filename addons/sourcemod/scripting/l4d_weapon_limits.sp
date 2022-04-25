@@ -1,3 +1,11 @@
+// Changelog:
+//
+// 2.0 (robex):
+//     - Code rework, cleaned up old sourcemod functions
+//     - Allow limiting individual melees, to limit them with l4d_wlimits_add
+//       use names in MeleeWeaponNames array (l4d2util_constants.inc)
+//
+
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -21,13 +29,15 @@ enum struct LimitArrayEntry
 	int LAE_iLimit;
 	int LAE_iGiveAmmo;
 	int LAE_WeaponArray[WEPID_SIZE / 32 + 1];
+	int LAE_MeleeArray[WEPID_MELEES_SIZE / 32 + 1];
 }
 #else
 enum LimitArrayEntry
 {
 	LAE_iLimit,
 	LAE_iGiveAmmo,
-	LAE_WeaponArray[WEPID_SIZE / 32 + 1]
+	LAE_WeaponArray[WEPID_SIZE / 32 + 1],
+	LAE_MeleeArray[WEPID_MELEES_SIZE / 32 + 1]
 };
 #endif
 
@@ -45,12 +55,15 @@ bool
 	bIsLocked,
 	bIsIncappedWithMelee[MAXPLAYERS + 1];
 
+StringMap
+	hMeleeWeaponNamesTrie = null;
+
 public Plugin myinfo =
 {
 	name = "L4D Weapon Limits",
-	author = "CanadaRox, Stabby, Forgetest, A1m`",
+	author = "CanadaRox, Stabby, Forgetest, A1m`, robex",
 	description = "Restrict weapons individually or together",
-	version = "1.4",
+	version = "2.1",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 };
 
@@ -66,6 +79,11 @@ public void OnPluginStart()
 #endif
 
 	hLimitArray = new ArrayList(sizeof(arrayEntry));
+	hMeleeWeaponNamesTrie = new StringMap();
+
+	for (int i = 0; i < WEPID_MELEES_SIZE; i++) {
+		hMeleeWeaponNamesTrie.SetValue(MeleeWeaponNames[i], i);
+	}
 
 	RegServerCmd("l4d_wlimits_add", AddLimit_Cmd, "Add a weapon limit");
 	RegServerCmd("l4d_wlimits_lock", LockLimits_Cmd, "Locks the limits to improve search speeds");
@@ -78,6 +96,7 @@ public void OnPluginStart()
 	HookEvent("player_bot_replace", OnBotReplacedPlayer);
 	HookEvent("bot_player_replace", OnPlayerReplacedBot);
 
+	// For debug
 	/*for (int i = 1; i <= MaxClients; i++) {
 		if (IsClientInGame(i)) {
 			OnClientPutInServer(i);
@@ -147,22 +166,27 @@ public Action AddLimit_Cmd(int args)
 	char sTempBuff[MAX_WEAPON_NAME_LENGTH];
 	GetCmdArg(1, sTempBuff, sizeof(sTempBuff));
 
-	int wepid;
+	int wepid, meleeid;
 
 #if SOURCEMOD_V_MINOR > 9
 	LimitArrayEntry newEntry;
 
 	newEntry.LAE_iLimit = StringToInt(sTempBuff);
-
 	GetCmdArg(2, sTempBuff, sizeof(sTempBuff));
-
 	newEntry.LAE_iGiveAmmo = StringToInt(sTempBuff);
 
 	for (int i = 3; i <= args; ++i) {
 		GetCmdArg(i, sTempBuff, sizeof(sTempBuff));
 
 		wepid = WeaponNameToId(sTempBuff);
-		newEntry.LAE_WeaponArray[wepid / 32] |= (1 << (wepid % 32));
+		AddBitMask(newEntry.LAE_WeaponArray, wepid);
+
+		// assume it might be a melee
+		if (wepid == WEPID_NONE) {
+			if (hMeleeWeaponNamesTrie.GetValue(sTempBuff, meleeid)) {
+				AddBitMask(newEntry.LAE_MeleeArray, meleeid);
+			}
+		}
 	}
 
 	hLimitArray.PushArray(newEntry, sizeof(newEntry));
@@ -170,16 +194,21 @@ public Action AddLimit_Cmd(int args)
 	LimitArrayEntry newEntry[LimitArrayEntry];
 
 	newEntry[LAE_iLimit] = StringToInt(sTempBuff);
-
 	GetCmdArg(2, sTempBuff, sizeof(sTempBuff));
-
 	newEntry[LAE_iGiveAmmo] = StringToInt(sTempBuff);
 
 	for (int i = 3; i <= args; ++i) {
 		GetCmdArg(i, sTempBuff, sizeof(sTempBuff));
 
 		wepid = WeaponNameToId(sTempBuff);
-		newEntry[LAE_WeaponArray][wepid / 32] |= (1 << (wepid % 32));
+		AddBitMask(newEntry[LAE_WeaponArray], wepid);
+
+		// assume it might be a melee
+		if (wepid == WEPID_NONE) {
+			if (hMeleeWeaponNamesTrie.GetValue(sTempBuff, meleeid)) {
+				AddBitMask(newEntry[LAE_MeleeArray], meleeid);
+			}
+		}
 	}
 
 	hLimitArray.PushArray(newEntry[0], sizeof(newEntry));
@@ -225,90 +254,93 @@ public Action Hook_WeaponCanUse(int client, int weapon)
 	}
 
 	int wepid = IdentifyWeapon(weapon);
+	int is_melee = (wepid == WEPID_MELEE);
+	int meleeid = 0;
+	if (is_melee) {
+		meleeid = IdentifyMeleeWeapon(weapon);
+	}
 	int wep_slot = GetSlotFromWeaponId(wepid);
+
 	int player_weapon = GetPlayerWeaponSlot(client, wep_slot);
 	int player_wepid = IdentifyWeapon(player_weapon);
+	/*int player_meleeid = 0;
+	if (player_wepid == WEPID_MELEE) {
+		player_meleeid = IdentifyMeleeWeapon(player_weapon);
+	}*/
 
 #if SOURCEMOD_V_MINOR > 9
 	LimitArrayEntry arrayEntry;
-#else
-	LimitArrayEntry arrayEntry[LimitArrayEntry];
-#endif
 
 	int iSize = hLimitArray.Length;
 	for (int i = 0; i < iSize; i++) {
-		#if SOURCEMOD_V_MINOR > 9
-			hLimitArray.GetArray(i, arrayEntry, sizeof(arrayEntry));
+		hLimitArray.GetArray(i, arrayEntry, sizeof(arrayEntry));
+		if (is_melee) {
+			int specificMeleeCount = GetMeleeCount(arrayEntry.LAE_MeleeArray);
+			int allMeleeCount = GetWeaponCount(arrayEntry.LAE_WeaponArray);
 
-			if (arrayEntry.LAE_WeaponArray[wepid / 32] & (1 << (wepid % 32))
-				&& GetWeaponCount(arrayEntry.LAE_WeaponArray) >= arrayEntry.LAE_iLimit
-			) {
-				if (!player_wepid || wepid == player_wepid
-					|| !(arrayEntry.LAE_WeaponArray[player_wepid / 32] & (1 << (player_wepid % 32)))
-				) {
-					// Swap melee, np
-					if (player_wepid == WEPID_MELEE && wepid == WEPID_MELEE) {
-						return Plugin_Continue;
-					}
+			int isSpecificMeleeLimited = isWeaponLimited(arrayEntry.LAE_MeleeArray, meleeid);
+			int isAllMeleeLimited = isWeaponLimited(arrayEntry.LAE_WeaponArray, wepid);
 
-					if ((wep_slot == 0 && arrayEntry.LAE_iGiveAmmo == -1) || arrayEntry.LAE_iGiveAmmo != 0) {
-						GiveDefaultAmmo(client);
-					}
+			if (isSpecificMeleeLimited && specificMeleeCount >= arrayEntry.LAE_iLimit) {
+				denyWeapon(wep_slot, arrayEntry, weapon, client);
+				return Plugin_Handled;
+			}
 
-					//g_iWeaponAlreadyGiven - if the weapon is given by another plugin, the player will not press the use key
-					//g_iLastPrintTickCount - sometimes there is a double seal in one frame because the player touches the weapon and presses a use key
-					int iWeaponRef = EntIndexToEntRef(weapon);
-					int iLastTick = GetGameTickCount();
-					if ((g_iWeaponAlreadyGiven[client][weapon] != iWeaponRef || IsButtonPressed(client, IN_USE))
-						&& g_iLastPrintTickCount[client] != iLastTick
-					) {
-						PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry.LAE_iLimit);
-						EmitSoundToClient(client, SOUND_NAME);
-
-						g_iWeaponAlreadyGiven[client][weapon] = iWeaponRef;
-						g_iLastPrintTickCount[client] = iLastTick;
-					}
-
+			if (isAllMeleeLimited && allMeleeCount >= arrayEntry.LAE_iLimit) {
+				// dont deny swapping melees when theres only a limit on global melees
+				if (player_wepid != WEPID_MELEE) {
+					denyWeapon(wep_slot, arrayEntry, weapon, client);
 					return Plugin_Handled;
 				}
 			}
-		#else
-			hLimitArray.GetArray(i, arrayEntry[0], sizeof(arrayEntry));
-
-			if (arrayEntry[LAE_WeaponArray][wepid / 32] & (1 << (wepid % 32))
-				&& GetWeaponCount(arrayEntry[LAE_WeaponArray]) >= arrayEntry[LAE_iLimit]
-			) {
-				if (!player_wepid || wepid == player_wepid
-					|| !(arrayEntry[LAE_WeaponArray][player_wepid / 32] & (1 << (player_wepid % 32)))
-				) {
-					// Swap melee, np
-					if (player_wepid == WEPID_MELEE && wepid == WEPID_MELEE) {
-						return Plugin_Continue;
-					}
-
-					if ((wep_slot == 0 && arrayEntry[LAE_iGiveAmmo] == -1) || arrayEntry[LAE_iGiveAmmo] != 0) {
-						GiveDefaultAmmo(client);
-					}
-
-					//g_iWeaponAlreadyGiven - if the weapon is given by another plugin, the player will not press the use key
-					//g_iLastPrintTickCount - sometimes there is a double seal in one frame because the player touches the weapon and presses a use key
-					int iWeaponRef = EntIndexToEntRef(weapon);
-					int iLastTick = GetGameTickCount();
-					if ((g_iWeaponAlreadyGiven[client][weapon] != iWeaponRef || IsButtonPressed(client, IN_USE))
-						&& g_iLastPrintTickCount[client] != iLastTick
-					) {
-						PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry[LAE_iLimit]);
-						EmitSoundToClient(client, SOUND_NAME);
-
-						g_iWeaponAlreadyGiven[client][weapon] = iWeaponRef;
-						g_iLastPrintTickCount[client] = iLastTick;
-					}
-
+		} else {
+			// is weapon about to be picked up limited and over the limit?
+			if (isWeaponLimited(arrayEntry.LAE_WeaponArray, wepid) && GetWeaponCount(arrayEntry.LAE_WeaponArray) >= arrayEntry.LAE_iLimit) {
+				// is currently held weapon limited?
+				if (!player_wepid || wepid == player_wepid || !isWeaponLimited(arrayEntry.LAE_WeaponArray, player_wepid)) {
+					denyWeapon(wep_slot, arrayEntry, weapon, client);
 					return Plugin_Handled;
 				}
 			}
-		#endif
+		}
 	}
+#else
+	LimitArrayEntry arrayEntry[LimitArrayEntry];
+
+	int iSize = hLimitArray.Length;
+	for (int i = 0; i < iSize; i++) {
+		hLimitArray.GetArray(i, arrayEntry[0], sizeof(arrayEntry));
+		if (is_melee) {
+			int specificMeleeCount = GetMeleeCount(arrayEntry[LAE_MeleeArray]);
+			int allMeleeCount = GetWeaponCount(arrayEntry[LAE_WeaponArray]);
+
+			int isSpecificMeleeLimited = isWeaponLimited(arrayEntry[LAE_MeleeArray], meleeid);
+			int isAllMeleeLimited = isWeaponLimited(arrayEntry[LAE_WeaponArray], wepid);
+
+			if (isSpecificMeleeLimited && specificMeleeCount >= arrayEntry[LAE_iLimit]) {
+				denyWeapon(wep_slot, arrayEntry, weapon, client);
+				return Plugin_Handled;
+			}
+
+			if (isAllMeleeLimited && allMeleeCount >= arrayEntry[LAE_iLimit]) {
+				// dont deny swapping melees when theres only a limit on global melees
+				if (player_wepid != WEPID_MELEE) {
+					denyWeapon(wep_slot, arrayEntry, weapon, client);
+					return Plugin_Handled;
+				}
+			}
+		} else {
+			// is weapon about to be picked up limited and over the limit?
+			if (isWeaponLimited(arrayEntry[LAE_WeaponArray], wepid) && GetWeaponCount(arrayEntry[LAE_WeaponArray]) >= arrayEntry[LAE_iLimit]) {
+				// is currently held weapon limited?
+				if (!player_wepid || wepid == player_wepid || !isWeaponLimited(arrayEntry[LAE_WeaponArray], player_wepid)) {
+					denyWeapon(wep_slot, arrayEntry, weapon, client);
+					return Plugin_Handled;
+				}
+			}
+		}
+	}
+#endif
 
 	return Plugin_Continue;
 }
@@ -357,7 +389,62 @@ public void OnPlayerReplacedBot(Event event, const char[] name, bool dontBroadca
 	}
 }
 
-stock int GetWeaponCount(const int[] mask)
+// Fixing an error when compiling in sourcemod 1.9
+void AddBitMask(int[] iMask, int iWeaponId)
+{
+	iMask[iWeaponId / 32] |= (1 << (iWeaponId % 32));
+}
+
+int isWeaponLimited(const int[] mask, int wepid)
+{
+	return (mask[wepid / 32] & (1 << (wepid % 32)));
+}
+
+#if SOURCEMOD_V_MINOR > 9
+void denyWeapon(int wep_slot, LimitArrayEntry arrayEntry, int weapon, int client)
+{
+	if ((wep_slot == 0 && arrayEntry.LAE_iGiveAmmo == -1) || arrayEntry.LAE_iGiveAmmo != 0) {
+		GiveDefaultAmmo(client);
+	}
+
+	//g_iWeaponAlreadyGiven - if the weapon is given by another plugin, the player will not press the use key
+	//g_iLastPrintTickCount - sometimes there is a double seal in one frame because the player touches the weapon and presses a use key
+	int iWeaponRef = EntIndexToEntRef(weapon);
+	int iLastTick = GetGameTickCount();
+	if ((g_iWeaponAlreadyGiven[client][weapon] != iWeaponRef || IsButtonPressed(client, IN_USE))
+		&& g_iLastPrintTickCount[client] != iLastTick
+	) {
+		PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry.LAE_iLimit);
+		EmitSoundToClient(client, SOUND_NAME);
+
+		g_iWeaponAlreadyGiven[client][weapon] = iWeaponRef;
+		g_iLastPrintTickCount[client] = iLastTick;
+	}
+}
+#else
+void denyWeapon(int wep_slot, LimitArrayEntry arrayEntry[LimitArrayEntry], int weapon, int client)
+{
+	if ((wep_slot == 0 && arrayEntry[LAE_iGiveAmmo] == -1) || arrayEntry[LAE_iGiveAmmo] != 0) {
+		GiveDefaultAmmo(client);
+	}
+
+	//g_iWeaponAlreadyGiven - if the weapon is given by another plugin, the player will not press the use key
+	//g_iLastPrintTickCount - sometimes there is a double seal in one frame because the player touches the weapon and presses a use key
+	int iWeaponRef = EntIndexToEntRef(weapon);
+	int iLastTick = GetGameTickCount();
+	if ((g_iWeaponAlreadyGiven[client][weapon] != iWeaponRef || IsButtonPressed(client, IN_USE))
+		&& g_iLastPrintTickCount[client] != iLastTick
+	) {
+		PrintToChat(client, "\x01[\x05Weapon Limits\x01] This weapon group has reached its max of \x04%d\x01!", arrayEntry[LAE_iLimit]);
+		EmitSoundToClient(client, SOUND_NAME);
+
+		g_iWeaponAlreadyGiven[client][weapon] = iWeaponRef;
+		g_iLastPrintTickCount[client] = iLastTick;
+	}
+}
+#endif
+
+int GetWeaponCount(const int[] mask)
 {
 	bool queryMelee = view_as<bool>(mask[WEPID_MELEE / 32] & (1 << (WEPID_MELEE % 32)));
 
@@ -367,7 +454,7 @@ stock int GetWeaponCount(const int[] mask)
 			for (int j = 0; j < MAX_PLAYER_WEAPON_SLOTS; ++j) {
 				wepid = IdentifyWeapon(GetPlayerWeaponSlot(i, j));
 
-				if (mask[wepid / 32] & (1 << (wepid % 32)) || (j == 1 && queryMelee && bIsIncappedWithMelee[i])) {
+				if (isWeaponLimited(mask, wepid) || (j == 1 && queryMelee && bIsIncappedWithMelee[i])) {
 					count++;
 				}
 			}
@@ -377,7 +464,25 @@ stock int GetWeaponCount(const int[] mask)
 	return count;
 }
 
-stock void GiveDefaultAmmo(int client)
+int GetMeleeCount(const int[] mask)
+{
+	int count, meleeid;
+	for (int i = 1; i <= MaxClients; i++) {
+		if (IsClientInGame(i) && GetClientTeam(i) == TEAM_SURVIVOR && IsPlayerAlive(i)) {
+			meleeid = IdentifyMeleeWeapon(GetPlayerWeaponSlot(i, L4D2WeaponSlot_Secondary));
+			if (meleeid == WEPID_MELEE_NONE)
+				continue;
+
+			if (isWeaponLimited(mask, meleeid) || bIsIncappedWithMelee[i]) {
+				count++;
+			}
+		}
+	}
+
+	return count;
+}
+
+void GiveDefaultAmmo(int client)
 {
 	// NOTE:
 	// Previously the plugin seems to cache an index of one ammo pile in current map, and is supposed to use it here.
@@ -387,6 +492,20 @@ stock void GiveDefaultAmmo(int client)
 	// If your server suffers from this, please try making use of the functions commented below.
 
 	SDKCall(hSDKGiveDefaultAmmo, 0, client);
+}
+
+int IsButtonPressed(int iClient, int iButtons)
+{
+	static int iButtonPressedOffset = -1;
+	if (iButtonPressedOffset == -1) {
+		iButtonPressedOffset = FindDataMapInfo(iClient, "m_afButtonPressed");
+
+		if (iButtonPressedOffset == -1) {
+			ThrowError("Unable to look up an offset of property \"m_afButtonPressed\" (entity #%d)", iClient);
+		}
+	}
+
+	return (GetEntData(iClient, iButtonPressedOffset) & iButtons);
 }
 
 /*stock int FindAmmoSpawn()
@@ -407,20 +526,6 @@ stock int MakeAmmoPile()
 	LogMessage("No ammo pile found, creating one: %d", iAmmoPile);
 	return ammo;
 }*/
-
-int IsButtonPressed(int iClient, int iButtons)
-{
-	static int iButtonPressedOffset = -1;
-	if (iButtonPressedOffset == -1) {
-		iButtonPressedOffset = FindDataMapInfo(iClient, "m_afButtonPressed");
-
-		if (iButtonPressedOffset == -1) {
-			ThrowError("Unable to look up an offset of property \"m_afButtonPressed\" (entity #%d)", iClient);
-		}
-	}
-
-	return (GetEntData(iClient, iButtonPressedOffset) & iButtons);
-}
 
 /* @A1m`:
 When the player touches the weapon, then this code from the plugin is called every frame,
