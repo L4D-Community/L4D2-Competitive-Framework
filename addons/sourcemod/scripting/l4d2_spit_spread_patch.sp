@@ -10,7 +10,7 @@
 #include <sourcescramble>
 #include <collisionhook>
 
-#define PLUGIN_VERSION "1.8"
+#define PLUGIN_VERSION "1.11"
 
 public Plugin myinfo = 
 {
@@ -33,7 +33,7 @@ public Plugin myinfo =
 MemoryBlock g_hAlloc_TraceHeight;
 
 ConVar g_cvSaferoomSpread, g_cvTraceHeight;
-StringMap g_smNoSpreadMaps, g_smNoDetonatable;
+StringMap g_smNoSpreadMaps;
 int g_iSaferoomSpread;
 
 // TerrorNavArea
@@ -71,6 +71,13 @@ methodmap TerrorNavArea {
 int g_iDetonateObj = -1;
 ArrayList g_aDetonatePuddles;
 
+enum 
+{
+	FILTER_DETONATE,
+	FILTER_SPREAD
+}
+StringMap g_smFilterClasses;
+
 public void OnPluginStart()
 {
 	Handle conf = LoadGameConfigFile(GAMEDATA_FILE);
@@ -107,7 +114,7 @@ public void OnPluginStart()
 	if (!hDetour.Enable(Hook_Post, DTR_OnDetonate_Post))
 		SetFailState("Failed to post-detour \""...KEY_DETONATE..."\"");
 	
-	g_smNoDetonatable = new StringMap();
+	g_smFilterClasses = new StringMap();
 	
 	char buffer[64];
 	for( int i = 1;
@@ -115,7 +122,15 @@ public void OnPluginStart()
 		&& GameConfGetKeyValue(conf, buffer, buffer, sizeof(buffer));
 		++i )
 	{
-		g_smNoDetonatable.SetValue(buffer, 0);
+		g_smFilterClasses.SetValue(buffer, FILTER_DETONATE);
+	}
+	
+	for( int i = 1;
+		Format(buffer, sizeof(buffer), "SpreadFilterClass%i", i)
+		&& GameConfGetKeyValue(conf, buffer, buffer, sizeof(buffer));
+		++i )
+	{
+		g_smFilterClasses.SetValue(buffer, FILTER_SPREAD);
 	}
 	
 	delete conf;
@@ -192,7 +207,7 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	if (classname[6] == '_' && strcmp(classname, "insect_swarm") == 0)
+	if (strcmp(classname, "insect_swarm") == 0)
 	{
 		SDKHook(entity, SDKHook_SpawnPost, SDK_OnSpawnPost);
 	}
@@ -216,6 +231,18 @@ Action SDK_OnThink(int entity)
 		g_aDetonatePuddles.Erase(index);
 		if (L4D2Direct_GetInfernoMaxFlames(entity) == 2)
 		{
+			// check if spread forbidden
+			int parent = GetEntPropEnt(entity, Prop_Data, "m_pParent");
+			char cls[64];
+			if (parent != -1 && GetEdictClassname(parent, cls, sizeof(cls)))
+			{
+				if (g_smFilterClasses.GetValue(cls, parent) && parent == FILTER_SPREAD)
+				{
+					SDKUnhook(entity, SDKHook_Think, SDK_OnThink);
+					return Plugin_Continue;
+				}
+			}
+			
 			float vPos[3];
 			GetEntPropVector(entity, Prop_Data, "m_vecAbsOrigin", vPos);
 			
@@ -226,6 +253,10 @@ Action SDK_OnThink(int entity)
 				if (g_iSaferoomSpread == 2 || (g_iSaferoomSpread == 1 && nav.m_flow / L4D2Direct_GetMapMaxFlowDistance() < 0.2))
 				{
 					L4D2Direct_SetInfernoMaxFlames(entity, 10);
+				}
+				else
+				{
+					CreateTimer(0.3, Timer_RemoveInvisibleSpit, EntIndexToEntRef(entity), TIMER_FLAG_NO_MAPCHANGE);
 				}
 			}
 			else
@@ -278,6 +309,7 @@ Action SDK_OnThink(int entity)
 			else
 			{
 				TeleportEntity(entity, vEnd, NULL_VECTOR, NULL_VECTOR);
+				CreateTimer(0.3, Timer_RemoveInvisibleSpit, EntIndexToEntRef(entity), TIMER_FLAG_NO_MAPCHANGE);
 			}
 		}
 		
@@ -286,6 +318,21 @@ Action SDK_OnThink(int entity)
 	
 	SDKUnhook(entity, SDKHook_Think, SDK_OnThink);
 	return Plugin_Continue;
+}
+
+Action Timer_RemoveInvisibleSpit(Handle timer, int entRef)
+{
+	int entity = EntRefToEntIndex(entRef);
+	if (IsValidEdict(entity))
+	{
+		// Big chance that puddles with max 2 flames get the latter flame invisible.
+		if (GetEntProp(entity, Prop_Send, "m_fireCount") == 2)
+		{
+			SetEntProp(entity, Prop_Send, "m_fireCount", 1);
+			L4D2Direct_SetInfernoMaxFlames(entity, 1);
+		}
+	}
+	return Plugin_Stop;
 }
 
 bool TraceRayFilter_NoPlayers(int entity, int contentsMask, any self)
@@ -315,12 +362,12 @@ public Action CH_PassFilter(int touch, int pass, bool &result)
 	
 	if( pass == g_iDetonateObj
 		|| (pass <= MaxClients && !IsPlayerAlive(pass) && GetClientTeam(pass) == 3 && GetEntProp(pass, Prop_Send, "m_zombieClass") == 4)
-		|| (GetEdictClassname(pass, cls, sizeof(cls)) && cls[6] == '_' && strcmp(cls, "insect_swarm") == 0) )
+		|| (GetEdictClassname(pass, cls, sizeof(cls)) && strcmp(cls, "insect_swarm") == 0) )
 	{
 		if (touch > MaxClients)
 		{
 			GetEdictClassname(touch, touch_cls, sizeof(touch_cls));
-			if (!g_smNoDetonatable.GetValue(touch_cls, touch)
+			if ((!g_smFilterClasses.GetValue(touch_cls, touch) || touch != FILTER_DETONATE)
 				&& strncmp(touch_cls, "weapon_", 7) != 0)
 				return Plugin_Continue;
 		}
