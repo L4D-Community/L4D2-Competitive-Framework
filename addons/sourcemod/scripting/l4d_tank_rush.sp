@@ -18,7 +18,8 @@ int
 ConVar
 	cvar_noTankRush,
 	cvar_SpawnEnableSound,
-	cvar_unfreezeSaferoom;
+	cvar_unfreezeSaferoom,
+	cvar_unfreezeAI;
 
 public Plugin myinfo =
 {
@@ -33,6 +34,7 @@ public void OnPluginStart()
 	// ConVars
 	cvar_noTankRush = CreateConVar("l4d_no_tank_rush", "1", "Prevents survivor team from accumulating points whilst the tank is alive", _, true, 0.0, true, 1.0);
 	cvar_unfreezeSaferoom = CreateConVar("l4d_no_tank_rush_unfreeze_saferoom", "0", "Unfreezes Distance if a Survivor makes it to the end saferoom while the Tank is still up.", _, true, 0.0, true, 1.0);
+	cvar_unfreezeAI = CreateConVar("l4d_no_tank_rush_unfreeze_ai", "0", "Unfreeze distance if the Tank goes AI", _, true, 0.0, true, 1.0);
 	cvar_SpawnEnableSound = CreateConVar("l4d_no_tank_rush_spawn_sound", "0", "Turn on the sound when spawning a tank", _, true, 0.0, true, 1.0);
 
 	// ChangeHook
@@ -61,6 +63,7 @@ void PluginEnable()
 		HookEvent("round_start", RoundStart, EventHookMode_PostNoCopy); //no params pls
 		HookEvent("tank_spawn", TankSpawn, EventHookMode_PostNoCopy); //no params pls
 		HookEvent("player_death", PlayerDeath, EventHookMode_Post);
+		HookEvent("player_bot_replace", OnTankGoneAI, EventHookMode_Post);
 
 		if (IsTankActuallyInPlay()) {
 			FreezePoints();
@@ -84,11 +87,25 @@ void PluginDisable()
 		UnhookEvent("round_start", RoundStart, EventHookMode_PostNoCopy); //no params pls
 		UnhookEvent("tank_spawn", TankSpawn, EventHookMode_PostNoCopy); //no params pls
 		UnhookEvent("player_death", PlayerDeath, EventHookMode_Post);
+		UnhookEvent("player_bot_replace", OnTankGoneAI, EventHookMode_Post);
 
 		bHooked = false;
 	}
 
 	UnFreezePoints();
+}
+
+public void OnTankGoneAI(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+{
+	if (!cvar_unfreezeAI.BoolValue) {
+		return;
+	}
+
+	int iNewTank = GetClientOfUserId(hEvent.GetInt("bot"));
+
+	if (GetClientTeam(iNewTank) == L4D2Team_Infected && GetEntProp(iNewTank, Prop_Send, "m_zombieClass") == L4D2Infected_Tank) {
+		UnFreezePoints();
+	}
 }
 
 public void NoTankRushChange(ConVar convar, const char[] oldValue, const char[] newValue)
