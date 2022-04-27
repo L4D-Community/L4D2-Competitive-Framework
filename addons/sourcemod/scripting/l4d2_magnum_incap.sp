@@ -10,7 +10,7 @@
 #define ENTITY_MAX_NAME_LENGTH 64
 #define DEBUG 0
 
-ConVar g_hReplaceMagnum = null;
+//ConVar g_hReplaceMagnum = null;
 ConVar g_hReplaceMagnumNumPistols = null;
 int g_hasDeagle[MAXPLAYERS + 1];
 
@@ -25,7 +25,7 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	g_hReplaceMagnum = CreateConVar("l4d2_replace_magnum_incap", "1.0", "Replace magnum with pistol when incapacitated.");
+	//g_hReplaceMagnum = CreateConVar("l4d2_replace_magnum_incap", "1.0", "Replace magnum with pistol when incapacitated.");
 	g_hReplaceMagnumNumPistols = CreateConVar("l4d2_replace_magnum_num_pistols", "1.0", "Replace magnum with single (1) or double (2) pistols.");
 
 	HookEvent("player_incapacitated", PlayerIncap_Event);
