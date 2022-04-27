@@ -9,9 +9,9 @@ This is mainly a project that focuses on reworking the very outdated platform fo
 It will contain both much needed fixes that are simply unable to be implemented on the older sourcemod versions as well as incompatible and outdated files being updated to working versions.
 
 > **Included Matchmodes:**
-* **Zonemod 2.5.3**
-* **Zonemod Hunters 2.5**
-* **Zonemod Retro 2.5**
+* **Zonemod 2.6.2**
+* **Zonemod Hunters**
+* **Zonemod Retro**
 * **NextMod 1.0.5**
 * **Promod Elite 1.1**
 * **Acemod RV 1**
@@ -37,6 +37,7 @@ It will contain both much needed fixes that are simply unable to be implemented 
 * AlliedModders LLC.
 * "Confogl Team"
 * Dr!fter
+* Forgetest
 * Jahze
 * Lux
 * Prodigysim
@@ -65,7 +66,6 @@ It will contain both much needed fixes that are simply unable to be implemented 
 * Dr. Gregory House
 * Epilimic
 * Estoopi
-* Forgetest
 * Griffin
 * Harry Potter
 * Jacob
