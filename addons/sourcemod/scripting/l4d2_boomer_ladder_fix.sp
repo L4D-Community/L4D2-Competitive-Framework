@@ -3,53 +3,51 @@
 
 #include <sourcemod>
 #include <sdktools>
-
 #include <sourcescramble>
-
-public Plugin myinfo =
-{
-    name = "[L4D2] Boomer Ladder Fix",
-    author = "BHaType"
-};
 
 MemoryPatch gLadderPatch;
 
+public Plugin myinfo =
+{
+	name = "[L4D2] Boomer Ladder Fix",
+	author = "BHaType",
+	description = "Fixes boomer teleport whenever hes close enough to ladder",
+	version = "1.1",
+	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
+};
+
 public void OnPluginStart()
 {
-	GameData data = new GameData("l4d2_boomer_ladder_fix");
-	
-	gLadderPatch = MemoryPatch.CreateFromConf(data, "CTerrorGameMovement::CheckForLadders");
-	
-	delete data;
-	
+	Handle hConf = LoadGameConfigFile("l4d2_boomer_ladder_fix");
+
+	gLadderPatch = MemoryPatch.CreateFromConf(hConf, "CTerrorGameMovement::CheckForLadders");
+
+	delete hConf;
+
 	Patch(true);
-	
-	RegAdminCmd("sm_boomer_ladder_fix_toggle", sm_boomer_ladder_fix_toggle, ADMFLAG_ROOT);
+
+	RegAdminCmd("sm_boomer_ladder_fix_toggle", Cmd_BoomerPatchToggle, ADMFLAG_ROOT);
 }
 
-public Action sm_boomer_ladder_fix_toggle( int client, int args )
+public Action Cmd_BoomerPatchToggle(int iClient, int iArgs)
 {
 	Patch(3);
 	return Plugin_Handled;
 }
 
-void Patch( int state )
+void Patch(int iState)
 {
-	static bool set;
-	
-	if ( state == 3 )
-	{
-		state = !set;
+	static bool bSet;
+
+	if (iState == 3) {
+		iState = !bSet;
 	}
-	
-	if ( set && !state )
-	{
+
+	if (bSet && !iState) {
 		gLadderPatch.Disable();
-		set = false;
-	}
-	else if ( !set && state )
-	{
+		bSet = false;
+	} else if (!bSet && iState) {
 		gLadderPatch.Enable();
-		set = true;
+		bSet = true;
 	}
 }

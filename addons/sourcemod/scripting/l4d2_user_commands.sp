@@ -66,13 +66,9 @@ DynamicHook g_hProcessCommand;
 const float g_flMaxEntityEulerAngle = 360000.0;
 const float g_flMaxEntityPosCoord = 16384.0;
 
-enum struct CCommandContext
-{
-	float detection;
-	int ignored_commands;
-}
+float fDetection[MAXPLAYERS + 1];
+int iIgnoredCommands[MAXPLAYERS + 1];
 
-CCommandContext gCommandContext[MAXPLAYERS + 1];
 int m_nTickBase;
 
 bool g_bSMAC;
@@ -91,7 +87,7 @@ public void OnPluginStart()
 
 	g_iNull = sm_usercmd_null_invalid_commands.IntValue;
 
-	GameData data = new GameData("l4d2_user_commands");
+	Handle data = LoadGameConfigFile("l4d2_user_commands");
 
 	g_hProcessCommand = DynamicHook.FromConf(data, "ProcessUsercmds");
 
@@ -115,14 +111,14 @@ public void OnClientPutInServer (int client)
 {
 	if ( !IsFakeClient(client) )
 	{
-		gCommandContext[client].ignored_commands = RoundToCeil(( 1.0 / GetTickInterval() ) * 2.5);
+		iIgnoredCommands[client] = RoundToCeil(( 1.0 / GetTickInterval() ) * 2.5);
 		g_hProcessCommand.HookEntity(Hook_Pre, client, ProcessUsercmds);
 	}
 }
 
 public MRESReturn ProcessUsercmds (int client, DHookParam params)
 {
-	if ( gCommandContext[client].ignored_commands-- > 0 )
+	if ( iIgnoredCommands[client]-- > 0 )
 		return MRES_Ignored;
 
 	//int numcmds = params.Get(2);
@@ -150,9 +146,9 @@ public MRESReturn ProcessUsercmds (int client, DHookParam params)
 				command.Set(buttons, 0);
 			}
 
-			if ( GetEngineTime() - gCommandContext[client].detection >= 5.0 )
+			if ( GetEngineTime() - fDetection[client] >= 5.0 )
 			{
-				gCommandContext[client].detection = GetEngineTime();
+				fDetection[client] = GetEngineTime();
 
 				if ( !g_bSMAC )
 				{
