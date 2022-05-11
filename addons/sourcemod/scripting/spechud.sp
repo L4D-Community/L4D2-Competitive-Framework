@@ -205,14 +205,38 @@ void FillServerNamer()
 	}
 	else if (hServerNamer != convar)
 	{
-		hServerNamer.RemoveChangeHook(ServerCvarChanged);
+		ConVarHookToggle(false);
 		hServerNamer = convar;
 	}
 
-	hServerNamer.AddChangeHook(ServerCvarChanged);
+	ConVarHookToggle(true);
 	hServerNamer.GetString(sHostname, sizeof(sHostname));
+}
 
-	delete convar;
+// @A1m`:
+// Fix server crash with cause alarm clock when changing hostname cvar.
+// Apparently sourcemod creates a lot of hooks when calling function FillServerNamer.
+// Note: This always happened when the servernamer plugin tried to change the hostname.
+void ConVarHookToggle(bool bHook)
+{
+	static bool bIsHooked = false;
+
+	if (bHook)
+	{
+		if (bIsHooked)
+		{
+			hServerNamer.AddChangeHook(ServerCvarChanged);
+			bIsHooked = true;
+		}
+	}
+	else
+	{
+		if (!bIsHooked)
+		{
+			hServerNamer.RemoveChangeHook(ServerCvarChanged);
+			bIsHooked = false;
+		}
+	}
 }
 
 void FillReadyConfig()
