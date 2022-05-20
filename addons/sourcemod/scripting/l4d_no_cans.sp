@@ -39,26 +39,21 @@ public void OnPluginStart()
 
 public void Event_RoundStart(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	CreateTimer(1.0, RoundStartNoCans, _, TIMER_FLAG_NO_MAPCHANGE);
-	CreateTimer(10.0, RoundStartNoCans, _, TIMER_FLAG_NO_MAPCHANGE); //some canisters will spawn much later
+	CreateTimer(1.0, Timer_RoundStartDelay, _, TIMER_FLAG_NO_MAPCHANGE);
+	// Some canisters will spawn much later. For example a map c2m1_highway
+	CreateTimer(10.0, Timer_RoundStartDelay, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
-public Action RoundStartNoCans(Handle hTimer)
+public Action Timer_RoundStartDelay(Handle hTimer)
 {
 	int iEntity = -1;
 
 	while ((iEntity = FindEntityByClassname(iEntity, "prop_physics")) != -1) {
-		if (!IsValidEdict(iEntity)) {
+		if (!IsValidEdict(iEntity) || !IsCan(iEntity)) {
 			continue;
 		}
 
-		if (IsCan(iEntity)) {
-			#if SOURCEMOD_V_MINOR > 8
-				RemoveEntity(iEntity);
-			#else
-				AcceptEntityInput(iEntity, "Kill");
-			#endif
-		}
+		RemoveEntity(iEntity);
 	}
 
 	return Plugin_Stop;
