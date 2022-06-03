@@ -9,12 +9,12 @@ This is mainly a project that focuses on reworking the very outdated platform fo
 It will contain both much needed fixes that are simply unable to be implemented on the older sourcemod versions as well as incompatible and outdated files being updated to working versions.
 
 > **Included Matchmodes:**
-* **Zonemod 2.6.2**
+* **Zonemod 2.6.6**
 * **Zonemod Hunters**
 * **Zonemod Retro**
 * **NextMod 1.0.5**
 * **Promod Elite 1.1**
-* **Acemod RV 1**
+* **Acemod RV 1.2**
 * **Equilibrium 3.0c**
 * **Apex 1.1.2**
 
