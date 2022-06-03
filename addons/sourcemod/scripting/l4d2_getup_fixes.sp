@@ -45,7 +45,9 @@
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
-#include <left4dhooks>
+#define LEFT4FRAMEWORK_INCLUDE 1
+#define L4D2_DIRECT_INCLUDE 1
+#include <left4framework>
 #include <godframecontrol>
 
 #define PLUGIN_VERSION "4.5"
@@ -348,7 +350,7 @@ void Event_ChargerKilled(Event event, const char[] name, bool dontBroadcast)
 				int attacker = GetClientOfUserId(event.GetInt("attacker"));
 				if (attacker && victim == attacker)
 				{
-					if (!L4D_IsPlayerIncapacitated(victim))
+					if (GetEntProp(client, Prop_Send, "m_isIncapacitated", 1) < 1)
 					{
 						// No self-clear get-up
 						hAnim.SetFlag(AnimState_GroundSlammed, false);
