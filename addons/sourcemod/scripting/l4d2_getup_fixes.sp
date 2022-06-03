@@ -20,7 +20,7 @@
  *
  *    Jockey:
  *      1) No get-up if forced off by any other capper.					(Event_JockeyRideEnd)
- *      2) Bowling get-up keeps playing during ride.					(Event_JockeyRide)
+ *      2) Bowling/Wallslam get-up keeps playing during ride.			(Event_JockeyRide)
  *    
  *    Hunter:
  *      1) Double get-up when pounce on charger victims.				(Event_ChargerPummelStart Event_ChargerKilled)
@@ -30,6 +30,8 @@
  *    Charger:
  *      1) Prevent get-up for self-clears.								(Event_ChargerKilled)
  *      2) Fix no godframe for long get-up.								(Event_ChargerKilled)
+ *      3) Punch/Charger get-up keeps playing during carry.				(Event_ChargerCarryStart)
+ *      4) Fix possible slammed get-up not playing on instant slam.		(SDK_OnTakeDamage)
  *    
  *    Tank:
  *      1) Double get-up if punch/rock on chargers with victims to die.	(OnPlayerHit_Post OnKnockedDown_Post)
@@ -50,7 +52,7 @@
 #include <left4framework>
 #include <godframecontrol>
 
-#define PLUGIN_VERSION "4.5"
+#define PLUGIN_VERSION "4.6"
 
 public Plugin myinfo = 
 {
@@ -107,6 +109,9 @@ bool
 int
 	g_iChargeVictim[MAXPLAYERS+1] = {-1, ...},
 	g_iChargeAttacker[MAXPLAYERS+1] = {-1, ...};
+
+float 
+	g_fLastChargedEndTime[MAXPLAYERS+1];
 
 ConVar 
 	g_hChargeDuration,
@@ -165,6 +170,7 @@ public void OnPluginStart()
 	HookEvent("lunge_pounce", Event_LungePounce);
 	HookEvent("jockey_ride", Event_JockeyRide);
 	HookEvent("jockey_ride_end", Event_JockeyRideEnd);
+	HookEvent("charger_carry_start", Event_ChargerCarryStart);
 	HookEvent("charger_pummel_start", Event_ChargerPummelStart);
 	HookEvent("charger_killed", Event_ChargerKilled);
 	
@@ -181,6 +187,7 @@ public void OnClientPutInServer(int client)
 {
 	g_iChargeVictim[client] = -1;
 	g_iChargeAttacker[client] = -1;
+	g_fLastChargedEndTime[client] = 0.0;
 		
 	SDKHook(client, SDKHook_OnTakeDamage, SDK_OnTakeDamage);
 }
@@ -191,6 +198,7 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 	{
 		g_iChargeVictim[i] = -1;
 		g_iChargeAttacker[i] = -1;
+		g_fLastChargedEndTime[i] = 0.0;
 	}
 }
 
@@ -303,7 +311,9 @@ void Event_JockeyRide(Event event, const char[] name, bool dontBroadcast)
 	if (client)
 	{
 		// Fix get-up keeps playing
-		AnimState(client).SetFlag(AnimState_Charged, false);
+		AnimState hAnim = AnimState(client);
+		hAnim.SetFlag(AnimState_Charged, false);
+		hAnim.SetFlag(AnimState_WallSlammed, false);
 	}
 }
 
@@ -321,15 +331,17 @@ void Event_JockeyRideEnd(Event event, const char[] name, bool dontBroadcast)
 /**
  * Charger
  */
-// Pounces on survivors being carried will invoke this instantly.
-void Event_ChargerPummelStart(Event event, const char[] name, bool dontBroadcast)
+void Event_ChargerCarryStart(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(event.GetInt("userid"));
 	int victim = GetClientOfUserId(event.GetInt("victim"));
-	if (client && victim)
+	if (victim)
 	{
-		g_iChargeVictim[client] = victim;
-		g_iChargeAttacker[victim] = client;
+		AnimState hAnim = AnimState(victim);
+		hAnim.SetFlag(AnimState_Charged, false);
+		hAnim.SetFlag(AnimState_TankPunched, false);
+		hAnim.SetFlag(AnimState_Pounded, false);
+		hAnim.SetFlag(AnimState_GroundSlammed, false);
+		hAnim.SetFlag(AnimState_WallSlammed, false);
 	}
 }
 
@@ -386,24 +398,23 @@ void Event_ChargerKilled(Event event, const char[] name, bool dontBroadcast)
 				hAnim.SetFlag(AnimState_WallSlammed, false);
 			}
 			
-			// We're creating timers only for later punch/rock hits
-			// because somehow "m_flCycle" doesn't serve reliably.
-			CreateTimer(0.1, Timer_ClearChargeInfo, userid, TIMER_FLAG_NO_MAPCHANGE);
+			g_iChargeVictim[client] = -1;
+			g_iChargeAttacker[victim] = -1;
+			g_fLastChargedEndTime[victim] = GetGameTime();
 		}
 	}
 }
 
-Action Timer_ClearChargeInfo(Handle timer, int userid)
+// Pounces on survivors being carried will invoke this instantly.
+void Event_ChargerPummelStart(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(userid);
-	if (client 
-		&& g_iChargeVictim[client] != -1) // In case team swaps
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	int victim = GetClientOfUserId(event.GetInt("victim"));
+	if (client && victim)
 	{
-		g_iChargeAttacker[g_iChargeVictim[client]] = -1;
-		g_iChargeVictim[client] = -1;
+		g_iChargeVictim[client] = victim;
+		g_iChargeAttacker[victim] = client;
 	}
-	
-	return Plugin_Stop;
 }
 
 Action SDK_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3])
@@ -422,6 +433,13 @@ Action SDK_OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage
 			{
 				g_iChargeVictim[attacker] = victim;
 				g_iChargeAttacker[victim] = attacker;
+				
+				AnimState hAnim = AnimState(victim);
+				hAnim.SetFlag(AnimState_Pounded, false);
+				hAnim.SetFlag(AnimState_Charged, false);
+				hAnim.SetFlag(AnimState_TankPunched, false);
+				hAnim.SetFlag(AnimState_Pounced, false);
+				hAnim.ResetMainActivity();
 			}
 		}
 	}
@@ -448,7 +466,7 @@ public void L4D_TankClaw_OnPlayerHit_Post(int tank, int claw, int player)
 		
 		// Fix double get-up when punching charger with victim to die
 		// Keep in mind that do not mess up with later attacks to the survivor
-		if (g_iChargeAttacker[player] != -1)
+		if (GetGameTime() - g_fLastChargedEndTime[player] <= 0.1)
 		{
 			hAnim.SetFlag(AnimState_TankPunched, false);
 		}
@@ -486,7 +504,7 @@ public void L4D_OnKnockedDown_Post(int client, int reason)
 		
 		// Fix double get-up when punching charger with victim to die
 		// Keep in mind that do not mess up with later attacks to the survivor
-		if (g_iChargeAttacker[client] != -1)
+		if (GetGameTime() - g_fLastChargedEndTime[client] <= 0.1)
 		{
 			hAnim.SetFlag(AnimState_TankPunched, false);
 		}
