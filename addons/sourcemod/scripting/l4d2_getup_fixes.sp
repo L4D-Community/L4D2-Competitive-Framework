@@ -82,15 +82,15 @@ methodmap AnimState
 		return view_as<AnimState>(ptr);
 	}
 	public void ResetMainActivity() { SDKCall(g_hSDKCall_ResetMainActivity, this); }
-	public bool GetFlag(AnimStateFlag flag) {
+	public bool GetFlag(int flag) {
 		return view_as<bool>(LoadFromAddress(view_as<Address>(this) + view_as<Address>(m_bCharged) + view_as<Address>(flag), NumberType_Int8));
 	}
-	public void SetFlag(AnimStateFlag flag, bool val) {
+	public void SetFlag(int flag, bool val) {
 		StoreToAddress(view_as<Address>(this) + view_as<Address>(m_bCharged) + view_as<Address>(flag), view_as<int>(val), NumberType_Int8);
 	}
 }
 
-enum AnimStateFlag // start from m_bCharged
+enum /*AnimStateFlag*/ // start from m_bCharged
 {
 	AnimState_Charged			= 0, // aka multi-charged
 	AnimState_WallSlammed		= 2,
