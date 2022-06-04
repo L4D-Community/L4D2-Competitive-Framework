@@ -30,8 +30,9 @@
 #undef REQUIRE_PLUGIN
 #include <readyup>
 
-#define MAX_STEAMID_LENGTH 64
-#define TEAM_INFECTED 3
+#define MAX_STEAMID_LENGTH	64
+#define TEAM_INFECTED		3
+#define TEAM_SPECTATORS		1
 
 bool
 	g_bReadyUpIsAvailable = false,
@@ -53,7 +54,7 @@ public Plugin myinfo =
 	name = "L4D2 Auto-pause",
 	author = "Darkid, Griffin, A1m`",
 	description = "When a player disconnects due to crash, automatically pause the game. When they rejoin, give them a correct spawn timer.",
-	version = "2.1",
+	version = "2.2",
 	url = "https://github.com/L4D-Community/L4D2-Competitive-Framework"
 }
 
@@ -71,10 +72,7 @@ public void OnPluginStart()
 	HookEvent("round_end", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("player_team", Event_PlayerTeam, EventHookMode_Post);
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
-}
 
-public void OnAllPluginsLoaded()
-{
 	g_bReadyUpIsAvailable = LibraryExists("readyup");
 }
 
@@ -157,9 +155,9 @@ public Action Event_PlayerDisconnect(Event hEvent, const char[] sEventName, bool
 		return Plugin_Continue;
 	}
 
-	// If the client has not loaded yet
+	// If the client has not loaded yet or does not have a team or is from the spectator team
 	int iClient = GetClientOfUserId(hEvent.GetInt("userid"));
-	if (iClient < 1) {
+	if (iClient < 1 || !IsClientInGame(iClient) || GetClientTeam(iClient) <= TEAM_SPECTATORS) {
 		return Plugin_Continue;
 	}
 
