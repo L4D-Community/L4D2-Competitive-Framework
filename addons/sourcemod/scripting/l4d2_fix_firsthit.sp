@@ -3,6 +3,7 @@
 
 #include <sourcemod>
 #include <sdktools_gamerules>
+#define LEFT4FRAMEWORK_INCLUDE 1
 #include <left4framework>
 
 #define PLUGIN_VERSION "2.1"
